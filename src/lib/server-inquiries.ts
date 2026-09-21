@@ -55,7 +55,7 @@ function mapRowToInquiry(row: any): Inquiry {
     visitDate: visitDateStr,
     slot: row.slot || "Morning (10:00 AM)",
     cabPickup: Boolean(row.cab_pickup),
-    pickupLocation: row.pickup_location || "Self Drive",
+    pickupLocation: row.pickup_location || "On Site",
     message: row.message || undefined,
     status: row.status || "New",
     createdAt: createdAtStr,

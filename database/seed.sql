@@ -31,9 +31,9 @@ ON DUPLICATE KEY UPDATE
 -- ---------------------------------------------------------
 INSERT INTO `inquiries` (`id`, `name`, `phone`, `email`, `plot_preference`, `visit_date`, `slot`, `cab_pickup`, `pickup_location`, `message`, `status`, `created_at`)
 VALUES
-  ('GG-2026-1042', 'Rajeshwar Mehrotra', '9839012450', 'r.mehrotra@lucknowtextiles.in', '2000 sq ft (Corner East Facing)', '2026-09-24', 'Morning (10:00 AM)', 1, 'Amausi Airport (CCSIA)', 'Looking for immediate registration. Want corner plot facing green belt.', 'Visit Scheduled', '2026-09-21 09:30:00'),
-  ('GG-2026-1041', 'Dr. Ananya Srivastava', '9415087321', 'dr.ananya@apollomedics.org', '1500 sq ft', '2026-09-22', 'Evening Sunset (4:30 PM)', 0, 'Self Drive', 'Interested in building a 2-storey doctor residence. Verify SBI bank loan approval.', 'Contacted', '2026-09-20 17:15:00'),
-  ('GG-2026-1039', 'Col. Pradeep Verma (Retd.)', '9198765432', 'pradeep.verma1968@gmail.com', '1000 sq ft', '2026-09-25', 'Morning (10:00 AM)', 1, 'Amausi Metro Station', 'Retirement home plot. Preferred near gated entrance security.', 'New', '2026-09-20 11:00:00')
+  ('GG-2026-1042', 'Rajeshwar Mehrotra', '9839012450', 'r.mehrotra@lucknowtextiles.in', '2000 sq ft (Corner East Facing)', '2026-09-24', 'Morning (10:00 AM)', 0, 'On Site', 'Looking for immediate registration. Want corner plot facing green belt.', 'Visit Scheduled', '2026-09-21 09:30:00'),
+  ('GG-2026-1041', 'Dr. Ananya Srivastava', '9415087321', 'dr.ananya@apollomedics.org', '1500 sq ft', '2026-09-22', 'Evening Sunset (4:30 PM)', 0, 'On Site', 'Interested in building a 2-storey doctor residence. Verify SBI bank loan approval.', 'Contacted', '2026-09-20 17:15:00'),
+  ('GG-2026-1039', 'Col. Pradeep Verma (Retd.)', '9198765432', 'pradeep.verma1968@gmail.com', '1000 sq ft', '2026-09-25', 'Morning (10:00 AM)', 0, 'On Site', 'Retirement home plot. Preferred near gated entrance security.', 'New', '2026-09-20 11:00:00')
 ON DUPLICATE KEY UPDATE
   `status` = VALUES(`status`);
 

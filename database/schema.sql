@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `inquiries` (
   `visit_date` DATE DEFAULT NULL,
   `slot` VARCHAR(50) NOT NULL DEFAULT 'Morning (10:00 AM)',
   `cab_pickup` TINYINT(1) NOT NULL DEFAULT 0,
-  `pickup_location` VARCHAR(150) NOT NULL DEFAULT 'Self Drive',
+  `pickup_location` VARCHAR(150) NOT NULL DEFAULT 'On Site',
   `message` TEXT DEFAULT NULL,
   `status` ENUM('New', 'Contacted', 'Visit Scheduled', 'Site Visit Done', 'Booked') NOT NULL DEFAULT 'New',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

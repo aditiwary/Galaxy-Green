@@ -1,10 +1,12 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Galaxy Green — Developer & Agent Guidelines
+
+## Project Overview
+Galaxy Green (Sai Suraksha Nagar, Madhurawada, Visakhapatnam) is a luxury plotted development web portal and interactive booking platform built with TanStack Start, React 19, Tailwind CSS, and MySQL.
+
+## Key Rules & Guidelines
+1. **Database Source of Truth**: All plots, lead inquiries, and site configuration are dynamically managed in MySQL (`galaxy_green` database).
+2. **Security Standards**:
+   - Admin authentication uses secure server-side bcrypt hashing (`$2b$10$...`).
+   - Rate limiting and honeypot field checks are enforced on public lead generation forms.
+   - Admin routes require valid bearer tokens or authenticated sessions.
+3. **No Third-Party Platform Locking**: Keep codebase modular, independent, and standard.

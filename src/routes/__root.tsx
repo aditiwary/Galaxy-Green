@@ -10,7 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportAppError } from "../lib/error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -39,7 +39,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportAppError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -223,10 +223,10 @@ const faqSchema = {
     },
     {
       "@type": "Question",
-      name: "How can I book a site visit with free cab pickup?",
+      name: "How can I schedule a personal site visit to Galaxy Green?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "You can book a complimentary VIP AC cab pickup and drop directly on our website or by calling our hotline at +91 90444 12642. Our driver will pick you up from anywhere in Lucknow.",
+        text: "You can schedule a personalized site tour directly on our website or by calling our sales office at +91 90444 12642. Our team is available 7 days a week from 9:00 AM to 6:30 PM to walk you through available plots and legal documentation.",
       },
     },
   ],
@@ -244,7 +244,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Buy premium freehold residential plots at Galaxy Green Sai Suraksha Nagar, Amausi, Lucknow (near CCS International Airport). Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, bank loans available. Book free VIP site visit cab now!",
+          "Buy premium freehold residential plots at Galaxy Green Sai Suraksha Nagar, Amausi, Lucknow (near CCS International Airport). Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, bank loans available. Book your free site visit tour today!",
       },
       {
         name: "keywords",
@@ -270,7 +270,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & complimentary VIP site visit pickup.",
+          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & verified clear land titles.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://galaxygreenlucknow.com/" },
@@ -298,7 +298,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:description",
         content:
-          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & complimentary VIP cab pickup.",
+          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & instant legal mutation.",
       },
       {
         name: "twitter:image",

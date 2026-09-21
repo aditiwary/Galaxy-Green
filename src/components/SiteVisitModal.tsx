@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
   Clock,
-  Car,
   CheckCircle2,
   MessageCircle,
   Phone,
@@ -53,8 +52,6 @@ export function SiteVisitModal({
     return d.toISOString().slice(0, 10);
   });
   const [slot, setSlot] = useState("Morning (10:00 AM)");
-  const [cabPickup, setCabPickup] = useState(true);
-  const [pickupLocation, setPickupLocation] = useState("Amausi Airport (CCSIA)");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -79,8 +76,8 @@ export function SiteVisitModal({
         plotPreference,
         visitDate,
         slot,
-        cabPickup,
-        pickupLocation: cabPickup ? pickupLocation : "Self Drive",
+        cabPickup: false,
+        pickupLocation: "On Site",
         message: message.trim(),
       });
 
@@ -104,9 +101,6 @@ export function SiteVisitModal({
       `Mobile: ${confirmedBooking.phone}`,
       `Plot Preference: ${confirmedBooking.plotPreference}`,
       `Date & Slot: ${confirmedBooking.visitDate} · ${confirmedBooking.slot}`,
-      confirmedBooking.cabPickup
-        ? `VIP Cab Pickup: Yes (${confirmedBooking.pickupLocation})`
-        : `Mode: Self Drive`,
       confirmedBooking.message ? `Notes: ${confirmedBooking.message}` : "",
     ]
       .filter(Boolean)
@@ -226,48 +220,6 @@ export function SiteVisitModal({
                 </select>
               </div>
 
-              {/* VIP Cab Pickup Toggle */}
-              <div className="bg-surface/90 border border-primary/30 p-3.5 rounded-md space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Car className="size-4 text-primary" />
-                    <div>
-                      <strong className="text-xs font-semibold text-foreground uppercase tracking-wide block">
-                        Complimentary VIP Cab Pickup
-                      </strong>
-                      <span className="text-[10px] text-muted-foreground">
-                        Our executive car will pick you up & drop you safely back.
-                      </span>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={cabPickup}
-                    onChange={(e) => setCabPickup(e.target.checked)}
-                    className="size-4 accent-emerald-500 cursor-pointer"
-                  />
-                </div>
-
-                {cabPickup && (
-                  <div className="pt-2 border-t border-border/50">
-                    <Label className="text-[10px] uppercase font-mono text-muted-foreground block mb-1">
-                      Select Pickup Point
-                    </Label>
-                    <select
-                      value={pickupLocation}
-                      onChange={(e) => setPickupLocation(e.target.value)}
-                      className="h-9 w-full px-2.5 text-xs bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
-                    >
-                      <option>Amausi Airport (CCSIA Lucknow Terminal)</option>
-                      <option>Amausi Metro Station</option>
-                      <option>Transport Nagar Metro Station</option>
-                      <option>Charbagh Railway Station</option>
-                      <option>Alambagh Bus Terminal</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-
               {error && (
                 <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
                   {error}
@@ -279,7 +231,7 @@ export function SiteVisitModal({
                 disabled={submitting}
                 className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
               >
-                {submitting ? "Confirming Visit..." : "Schedule VIP Site Visit"} <ArrowRight className="size-3.5 ml-2" />
+                {submitting ? "Confirming Visit..." : "Schedule Site Tour"} <ArrowRight className="size-3.5 ml-2" />
               </Button>
             </form>
           </>
@@ -298,7 +250,7 @@ export function SiteVisitModal({
                 Site Visit Confirmed!
               </h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
-                Thank you, <strong>{confirmedBooking?.name}</strong>. Our project coordinator will contact you at +91 {confirmedBooking?.phone} to finalize your pickup.
+                Thank you, <strong>{confirmedBooking?.name}</strong>. Our project coordinator will contact you at +91 {confirmedBooking?.phone} to confirm your scheduled site visit.
               </p>
             </div>
 
@@ -310,10 +262,6 @@ export function SiteVisitModal({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Plot Preference:</span>
                 <span className="text-primary font-semibold">{confirmedBooking?.plotPreference}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Cab Pickup:</span>
-                <span className="text-accent font-semibold">{confirmedBooking?.pickupLocation}</span>
               </div>
             </div>
 

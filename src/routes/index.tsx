@@ -81,7 +81,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Buy premium freehold residential plots at Galaxy Green Sai Suraksha Nagar, Amausi, Lucknow (near CCS International Airport). Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, bank loans available. Book free VIP site visit cab now!",
+          "Buy premium freehold residential plots at Galaxy Green Sai Suraksha Nagar, Amausi, Lucknow (near CCS International Airport). Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, bank loans available. Book your free site visit tour today!",
       },
       {
         name: "keywords",
@@ -97,7 +97,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & complimentary VIP site visit pickup.",
+          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & verified clear land titles.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://galaxygreenlucknow.com/" },
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:description",
         content:
-          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & complimentary VIP cab pickup.",
+          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & instant legal mutation.",
       },
       {
         name: "twitter:image",
@@ -195,7 +195,7 @@ function Index() {
         message: contactMessage.trim(),
         slot: "Morning (10:00 AM)",
         cabPickup: false,
-        pickupLocation: "Self Drive",
+        pickupLocation: "On Site",
       });
 
       toast.success(`Inquiry Recorded! Reference ID: ${createdLead.id}`);
@@ -717,7 +717,7 @@ function Index() {
                   }}
                   className="h-11 px-5 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Book Free Pickup Tour <Car className="size-3.5 ml-2" />
+                  Schedule Site Tour <Calendar className="size-3.5 ml-2" />
                 </Button>
               </div>
             </div>
@@ -1036,10 +1036,10 @@ function Index() {
 
               <AccordionItem value="item-6" className="border-b-0 py-2">
                 <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
-                  How can I book a free site visit with complimentary VIP cab pickup?
+                  How can I schedule a personal site visit to Galaxy Green?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  We provide complimentary door-to-door AC cab pickup and drop anywhere in Lucknow for prospective buyers and families. Simply click the "Book Free Site Visit" button, choose your preferred date and time, and our concierge driver will be dispatched to your doorstep. You can also call us directly at <a href="tel:+919044412642" className="text-primary font-semibold underline">+91 90444 12642</a>.
+                  You can schedule a personalized site tour directly on our website or by contacting our project sales desk at <a href="tel:+919044412642" className="text-primary font-semibold underline">+91 90444 12642</a>. Our site coordinators are available daily from 9:00 AM to 6:30 PM to guide you through the property, inspect plot demarcation stones, and verify registry paperwork on-site.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -1057,7 +1057,7 @@ function Index() {
                 Arrange Your Personal Site Tour
               </h2>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Connect directly with the management team. Submit your requirement below to receive verified layout sheets, schedule a free cab pickup, or discuss custom plot boundaries.
+                Connect directly with the management team. Submit your requirement below to receive verified layout sheets, schedule a personalized site visit, or discuss custom plot boundaries.
               </p>
 
               <div className="p-6 rounded-lg bg-card border border-primary/40 shadow-glow space-y-4">

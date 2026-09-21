@@ -16,7 +16,6 @@ import {
   Phone,
   MessageCircle,
   Calendar,
-  Car,
   User,
   CheckCircle2,
   RefreshCw,
@@ -497,11 +496,6 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                             <span className="text-muted-foreground text-[10px] block uppercase">Visit Schedule</span>
                             <span>{lead.visitDate || "Not chosen"} ({lead.slot})</span>
                           </div>
-                          {lead.cabPickup && (
-                            <div className="col-span-full flex items-center gap-1.5 text-accent text-[11px] bg-accent/10 p-1.5 rounded">
-                              <Car className="size-3.5" /> VIP Pickup from: <strong>{lead.pickupLocation}</strong>
-                            </div>
-                          )}
                           {lead.message && (
                             <div className="col-span-full text-muted-foreground text-[11px] italic bg-surface/80 p-2 rounded">
                               "{lead.message}"

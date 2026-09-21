@@ -10,7 +10,7 @@ export const inquirySchema = z.object({
   visitDate: z.string().optional(),
   slot: z.string().default("Morning (10:00 AM)"),
   cabPickup: z.boolean().default(false),
-  pickupLocation: z.string().default("Self Drive"),
+  pickupLocation: z.string().default("On Site"),
   message: z.string().max(500).optional(),
 });
 
