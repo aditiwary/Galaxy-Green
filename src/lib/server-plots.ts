@@ -16,53 +16,12 @@ function mapRowToPlot(row: any): Plot {
   };
 }
 
-async function getFsAndPath() {
-  if (typeof window !== "undefined") return null;
-  const fs = await import("node:fs");
-  const path = await import("node:path");
-  return { fs: fs.default, path: path.default };
-}
-
-async function readPlotsFromFile(): Promise<Plot[]> {
-  try {
-    const modules = await getFsAndPath();
-    if (!modules) return [];
-    const { fs, path } = modules;
-    const file = path.resolve(process.cwd(), "data/plots.json");
-    if (fs.existsSync(file)) {
-      const content = fs.readFileSync(file, "utf-8");
-      return JSON.parse(content) as Plot[];
-    }
-  } catch (err) {
-    console.error("Error reading plots file:", err);
-  }
-  return [];
-}
-
-async function writePlotsToFile(plots: Plot[]): Promise<void> {
-  try {
-    const modules = await getFsAndPath();
-    if (!modules) return;
-    const { fs, path } = modules;
-    const file = path.resolve(process.cwd(), "data/plots.json");
-    const dir = path.dirname(file);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(file, JSON.stringify(plots, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Error writing plots file:", err);
-  }
-}
-
 export const getPlotsFn = createServerFn({ method: "GET" }).handler(async () => {
   const rows = await executeQuery<any[]>("SELECT * FROM plots ORDER BY number ASC");
-  if (rows !== null && Array.isArray(rows)) {
+  if (rows && Array.isArray(rows)) {
     return rows.map(mapRowToPlot);
   }
-
-  console.warn("[MySQL] Not connected. Falling back to local JSON file.");
-  return await readPlotsFromFile();
+  return [];
 });
 
 export const createPlotFn = createServerFn({ method: "POST" })
@@ -90,15 +49,9 @@ export const createPlotFn = createServerFn({ method: "POST" })
     );
 
     if (res !== null) {
-      console.log(`[MySQL] Plot ${newPlot.number} (${newPlot.id}) created in MySQL.`);
       return { success: true, plot: newPlot };
     }
-
-    console.warn("[MySQL] Insert failed, falling back to local JSON file.");
-    const plots = await readPlotsFromFile();
-    plots.push(newPlot);
-    await writePlotsToFile(plots);
-    return { success: true, plot: newPlot };
+    return { success: false, error: "Failed to create plot in MySQL" };
   });
 
 export const updatePlotStatusFn = createServerFn({ method: "POST" })
@@ -106,19 +59,9 @@ export const updatePlotStatusFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const res = await executeQuery("UPDATE plots SET status = ? WHERE id = ?", [data.status, data.id]);
     if (res !== null) {
-      console.log(`[MySQL] Plot ${data.id} status updated to ${data.status} in MySQL.`);
       return { success: true };
     }
-
-    console.warn("[MySQL] Update failed, falling back to local JSON file.");
-    const plots = await readPlotsFromFile();
-    const target = plots.find((p) => p.id === data.id);
-    if (target) {
-      target.status = data.status;
-      await writePlotsToFile(plots);
-      return { success: true, plot: target };
-    }
-    return { success: false, error: "Plot not found" };
+    return { success: false, error: "Failed to update plot status in MySQL" };
   });
 
 export const deletePlotFn = createServerFn({ method: "POST" })
@@ -126,13 +69,7 @@ export const deletePlotFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const res = await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
     if (res !== null) {
-      console.log(`[MySQL] Plot ${data.id} deleted from MySQL.`);
       return { success: true };
     }
-
-    console.warn("[MySQL] Delete failed, falling back to local JSON file.");
-    const plots = await readPlotsFromFile();
-    const filtered = plots.filter((p) => p.id !== data.id);
-    await writePlotsToFile(filtered);
-    return { success: true };
+    return { success: false, error: "Failed to delete plot from MySQL" };
   });

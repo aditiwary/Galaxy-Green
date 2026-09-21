@@ -37,59 +37,13 @@ function mapRowToInquiry(row: any): Inquiry {
   };
 }
 
-async function getFsAndPath() {
-  if (typeof window !== "undefined") return null;
-  const fs = await import("node:fs");
-  const path = await import("node:path");
-  return { fs: fs.default, path: path.default };
-}
-
-async function readLeadsFromFile(): Promise<Inquiry[]> {
-  try {
-    const modules = await getFsAndPath();
-    if (!modules) return [];
-    const { fs, path } = modules;
-    const leadsFile = path.resolve(process.cwd(), "data/leads.json");
-    if (fs.existsSync(leadsFile)) {
-      const content = fs.readFileSync(leadsFile, "utf-8");
-      return JSON.parse(content) as Inquiry[];
-    }
-  } catch (err) {
-    console.error("Error reading leads file:", err);
-  }
-  return [];
-}
-
-async function writeLeadsToFile(leads: Inquiry[]): Promise<void> {
-  try {
-    const modules = await getFsAndPath();
-    if (!modules) return;
-    const { fs, path } = modules;
-    const leadsFile = path.resolve(process.cwd(), "data/leads.json");
-    const dir = path.dirname(leadsFile);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(leadsFile, JSON.stringify(leads, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Error writing leads file:", err);
-  }
-}
-
 async function forwardToGoogleSheets(inquiry: Inquiry): Promise<void> {
   try {
-    const modules = await getFsAndPath();
     let webhookUrl = process.env["GOOGLE_SHEETS_WEBHOOK_URL"];
-    if (!webhookUrl && modules) {
-      const { fs, path } = modules;
-      const configFile = path.resolve(process.cwd(), "data/config.json");
-      if (fs.existsSync(configFile)) {
-        try {
-          const conf = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-          webhookUrl = conf.googleSheetsWebhookUrl;
-        } catch {
-          // ignore
-        }
+    if (!webhookUrl) {
+      const rows = await executeQuery<any[]>("SELECT google_sheets_webhook_url FROM admin_config WHERE id = 1 LIMIT 1");
+      if (rows && rows.length > 0) {
+        webhookUrl = rows[0].google_sheets_webhook_url;
       }
     }
 
@@ -107,7 +61,7 @@ async function forwardToGoogleSheets(inquiry: Inquiry): Promise<void> {
 
 export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async () => {
   const rows = await executeQuery<any[]>("SELECT * FROM admin_config WHERE id = 1 LIMIT 1");
-  if (rows !== null && rows.length > 0) {
+  if (rows && rows.length > 0) {
     const r = rows[0];
     return {
       googleSheetsWebhookUrl: r.google_sheets_webhook_url || "",
@@ -116,17 +70,6 @@ export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async 
     };
   }
 
-  try {
-    const modules = await getFsAndPath();
-    if (!modules) return { googleSheetsWebhookUrl: "", dealerPin: "9044", baseRatePerSqFt: 1400 };
-    const { fs, path } = modules;
-    const configFile = path.resolve(process.cwd(), "data/config.json");
-    if (fs.existsSync(configFile)) {
-      return JSON.parse(fs.readFileSync(configFile, "utf-8"));
-    }
-  } catch (err) {
-    console.error("Error reading config:", err);
-  }
   return { googleSheetsWebhookUrl: "", dealerPin: "9044", baseRatePerSqFt: 1400 };
 });
 
@@ -151,41 +94,17 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     );
 
     if (res !== null) {
-      console.log("[MySQL] Admin config updated in MySQL.");
       return { success: true, config: data };
     }
-
-    try {
-      const modules = await getFsAndPath();
-      if (!modules) return { success: false };
-      const { fs, path } = modules;
-      const configFile = path.resolve(process.cwd(), "data/config.json");
-      let current = { googleSheetsWebhookUrl: "", dealerPin: "9044", baseRatePerSqFt: 1400 };
-      if (fs.existsSync(configFile)) {
-        try {
-          current = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-        } catch {
-          // ignore
-        }
-      }
-      const updated = { ...current, ...data };
-      fs.writeFileSync(configFile, JSON.stringify(updated, null, 2), "utf-8");
-      return { success: true, config: updated };
-    } catch (err) {
-      console.error("Error saving config:", err);
-      return { success: false };
-    }
+    return { success: false, error: "Failed to update admin config in MySQL" };
   });
 
 export const getInquiriesFn = createServerFn({ method: "GET" }).handler(async () => {
   const rows = await executeQuery<any[]>("SELECT * FROM inquiries ORDER BY created_at DESC");
-  if (rows !== null && Array.isArray(rows)) {
-    console.log(`[MySQL] Fetched ${rows.length} inquiries from MySQL inquiries table.`);
+  if (rows && Array.isArray(rows)) {
     return rows.map(mapRowToInquiry);
   }
-
-  console.warn("[MySQL] Not connected. Falling back to local JSON file.");
-  return await readLeadsFromFile();
+  return [];
 });
 
 export const submitInquiryFn = createServerFn({ method: "POST" })
@@ -219,15 +138,9 @@ export const submitInquiryFn = createServerFn({ method: "POST" })
     await forwardToGoogleSheets(newInquiry);
 
     if (res !== null) {
-      console.log(`[MySQL] Lead ${newInquiry.id} successfully saved to MySQL inquiries table.`);
       return { success: true, inquiry: newInquiry };
     }
-
-    console.warn("[MySQL] Failed to save to MySQL, writing to leads.json as emergency backup.");
-    const leads = await readLeadsFromFile();
-    leads.unshift(newInquiry);
-    await writeLeadsToFile(leads);
-    return { success: true, inquiry: newInquiry };
+    return { success: false, error: "Failed to record inquiry in MySQL" };
   });
 
 export const updateInquiryStatusFn = createServerFn({ method: "POST" })
@@ -235,17 +148,7 @@ export const updateInquiryStatusFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const res = await executeQuery("UPDATE inquiries SET status = ? WHERE id = ?", [data.status, data.id]);
     if (res !== null) {
-      console.log(`[MySQL] Inquiry ${data.id} status updated to ${data.status} in MySQL.`);
       return { success: true };
     }
-
-    console.warn("[MySQL] Update failed, falling back to local JSON file.");
-    const leads = await readLeadsFromFile();
-    const lead = leads.find((l) => l.id === data.id);
-    if (lead) {
-      lead.status = data.status;
-      await writeLeadsToFile(leads);
-      return { success: true, inquiry: lead };
-    }
-    return { success: false, error: "Lead not found" };
+    return { success: false, error: "Failed to update inquiry status in MySQL" };
   });
