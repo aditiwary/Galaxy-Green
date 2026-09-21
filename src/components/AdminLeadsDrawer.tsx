@@ -121,6 +121,15 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
   useEffect(() => {
     if (open) {
+      if (typeof window !== "undefined") {
+        const savedToken = sessionStorage.getItem("gg_dealer_token");
+        if (savedToken) {
+          setAuthToken(savedToken);
+          setIsAuthenticated(true);
+          loadData(savedToken);
+          return;
+        }
+      }
       loadData();
     }
   }, [open]);
@@ -140,6 +149,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       const res = await verifyDealerPinFn({ data: { pin: pinInput.trim() } });
       if (res?.success && res.token) {
         setAuthToken(res.token);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("gg_dealer_token", res.token);
+        }
         setIsAuthenticated(true);
         setPinError(false);
         setPinInput("");
@@ -228,15 +240,31 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
     setSavingSettings(true);
     try {
+      const activeToken =
+        authToken ||
+        (typeof window !== "undefined"
+          ? sessionStorage.getItem("gg_dealer_token") || ""
+          : "");
+
       const res = await updateAdminConfigFn({
         data: {
-          token: authToken,
+          token: activeToken,
           googleSheetsWebhookUrl: googleSheetsUrl.trim(),
           newPin: newPinInput ? newPinInput.trim() : undefined,
         },
       });
       if (res?.success) {
-        toast.success("Settings saved successfully!");
+        toast.success("Settings saved successfully in MySQL!");
+        if (newPinInput) {
+          // If PIN changed, update active session token
+          const authRes = await verifyDealerPinFn({ data: { pin: newPinInput.trim() } });
+          if (authRes?.token) {
+            setAuthToken(authRes.token);
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("gg_dealer_token", authRes.token);
+            }
+          }
+        }
         setNewPinInput("");
         setConfirmPinInput("");
       } else {

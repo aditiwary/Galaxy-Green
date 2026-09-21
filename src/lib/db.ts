@@ -89,11 +89,15 @@ export async function getDbPool(): Promise<Pool | null> {
 export async function executeQuery<T = any>(sql: string, params: any[] = []): Promise<T | null> {
   try {
     const db = await getDbPool();
-    if (!db) return null;
-    const [results] = await db.execute(sql, params);
+    if (!db) {
+      console.error("[MySQL Error] Database connection pool is not available.");
+      return null;
+    }
+    const sanitizedParams = params.map((p) => (p === undefined ? null : p));
+    const [results] = await db.execute(sql, sanitizedParams);
     return results as T;
   } catch (err) {
-    console.error("MySQL query failed:", err);
+    console.error("[MySQL Query Error]:", err);
     return null;
   }
 }

@@ -121,9 +121,30 @@ export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async 
 });
 
 export const updateAdminConfigFn = createServerFn({ method: "POST" })
-  .validator((data: { token: string; googleSheetsWebhookUrl?: string; newPin?: string; baseRatePerSqFt?: number }) => data)
+  .validator(
+    (data: {
+      token?: string;
+      dealerPin?: string;
+      googleSheetsWebhookUrl?: string;
+      newPin?: string;
+      baseRatePerSqFt?: number;
+    }) => data
+  )
   .handler(async ({ data }) => {
-    if (!verifyAdminToken(data.token)) {
+    // Check authentication: either valid session token OR matching PIN
+    let isAuthorized = false;
+    if (data.token && verifyAdminToken(data.token)) {
+      isAuthorized = true;
+    } else {
+      // Fallback check against DB PIN
+      const rows = await executeQuery<any[]>("SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1");
+      const currentPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "0000";
+      if (data.dealerPin && String(data.dealerPin).trim() === currentPin) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
       return { success: false, error: "Unauthorized. Please unlock the portal with your PIN." };
     }
 
@@ -132,22 +153,33 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       return { success: false, error: "PIN must be between 4 to 8 digits." };
     }
 
-    const res = await executeQuery(
-      `INSERT INTO admin_config (id, google_sheets_webhook_url, dealer_pin, base_rate_per_sq_ft)
-       VALUES (1, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         google_sheets_webhook_url = COALESCE(?, google_sheets_webhook_url),
-         dealer_pin = COALESCE(?, dealer_pin),
-         base_rate_per_sq_ft = COALESCE(?, base_rate_per_sq_ft)`,
-      [
-        data.googleSheetsWebhookUrl || "",
-        data.newPin || "0000",
-        data.baseRatePerSqFt || 1400,
-        data.googleSheetsWebhookUrl,
-        data.newPin,
-        data.baseRatePerSqFt,
-      ]
+    // Ensure row id = 1 exists in admin_config
+    await executeQuery(
+      "INSERT IGNORE INTO admin_config (id, google_sheets_webhook_url, dealer_pin, base_rate_per_sq_ft) VALUES (1, '', '0000', 1400)"
     );
+
+    const updates: string[] = [];
+    const params: any[] = [];
+
+    if (data.googleSheetsWebhookUrl !== undefined) {
+      updates.push("google_sheets_webhook_url = ?");
+      params.push(data.googleSheetsWebhookUrl);
+    }
+    if (data.newPin) {
+      updates.push("dealer_pin = ?");
+      params.push(data.newPin);
+    }
+    if (data.baseRatePerSqFt !== undefined) {
+      updates.push("base_rate_per_sq_ft = ?");
+      params.push(data.baseRatePerSqFt);
+    }
+
+    if (updates.length === 0) {
+      return { success: true };
+    }
+
+    const sql = `UPDATE admin_config SET ${updates.join(", ")} WHERE id = 1`;
+    const res = await executeQuery(sql, params);
 
     if (res !== null) {
       return { success: true };
