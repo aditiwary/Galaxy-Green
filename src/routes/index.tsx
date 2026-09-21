@@ -48,6 +48,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Custom Interactive Real Estate Modules
 import { MasterPlanViewer } from "@/components/MasterPlanViewer";
@@ -68,20 +74,54 @@ const MAP_URL =
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Galaxy Green Sai Suraksha Nagar | Premium Plots in Amausi, Lucknow" },
+      {
+        title:
+          "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
+      },
       {
         name: "description",
         content:
-          "Secure premium freehold residential plots at Galaxy Green Sai Suraksha Nagar, Amausi, Lucknow. Plots from 1,000 sq ft at ₹1,400/sq ft. Immediate registry & bank approvals.",
+          "Buy premium freehold residential plots at Galaxy Green Sai Suraksha Nagar, Amausi, Lucknow (near CCS International Airport). Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, bank loans available. Book free VIP site visit cab now!",
       },
-      { property: "og:title", content: "Galaxy Green Sai Suraksha Nagar — Luxury Plotted Township" },
+      {
+        name: "keywords",
+        content:
+          "plots in lucknow, residential plots amausi, plots near lucknow airport, galaxy green lucknow, sai suraksha nagar, freehold plots lucknow, immediate registry plots, dakhil kharij plots, buy plot kanpur road lucknow, investment plots lucknow, property near ccs airport",
+      },
+      { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar" },
+      {
+        property: "og:title",
+        content:
+          "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
+      },
       {
         property: "og:description",
         content:
-          "5 minutes from Chaudhary Charan Singh International Airport, Lucknow. Freehold plots with 40-ft boulevard, clubhouse, green parks & immediate mutation.",
+          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & complimentary VIP site visit pickup.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://galaxygreenlucknow.com/" },
+      {
+        property: "og:image",
+        content:
+          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content:
+          "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & complimentary VIP cab pickup.",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+      },
     ],
   }),
   component: Index,
@@ -203,6 +243,7 @@ function Index() {
               ["Location", "#location"],
               ["ROI Calculator", "#calculator"],
               ["Pricing", "#pricing"],
+              ["FAQ", "#faq"],
               ["Contact", "#contact"],
             ].map(([label, href]) => (
               <a
@@ -272,6 +313,7 @@ function Index() {
                 ["Location", "#location"],
                 ["ROI Calculator", "#calculator"],
                 ["Pricing", "#pricing"],
+                ["FAQ", "#faq"],
                 ["Contact", "#contact"],
               ].map(([label, href]) => (
                 <a
@@ -685,7 +727,7 @@ function Index() {
               <div className="relative overflow-hidden rounded-lg border border-border shadow-glow group">
                 <img
                   src={connectivityImage}
-                  alt="Lucknow Airport and Metro highway connectivity"
+                  alt="Galaxy Green strategic location map and connectivity to Chaudhary Charan Singh International Airport Lucknow"
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-transparent to-transparent" />
@@ -917,12 +959,100 @@ function Index() {
         </div>
       </section>
 
+      {/* 08 · Frequently Asked Questions (FAQ) Section - High Search Intent & SEO Rich Snippets */}
+      <section id="faq" className="section-shell bg-background border-t border-border">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="eyebrow">08 · Buyer Knowledge Base</p>
+            <h2 className="section-title">
+              Frequently Asked Questions
+            </h2>
+            <p className="section-subtitle mx-auto">
+              Everything property buyers and NRI investors need to know about freehold land registry, bank loans, location advantages, and payment schedules at Galaxy Green.
+            </p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-glow">
+            <Accordion type="single" collapsible defaultValue="item-1" className="w-full divide-y divide-border/60">
+              <AccordionItem value="item-1" className="border-b-0 py-2">
+                <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
+                  Where is Galaxy Green Sai Suraksha Nagar located in Lucknow?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
+                  Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus Code: QR4X+39W, Pin 226008). It is positioned directly in the high-growth Lucknow-Kanpur National Highway corridor, just 5 to 7 minutes from Chaudhary Charan Singh International Airport (CCSIA), Amausi Metro Station, and Amausi Railway Station.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-2" className="border-b-0 py-2">
+                <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
+                  What are the plot sizes and rates per sq ft at Galaxy Green?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
+                  Standard residential plots start at an introductory Phase 1 rate of ₹1,400 per sq ft. We offer multiple plot dimensions to suit various budgets:
+                  <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm font-mono text-foreground/90">
+                    <li>1,000 Sq Ft (25 × 40 ft) — starting at ₹14.00 Lakh</li>
+                    <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹16.80 Lakh</li>
+                    <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹21.00 Lakh</li>
+                    <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹28.00 Lakh</li>
+                    <li>Custom commercial &amp; corner estates up to 3,000+ sq ft</li>
+                  </ul>
+                  Corner and wide-boulevard facing plots carry standard Preferential Location Charges (PLC).
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3" className="border-b-0 py-2">
+                <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
+                  Are the plots freehold with immediate registry and Dakhil Kharij?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
+                  Yes, 100%. All plots at Galaxy Green are strictly freehold with clear, unencumbered land titles. We guarantee instant registry upon payment completion along with full government land mutation (Dakhil Kharij) documentation assistance. You receive complete legal ownership rights to build or hold.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4" className="border-b-0 py-2">
+                <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
+                  Can I avail a bank loan or easy EMI facility for plot purchase?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
+                  Yes. We have active tie-ups and verification processes with leading nationalized and private banking institutions (SBI, HDFC, ICICI, PNB, and Bank of Baroda). Eligible buyers can secure up to 75%–80% financing with low interest rates and flexible tenures up to 20 years.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5" className="border-b-0 py-2">
+                <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
+                  What infrastructure and amenities are provided inside the township?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
+                  Galaxy Green is developed as an eco-luxury gated township featuring:
+                  <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm text-foreground/90">
+                    <li>30-ft and 40-ft wide paved internal concrete boulevards</li>
+                    <li>Underground drainage and sewage system</li>
+                    <li>Solar-powered street illumination and dedicated transformer power supply</li>
+                    <li>24/7 manned security checkpoint with automated RFID barrier &amp; CCTV</li>
+                    <li>Landscaped community park, children's play area, and clubhouse with pool</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6" className="border-b-0 py-2">
+                <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
+                  How can I book a free site visit with complimentary VIP cab pickup?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
+                  We provide complimentary door-to-door AC cab pickup and drop anywhere in Lucknow for prospective buyers and families. Simply click the "Book Free Site Visit" button, choose your preferred date and time, and our concierge driver will be dispatched to your doorstep. You can also call us directly at <a href="tel:+919044412642" className="text-primary font-semibold underline">+91 90444 12642</a>.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
       {/* Main Contact & Connected Lead Capture Section */}
       <section id="contact" className="section-shell bg-surface border-t border-border">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-12 items-start">
             <div className="lg:col-span-5 space-y-6">
-              <p className="eyebrow">08 · Direct Developer Contact</p>
+              <p className="eyebrow">09 · Direct Developer Contact</p>
               <h2 className="section-title">
                 Arrange Your Personal Site Tour
               </h2>

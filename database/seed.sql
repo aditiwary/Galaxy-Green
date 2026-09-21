@@ -41,7 +41,7 @@ ON DUPLICATE KEY UPDATE
 -- Seed: admin_config
 -- ---------------------------------------------------------
 INSERT INTO `admin_config` (`id`, `google_sheets_webhook_url`, `dealer_pin`, `base_rate_per_sq_ft`)
-VALUES (1, '', '9044', 1400.00)
+VALUES (1, '', '0000', 1400.00)
 ON DUPLICATE KEY UPDATE
   `dealer_pin` = VALUES(`dealer_pin`),
   `base_rate_per_sq_ft` = VALUES(`base_rate_per_sq_ft`);

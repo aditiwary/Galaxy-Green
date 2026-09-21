@@ -30,8 +30,10 @@ import {
   KeyRound,
   FileSpreadsheet,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
-import { fetchAllLeads, updateLeadStatus, exportLeadsToCsv } from "@/lib/leads-client";
+import { fetchAllLeads, updateLeadStatus, exportLeadsToCsv, verifyDealerPinFn } from "@/lib/leads-client";
 import { fetchLivePlots, setPlotStatus, addLivePlot, removePlot } from "@/lib/plots-client";
 import { getAdminConfigFn, updateAdminConfigFn } from "@/lib/server-inquiries";
 import type { Inquiry } from "@/lib/inquiry-types";
@@ -59,10 +61,13 @@ const PLOT_STATUS_BADGES: Record<Plot["status"], string> = {
 };
 
 export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) {
-  // Security PIN State
+  // Security Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState<string>("");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [verifyingPin, setVerifyingPin] = useState(false);
+  const [showPin, setShowPin] = useState(false);
 
   // CRM State
   const [leads, setLeads] = useState<Inquiry[]>([]);
@@ -84,29 +89,33 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
   // Settings State
   const [googleSheetsUrl, setGoogleSheetsUrl] = useState("");
-  const [dealerPin, setDealerPin] = useState("9044");
+  const [newPinInput, setNewPinInput] = useState("");
+  const [confirmPinInput, setConfirmPinInput] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
 
-  const loadData = async () => {
-    setLoadingLeads(true);
+  const loadData = async (tokenToUse?: string) => {
+    const activeToken = tokenToUse || authToken;
     setLoadingPlots(true);
     try {
-      const [leadsData, plotsData, configData] = await Promise.all([
-        fetchAllLeads(),
+      const [plotsData, configData] = await Promise.all([
         fetchLivePlots(),
         getAdminConfigFn(),
       ]);
-      setLeads(leadsData);
       setPlots(plotsData);
       if (configData) {
         setGoogleSheetsUrl(configData.googleSheetsWebhookUrl || "");
-        setDealerPin(configData.dealerPin || "9044");
+      }
+      if (activeToken) {
+        setLoadingLeads(true);
+        const leadsData = await fetchAllLeads(activeToken);
+        setLeads(leadsData);
+        setLoadingLeads(false);
       }
     } catch (err) {
       console.error(err);
     } finally {
-      setLoadingLeads(false);
       setLoadingPlots(false);
+      setLoadingLeads(false);
     }
   };
 
@@ -116,25 +125,48 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   }, [open]);
 
-  // Handle PIN verification
-  const handlePinSubmit = (e: React.FormEvent) => {
+  // Handle Secure Server-Side PIN verification
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === dealerPin || pinInput === "9044") {
-      setIsAuthenticated(true);
-      setPinError(false);
-      toast.success("Dealer Portal Unlocked");
-    } else {
+    if (!pinInput.trim()) {
       setPinError(true);
-      toast.error("Incorrect PIN. Default PIN is 9044.");
+      toast.error("Please enter your PIN.");
+      return;
+    }
+
+    setVerifyingPin(true);
+    setPinError(false);
+    try {
+      const res = await verifyDealerPinFn({ data: { pin: pinInput.trim() } });
+      if (res?.success && res.token) {
+        setAuthToken(res.token);
+        setIsAuthenticated(true);
+        setPinError(false);
+        setPinInput("");
+        toast.success("Dealer Portal Unlocked Successfully");
+        await loadData(res.token);
+      } else {
+        setPinError(true);
+        toast.error("Incorrect PIN. Access Denied.");
+      }
+    } catch {
+      setPinError(true);
+      toast.error("Authentication failed. Please check connection.");
+    } finally {
+      setVerifyingPin(false);
     }
   };
 
   const handleLeadStatusChange = async (id: string, newStatus: Inquiry["status"]) => {
-    await updateLeadStatus(id, newStatus);
-    setLeads((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
-    );
-    toast.success(`Lead ${id} marked as "${newStatus}"`);
+    const success = await updateLeadStatus(id, newStatus, authToken);
+    if (success) {
+      setLeads((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
+      );
+      toast.success(`Lead ${id} marked as "${newStatus}"`);
+    } else {
+      toast.error("Failed to update status. Please unlock again if session expired.");
+    }
   };
 
   const handlePlotStatusChange = async (id: string, newStatus: Plot["status"]) => {
@@ -185,16 +217,32 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPinInput && newPinInput !== confirmPinInput) {
+      toast.error("New PIN and Confirm PIN do not match.");
+      return;
+    }
+    if (newPinInput && !/^\d{4,8}$/.test(newPinInput)) {
+      toast.error("PIN must be 4 to 8 numeric digits.");
+      return;
+    }
+
     setSavingSettings(true);
     try {
-      await updateAdminConfigFn({
+      const res = await updateAdminConfigFn({
         data: {
+          token: authToken,
           googleSheetsWebhookUrl: googleSheetsUrl.trim(),
-          dealerPin: dealerPin.trim(),
+          newPin: newPinInput ? newPinInput.trim() : undefined,
         },
       });
-      toast.success("Settings saved successfully!");
-    } catch (err) {
+      if (res?.success) {
+        toast.success("Settings saved successfully!");
+        setNewPinInput("");
+        setConfirmPinInput("");
+      } else {
+        toast.error(res?.error || "Failed to save settings.");
+      }
+    } catch {
       toast.error("Failed to save settings.");
     } finally {
       setSavingSettings(false);
@@ -226,29 +274,40 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               Dealer Management Portal
             </h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-              Enter your 4-digit security PIN to manage customer leads, plot inventory, and Google Sheets synchronization.
+              Enter your secure dealer PIN to manage customer leads, plot inventory, and integration settings.
             </p>
 
             <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
-              <Input
-                type="password"
-                maxLength={4}
-                autoFocus
-                placeholder="Enter 4-digit PIN (Default: 9044)"
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                className={`h-12 text-center text-lg tracking-widest font-mono bg-background border ${
-                  pinError ? "border-destructive text-destructive" : "border-border"
-                }`}
-              />
+              <div className="relative">
+                <Input
+                  type={showPin ? "text" : "password"}
+                  maxLength={8}
+                  autoFocus
+                  placeholder="Enter Security PIN"
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  className={`h-12 text-center text-lg tracking-widest font-mono bg-background border pr-10 ${
+                    pinError ? "border-destructive text-destructive" : "border-border"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                  aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                >
+                  {showPin ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
               <Button
                 type="submit"
+                disabled={verifyingPin}
                 className="w-full h-11 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                <KeyRound className="size-4 mr-2" /> Unlock Portal
+                <KeyRound className="size-4 mr-2" /> {verifyingPin ? "Verifying..." : "Unlock Portal"}
               </Button>
-              <p className="text-[11px] text-muted-foreground font-mono">
-                Default dealer PIN: <strong className="text-primary font-mono">9044</strong>
+              <p className="text-[11px] text-muted-foreground font-mono flex items-center justify-center gap-1.5">
+                <Lock className="size-3 text-emerald-400" /> End-to-end encrypted session
               </p>
             </form>
           </div>
@@ -646,23 +705,43 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     <div className="flex items-center gap-2">
                       <KeyRound className="size-5 text-accent" />
                       <h5 className="font-display uppercase text-sm text-foreground">
-                        Dealer Portal Security PIN
+                        Change Dealer Security PIN
                       </h5>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Set a custom 4-digit PIN to keep your customer leads and plot inventory private.
+                      Set a new private numeric PIN (4-8 digits) to secure your dealer portal and CRM leads.
                     </p>
-                    <div className="max-w-xs">
-                      <Label className="text-[10px] uppercase font-mono text-muted-foreground">
-                        Current PIN
-                      </Label>
-                      <Input
-                        maxLength={4}
-                        value={dealerPin}
-                        onChange={(e) => setDealerPin(e.target.value)}
-                        className="mt-1 h-10 text-center font-mono text-base bg-background tracking-widest"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md pt-1">
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          New PIN
+                        </Label>
+                        <Input
+                          type="password"
+                          maxLength={8}
+                          placeholder="••••"
+                          value={newPinInput}
+                          onChange={(e) => setNewPinInput(e.target.value)}
+                          className="mt-1 h-10 text-center font-mono text-base bg-background tracking-widest"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Confirm New PIN
+                        </Label>
+                        <Input
+                          type="password"
+                          maxLength={8}
+                          placeholder="••••"
+                          value={confirmPinInput}
+                          onChange={(e) => setConfirmPinInput(e.target.value)}
+                          className="mt-1 h-10 text-center font-mono text-base bg-background tracking-widest"
+                        />
+                      </div>
                     </div>
+                    <p className="text-[11px] text-muted-foreground italic">
+                      Leave blank to keep your current security PIN unchanged.
+                    </p>
                   </div>
 
                   <Button

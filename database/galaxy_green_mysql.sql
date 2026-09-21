@@ -88,7 +88,7 @@ DROP TABLE IF EXISTS `admin_config`;
 CREATE TABLE `admin_config` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `google_sheets_webhook_url` VARCHAR(255) DEFAULT '',
-  `dealer_pin` VARCHAR(32) NOT NULL DEFAULT '9044',
+  `dealer_pin` VARCHAR(32) NOT NULL DEFAULT '0000',
   `base_rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1400.00,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -98,6 +98,6 @@ CREATE TABLE `admin_config` (
 -- Dumping data for table `admin_config`
 -- --------------------------------------------------------------------
 INSERT INTO `admin_config` (`id`, `google_sheets_webhook_url`, `dealer_pin`, `base_rate_per_sq_ft`) VALUES
-(1, '', '9044', 1400.00);
+(1, '', '0000', 1400.00);
 
 SET FOREIGN_KEY_CHECKS = 1;

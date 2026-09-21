@@ -113,7 +113,7 @@ async function main() {
     console.log(`\nMigration completed successfully!`);
     console.log(`- Plots seeded: ${plotsRows[0].count}`);
     console.log(`- Leads/Inquiries seeded: ${leadsRows[0].count}`);
-    console.log(`- Dealer PIN: ${configRows[0]?.dealer_pin || "9044"}`);
+    console.log(`- Dealer PIN: ${configRows[0]?.dealer_pin || "0000"}`);
     console.log("--------------------------------------------------");
   } catch (err) {
     const errCode = err.code || "ERROR";

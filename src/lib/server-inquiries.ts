@@ -1,6 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { inquirySchema, type Inquiry } from "./inquiry-types";
 import { executeQuery } from "./db";
+import crypto from "node:crypto";
+
+const SECRET = process.env["ADMIN_SESSION_SECRET"] || "gg_dealer_session_secret_2026_secured";
+
+export function generateAdminToken(): string {
+  const timestamp = Date.now();
+  const hash = crypto.createHmac("sha256", SECRET).update(`admin_${timestamp}`).digest("hex");
+  return `${timestamp}_${hash}`;
+}
+
+export function verifyAdminToken(token?: string): boolean {
+  if (!token || typeof token !== "string") return false;
+  const parts = token.split("_");
+  if (parts.length !== 2) return false;
+  const [timeStr, expectedHash] = parts;
+  const time = parseInt(timeStr, 10);
+  // Valid for 24 hours
+  if (isNaN(time) || Date.now() - time > 24 * 60 * 60 * 1000) return false;
+  const actualHash = crypto.createHmac("sha256", SECRET).update(`admin_${timeStr}`).digest("hex");
+  try {
+    return crypto.timingSafeEqual(Buffer.from(actualHash), Buffer.from(expectedHash));
+  } catch {
+    return false;
+  }
+}
 
 function mapRowToInquiry(row: any): Inquiry {
   let visitDateStr: string | undefined = undefined;
@@ -59,23 +84,54 @@ async function forwardToGoogleSheets(inquiry: Inquiry): Promise<void> {
   }
 }
 
+// -------------------------------------------------------------
+// SECURE DEALER AUTHENTICATION
+// -------------------------------------------------------------
+
+export const verifyDealerPinFn = createServerFn({ method: "POST" })
+  .validator((data: { pin: string }) => data)
+  .handler(async ({ data }) => {
+    // Artificial delay to thwart automated brute-force attacks
+    await new Promise((r) => setTimeout(r, 250));
+
+    const rows = await executeQuery<any[]>("SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1");
+    const currentPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "0000";
+
+    const cleanInput = String(data.pin || "").trim();
+    if (cleanInput === currentPin) {
+      const token = generateAdminToken();
+      return { success: true, token };
+    }
+
+    return { success: false, error: "Access denied. Invalid credentials." };
+  });
+
+// Returns portal settings WITHOUT EVER EXPOSING the dealer password/PIN
 export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async () => {
-  const rows = await executeQuery<any[]>("SELECT * FROM admin_config WHERE id = 1 LIMIT 1");
+  const rows = await executeQuery<any[]>("SELECT google_sheets_webhook_url, base_rate_per_sq_ft FROM admin_config WHERE id = 1 LIMIT 1");
   if (rows && rows.length > 0) {
     const r = rows[0];
     return {
       googleSheetsWebhookUrl: r.google_sheets_webhook_url || "",
-      dealerPin: r.dealer_pin || "9044",
       baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || 1400,
     };
   }
 
-  return { googleSheetsWebhookUrl: "", dealerPin: "9044", baseRatePerSqFt: 1400 };
+  return { googleSheetsWebhookUrl: "", baseRatePerSqFt: 1400 };
 });
 
 export const updateAdminConfigFn = createServerFn({ method: "POST" })
-  .validator((data: { googleSheetsWebhookUrl?: string; dealerPin?: string; baseRatePerSqFt?: number }) => data)
+  .validator((data: { token: string; googleSheetsWebhookUrl?: string; newPin?: string; baseRatePerSqFt?: number }) => data)
   .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized. Please unlock the portal with your PIN." };
+    }
+
+    // If updating PIN, validate format
+    if (data.newPin && !/^\d{4,8}$/.test(data.newPin)) {
+      return { success: false, error: "PIN must be between 4 to 8 digits." };
+    }
+
     const res = await executeQuery(
       `INSERT INTO admin_config (id, google_sheets_webhook_url, dealer_pin, base_rate_per_sq_ft)
        VALUES (1, ?, ?, ?)
@@ -85,28 +141,37 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
          base_rate_per_sq_ft = COALESCE(?, base_rate_per_sq_ft)`,
       [
         data.googleSheetsWebhookUrl || "",
-        data.dealerPin || "9044",
+        data.newPin || "0000",
         data.baseRatePerSqFt || 1400,
         data.googleSheetsWebhookUrl,
-        data.dealerPin,
+        data.newPin,
         data.baseRatePerSqFt,
       ]
     );
 
     if (res !== null) {
-      return { success: true, config: data };
+      return { success: true };
     }
-    return { success: false, error: "Failed to update admin config in MySQL" };
+    return { success: false, error: "Failed to update configuration in MySQL." };
   });
 
-export const getInquiriesFn = createServerFn({ method: "GET" }).handler(async () => {
-  const rows = await executeQuery<any[]>("SELECT * FROM inquiries ORDER BY created_at DESC");
-  if (rows && Array.isArray(rows)) {
-    return rows.map(mapRowToInquiry);
-  }
-  return [];
-});
+// Protected: Only authenticated session token holders can fetch customer inquiries
+export const getInquiriesFn = createServerFn({ method: "POST" })
+  .validator((data: { token: string }) => data)
+  .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      console.warn("[Security Alert] Unauthorized access attempt to getInquiriesFn blocked.");
+      return [];
+    }
 
+    const rows = await executeQuery<any[]>("SELECT * FROM inquiries ORDER BY created_at DESC");
+    if (rows && Array.isArray(rows)) {
+      return rows.map(mapRowToInquiry);
+    }
+    return [];
+  });
+
+// Public: Buyers submit inquiries
 export const submitInquiryFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => inquirySchema.parse(data))
   .handler(async ({ data }) => {
@@ -143,9 +208,14 @@ export const submitInquiryFn = createServerFn({ method: "POST" })
     return { success: false, error: "Failed to record inquiry in MySQL" };
   });
 
+// Protected: Updating lead status requires admin token
 export const updateInquiryStatusFn = createServerFn({ method: "POST" })
-  .validator((data: { id: string; status: Inquiry["status"] }) => data)
+  .validator((data: { token: string; id: string; status: Inquiry["status"] }) => data)
   .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const res = await executeQuery("UPDATE inquiries SET status = ? WHERE id = ?", [data.status, data.id]);
     if (res !== null) {
       return { success: true };
