@@ -1,0 +1,340 @@
+import { useState, type FormEvent } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Clock,
+  Car,
+  CheckCircle2,
+  MessageCircle,
+  Phone,
+  ShieldCheck,
+  User,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
+import { recordNewInquiry } from "@/lib/leads-client";
+import type { Inquiry } from "@/lib/inquiry-types";
+import { toast } from "sonner";
+
+interface SiteVisitModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  defaultPlotPreference?: string;
+}
+
+const PHONE_NUMBER = "919044412642";
+
+export function SiteVisitModal({
+  open,
+  onOpenChange,
+  defaultPlotPreference = "1000 sq ft",
+}: SiteVisitModalProps) {
+  const [step, setStep] = useState<"form" | "confirmed">("form");
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState<Inquiry | null>(null);
+
+  // Form State
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [plotPreference, setPlotPreference] = useState(defaultPlotPreference);
+  const [visitDate, setVisitDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  });
+  const [slot, setSlot] = useState("Morning (10:00 AM)");
+  const [cabPickup, setCabPickup] = useState(true);
+  const [pickupLocation, setPickupLocation] = useState("Amausi Airport (CCSIA)");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (name.trim().length < 2) {
+      setError("Please enter your full name.");
+      return;
+    }
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError("Please enter a valid 10-digit Indian mobile number.");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const created = await recordNewInquiry({
+        name: name.trim(),
+        phone: cleanPhone,
+        plotPreference,
+        visitDate,
+        slot,
+        cabPickup,
+        pickupLocation: cabPickup ? pickupLocation : "Self Drive",
+        message: message.trim(),
+      });
+
+      setConfirmedBooking(created);
+      setStep("confirmed");
+      toast.success("Site Visit Reserved! Confirmation Reference: " + created.id);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to submit. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openWhatsAppConfirmation = () => {
+    if (!confirmedBooking) return;
+    const text = [
+      `Hello Vishal Singh, I have scheduled a Site Visit for Galaxy Green Sai Suraksha Nagar.`,
+      `Booking Ref: ${confirmedBooking.id}`,
+      `Name: ${confirmedBooking.name}`,
+      `Mobile: ${confirmedBooking.phone}`,
+      `Plot Preference: ${confirmedBooking.plotPreference}`,
+      `Date & Slot: ${confirmedBooking.visitDate} · ${confirmedBooking.slot}`,
+      confirmedBooking.cabPickup
+        ? `VIP Cab Pickup: Yes (${confirmedBooking.pickupLocation})`
+        : `Mode: Self Drive`,
+      confirmedBooking.message ? `Notes: ${confirmedBooking.message}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    window.open(
+      `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(text)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    setTimeout(() => {
+      setStep("form");
+      setError("");
+    }, 300);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-lg bg-card border-border text-foreground p-6 sm:p-8">
+        {step === "form" ? (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono">
+                  VIP Experience
+                </Badge>
+                <span className="text-xs text-muted-foreground font-mono">
+                  Zero Obligation · Free Guided Tour
+                </span>
+              </div>
+              <DialogTitle className="text-2xl font-display uppercase tracking-tight text-foreground mt-1">
+                Book Your Private Site Visit
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Walk the ground, inspect plot boundary pillars, review legal title papers, and experience the green environment firsthand.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
+              {/* Name & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                    Your Name *
+                  </Label>
+                  <Input
+                    placeholder="e.g. Rahul Sharma"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1 h-10 text-xs bg-surface border-border"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                    Mobile Number *
+                  </Label>
+                  <Input
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="10-digit mobile"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="mt-1 h-10 text-xs bg-surface border-border"
+                  />
+                </div>
+              </div>
+
+              {/* Date & Time Slot */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                    Preferred Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={visitDate}
+                    onChange={(e) => setVisitDate(e.target.value)}
+                    className="mt-1 h-10 text-xs bg-surface border-border"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                    Time Slot
+                  </Label>
+                  <select
+                    value={slot}
+                    onChange={(e) => setSlot(e.target.value)}
+                    className="mt-1 h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
+                  >
+                    <option>Morning (10:00 AM)</option>
+                    <option>Afternoon (2:00 PM)</option>
+                    <option>Evening Sunset (4:30 PM)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Plot preference */}
+              <div>
+                <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                  Plot Preference
+                </Label>
+                <select
+                  value={plotPreference}
+                  onChange={(e) => setPlotPreference(e.target.value)}
+                  className="mt-1 h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
+                >
+                  <option value="1000 sq ft">1,000 Sq Ft (Compact Investment · ₹14.00 L)</option>
+                  <option value="1200 sq ft">1,200 Sq Ft (₹16.80 L)</option>
+                  <option value="1500 sq ft">1,500 Sq Ft (Executive Duplex · ₹21.00 L)</option>
+                  <option value="2000 sq ft">2,000 Sq Ft (Luxury Villa Plot · ₹28.00 L)</option>
+                  <option value="3000 sq ft Corner">3,000 Sq Ft (Boulevard Corner Estate)</option>
+                  <option value="Custom Size">Custom Requirement / Multiple Plots</option>
+                </select>
+              </div>
+
+              {/* VIP Cab Pickup Toggle */}
+              <div className="bg-surface/90 border border-primary/30 p-3.5 rounded-md space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Car className="size-4 text-primary" />
+                    <div>
+                      <strong className="text-xs font-semibold text-foreground uppercase tracking-wide block">
+                        Complimentary VIP Cab Pickup
+                      </strong>
+                      <span className="text-[10px] text-muted-foreground">
+                        Our executive car will pick you up & drop you safely back.
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={cabPickup}
+                    onChange={(e) => setCabPickup(e.target.checked)}
+                    className="size-4 accent-emerald-500 cursor-pointer"
+                  />
+                </div>
+
+                {cabPickup && (
+                  <div className="pt-2 border-t border-border/50">
+                    <Label className="text-[10px] uppercase font-mono text-muted-foreground block mb-1">
+                      Select Pickup Point
+                    </Label>
+                    <select
+                      value={pickupLocation}
+                      onChange={(e) => setPickupLocation(e.target.value)}
+                      className="h-9 w-full px-2.5 text-xs bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option>Amausi Airport (CCSIA Lucknow Terminal)</option>
+                      <option>Amausi Metro Station</option>
+                      <option>Transport Nagar Metro Station</option>
+                      <option>Charbagh Railway Station</option>
+                      <option>Alambagh Bus Terminal</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
+                  {error}
+                </p>
+              )}
+
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+              >
+                {submitting ? "Confirming Visit..." : "Schedule VIP Site Visit"} <ArrowRight className="size-3.5 ml-2" />
+              </Button>
+            </form>
+          </>
+        ) : (
+          /* Confirmation State */
+          <div className="text-center py-4 space-y-4">
+            <div className="size-16 rounded-full bg-primary/10 border border-primary/40 text-primary mx-auto grid place-items-center shadow-glow">
+              <CheckCircle2 className="size-8" />
+            </div>
+
+            <div>
+              <Badge variant="outline" className="border-primary text-primary bg-primary/10 font-mono text-xs mb-2">
+                Booking ID: {confirmedBooking?.id}
+              </Badge>
+              <h3 className="text-2xl font-display uppercase tracking-tight text-foreground">
+                Site Visit Confirmed!
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
+                Thank you, <strong>{confirmedBooking?.name}</strong>. Our project coordinator will contact you at +91 {confirmedBooking?.phone} to finalize your pickup.
+              </p>
+            </div>
+
+            <div className="bg-surface/90 border border-border/80 rounded p-4 text-xs text-left space-y-1.5 font-mono">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Date & Slot:</span>
+                <span className="text-foreground font-semibold">{confirmedBooking?.visitDate} ({confirmedBooking?.slot})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Plot Preference:</span>
+                <span className="text-primary font-semibold">{confirmedBooking?.plotPreference}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Cab Pickup:</span>
+                <span className="text-accent font-semibold">{confirmedBooking?.pickupLocation}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <Button
+                onClick={openWhatsAppConfirmation}
+                className="w-full sm:flex-1 h-11 uppercase tracking-wider text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+              >
+                <MessageCircle className="size-4 mr-2" /> Open In WhatsApp
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="w-full sm:w-auto h-11 uppercase tracking-wider text-xs border-border"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
