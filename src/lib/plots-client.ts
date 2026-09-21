@@ -102,10 +102,7 @@ const DEFAULT_PLOTS: Plot[] = [
 export async function fetchLivePlots(): Promise<Plot[]> {
   try {
     const serverPlots = await getPlotsFn();
-    if (serverPlots && serverPlots.length > 0) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(serverPlots));
-      }
+    if (Array.isArray(serverPlots)) {
       return serverPlots;
     }
   } catch (err) {

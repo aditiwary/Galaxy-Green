@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { plotSchema, type Plot } from "./plot-types";
-import { isMySQLConfigured, executeQuery } from "./db";
+import { executeQuery } from "./db";
 
 function mapRowToPlot(row: any): Plot {
   return {
@@ -56,12 +56,12 @@ async function writePlotsToFile(plots: Plot[]): Promise<void> {
 }
 
 export const getPlotsFn = createServerFn({ method: "GET" }).handler(async () => {
-  if (isMySQLConfigured()) {
-    const rows = await executeQuery<any[]>("SELECT * FROM plots ORDER BY number ASC");
-    if (rows && Array.isArray(rows) && rows.length > 0) {
-      return rows.map(mapRowToPlot);
-    }
+  const rows = await executeQuery<any[]>("SELECT * FROM plots ORDER BY number ASC");
+  if (rows !== null && Array.isArray(rows)) {
+    return rows.map(mapRowToPlot);
   }
+
+  console.warn("[MySQL] Not connected. Falling back to local JSON file.");
   return await readPlotsFromFile();
 });
 
@@ -73,24 +73,28 @@ export const createPlotFn = createServerFn({ method: "POST" })
       id: `plot-${Date.now()}`,
     };
 
-    if (isMySQLConfigured()) {
-      await executeQuery(
-        `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          newPlot.id,
-          newPlot.number,
-          newPlot.sizeSqFt,
-          newPlot.dimensions,
-          newPlot.facing,
-          newPlot.roadWidth,
-          newPlot.ratePerSqFt,
-          newPlot.status,
-          newPlot.feature,
-        ]
-      );
+    const res = await executeQuery(
+      `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newPlot.id,
+        newPlot.number,
+        newPlot.sizeSqFt,
+        newPlot.dimensions,
+        newPlot.facing,
+        newPlot.roadWidth,
+        newPlot.ratePerSqFt,
+        newPlot.status,
+        newPlot.feature,
+      ]
+    );
+
+    if (res !== null) {
+      console.log(`[MySQL] Plot ${newPlot.number} (${newPlot.id}) created in MySQL.`);
+      return { success: true, plot: newPlot };
     }
 
+    console.warn("[MySQL] Insert failed, falling back to local JSON file.");
     const plots = await readPlotsFromFile();
     plots.push(newPlot);
     await writePlotsToFile(plots);
@@ -100,10 +104,13 @@ export const createPlotFn = createServerFn({ method: "POST" })
 export const updatePlotStatusFn = createServerFn({ method: "POST" })
   .validator((data: { id: string; status: Plot["status"] }) => data)
   .handler(async ({ data }) => {
-    if (isMySQLConfigured()) {
-      await executeQuery("UPDATE plots SET status = ? WHERE id = ?", [data.status, data.id]);
+    const res = await executeQuery("UPDATE plots SET status = ? WHERE id = ?", [data.status, data.id]);
+    if (res !== null) {
+      console.log(`[MySQL] Plot ${data.id} status updated to ${data.status} in MySQL.`);
+      return { success: true };
     }
 
+    console.warn("[MySQL] Update failed, falling back to local JSON file.");
     const plots = await readPlotsFromFile();
     const target = plots.find((p) => p.id === data.id);
     if (target) {
@@ -117,10 +124,13 @@ export const updatePlotStatusFn = createServerFn({ method: "POST" })
 export const deletePlotFn = createServerFn({ method: "POST" })
   .validator((data: { id: string }) => data)
   .handler(async ({ data }) => {
-    if (isMySQLConfigured()) {
-      await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
+    const res = await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
+    if (res !== null) {
+      console.log(`[MySQL] Plot ${data.id} deleted from MySQL.`);
+      return { success: true };
     }
 
+    console.warn("[MySQL] Delete failed, falling back to local JSON file.");
     const plots = await readPlotsFromFile();
     const filtered = plots.filter((p) => p.id !== data.id);
     await writePlotsToFile(filtered);

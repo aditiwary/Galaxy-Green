@@ -1,9 +1,43 @@
 import type { Pool, PoolOptions } from "mysql2/promise";
 
 let pool: Pool | null = null;
+let envChecked = false;
 
-export function isMySQLConfigured(): boolean {
+async function ensureEnv() {
+  if (typeof window !== "undefined" || envChecked) return;
+  envChecked = true;
+
+  try {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const envPath = path.resolve(process.cwd(), ".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf-8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+          const [key, ...rest] = trimmed.split("=");
+          if (key && rest.length > 0) {
+            const val = rest.join("=").trim().replace(/^["']|["']$/g, "");
+            if (!process.env[key.trim()]) {
+              process.env[key.trim()] = val;
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  if (!process.env["DATABASE_URL"] && !process.env["MYSQL_HOST"]) {
+    process.env["DATABASE_URL"] = "mysql://root@localhost:3306/galaxy_green";
+  }
+}
+
+export async function isMySQLConfigured(): Promise<boolean> {
   if (typeof window !== "undefined") return false;
+  await ensureEnv();
   return Boolean(
     process.env["DATABASE_URL"] ||
     process.env["MYSQL_URL"] ||
@@ -14,10 +48,7 @@ export function isMySQLConfigured(): boolean {
 export async function getDbPool(): Promise<Pool | null> {
   if (typeof window !== "undefined") return null;
   if (pool) return pool;
-
-  if (!isMySQLConfigured()) {
-    return null;
-  }
+  await ensureEnv();
 
   try {
     const mysql = await import("mysql2/promise");
@@ -62,7 +93,7 @@ export async function executeQuery<T = any>(sql: string, params: any[] = []): Pr
     const [results] = await db.execute(sql, params);
     return results as T;
   } catch (err) {
-    console.warn("MySQL query failed, falling back to local storage/file:", err);
+    console.error("MySQL query failed:", err);
     return null;
   }
 }

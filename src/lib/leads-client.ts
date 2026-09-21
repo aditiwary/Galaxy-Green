@@ -51,10 +51,7 @@ const DEFAULT_FALLBACK_LEADS: Inquiry[] = [
 export async function fetchAllLeads(): Promise<Inquiry[]> {
   try {
     const serverLeads = await getInquiriesFn();
-    if (serverLeads && serverLeads.length > 0) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(serverLeads));
-      }
+    if (Array.isArray(serverLeads)) {
       return serverLeads;
     }
   } catch (err) {
@@ -70,44 +67,39 @@ export async function fetchAllLeads(): Promise<Inquiry[]> {
         // ignore
       }
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_FALLBACK_LEADS));
   }
 
   return DEFAULT_FALLBACK_LEADS;
 }
 
 export async function recordNewInquiry(input: InquiryInput): Promise<Inquiry> {
-  let createdLead: Inquiry | null = null;
-
   try {
     const res = await submitInquiryFn({ data: input });
     if (res?.inquiry) {
-      createdLead = res.inquiry;
+      return res.inquiry;
     }
   } catch (err) {
     console.warn("Server submission fallback:", err);
   }
 
-  if (!createdLead) {
-    createdLead = {
-      ...input,
-      id: `GG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      status: "New",
-      createdAt: new Date().toISOString(),
-    };
-  }
+  const fallbackLead: Inquiry = {
+    ...input,
+    id: `GG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    status: "New",
+    createdAt: new Date().toISOString(),
+  };
 
   if (typeof window !== "undefined") {
     try {
       const current = await fetchAllLeads();
-      const updated = [createdLead, ...current.filter((l) => l.id !== createdLead?.id)];
+      const updated = [fallbackLead, ...current.filter((l) => l.id !== fallbackLead.id)];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch {
       // ignore
     }
   }
 
-  return createdLead;
+  return fallbackLead;
 }
 
 export async function updateLeadStatus(
@@ -115,7 +107,8 @@ export async function updateLeadStatus(
   status: Inquiry["status"]
 ): Promise<boolean> {
   try {
-    await updateInquiryStatusFn({ data: { id, status } });
+    const res = await updateInquiryStatusFn({ data: { id, status } });
+    if (res?.success) return true;
   } catch (err) {
     console.warn("Server status update fallback:", err);
   }

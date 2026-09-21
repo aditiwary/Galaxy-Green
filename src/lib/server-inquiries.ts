@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { inquirySchema, type Inquiry } from "./inquiry-types";
-import { isMySQLConfigured, executeQuery } from "./db";
+import { executeQuery } from "./db";
 
 function mapRowToInquiry(row: any): Inquiry {
   let visitDateStr: string | undefined = undefined;
@@ -106,16 +106,14 @@ async function forwardToGoogleSheets(inquiry: Inquiry): Promise<void> {
 }
 
 export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async () => {
-  if (isMySQLConfigured()) {
-    const rows = await executeQuery<any[]>("SELECT * FROM admin_config WHERE id = 1 LIMIT 1");
-    if (rows && rows.length > 0) {
-      const r = rows[0];
-      return {
-        googleSheetsWebhookUrl: r.google_sheets_webhook_url || "",
-        dealerPin: r.dealer_pin || "9044",
-        baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || 1400,
-      };
-    }
+  const rows = await executeQuery<any[]>("SELECT * FROM admin_config WHERE id = 1 LIMIT 1");
+  if (rows !== null && rows.length > 0) {
+    const r = rows[0];
+    return {
+      googleSheetsWebhookUrl: r.google_sheets_webhook_url || "",
+      dealerPin: r.dealer_pin || "9044",
+      baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || 1400,
+    };
   }
 
   try {
@@ -135,23 +133,26 @@ export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async 
 export const updateAdminConfigFn = createServerFn({ method: "POST" })
   .validator((data: { googleSheetsWebhookUrl?: string; dealerPin?: string; baseRatePerSqFt?: number }) => data)
   .handler(async ({ data }) => {
-    if (isMySQLConfigured()) {
-      await executeQuery(
-        `INSERT INTO admin_config (id, google_sheets_webhook_url, dealer_pin, base_rate_per_sq_ft)
-         VALUES (1, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           google_sheets_webhook_url = COALESCE(?, google_sheets_webhook_url),
-           dealer_pin = COALESCE(?, dealer_pin),
-           base_rate_per_sq_ft = COALESCE(?, base_rate_per_sq_ft)`,
-        [
-          data.googleSheetsWebhookUrl || "",
-          data.dealerPin || "9044",
-          data.baseRatePerSqFt || 1400,
-          data.googleSheetsWebhookUrl,
-          data.dealerPin,
-          data.baseRatePerSqFt,
-        ]
-      );
+    const res = await executeQuery(
+      `INSERT INTO admin_config (id, google_sheets_webhook_url, dealer_pin, base_rate_per_sq_ft)
+       VALUES (1, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         google_sheets_webhook_url = COALESCE(?, google_sheets_webhook_url),
+         dealer_pin = COALESCE(?, dealer_pin),
+         base_rate_per_sq_ft = COALESCE(?, base_rate_per_sq_ft)`,
+      [
+        data.googleSheetsWebhookUrl || "",
+        data.dealerPin || "9044",
+        data.baseRatePerSqFt || 1400,
+        data.googleSheetsWebhookUrl,
+        data.dealerPin,
+        data.baseRatePerSqFt,
+      ]
+    );
+
+    if (res !== null) {
+      console.log("[MySQL] Admin config updated in MySQL.");
+      return { success: true, config: data };
     }
 
     try {
@@ -177,12 +178,13 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
   });
 
 export const getInquiriesFn = createServerFn({ method: "GET" }).handler(async () => {
-  if (isMySQLConfigured()) {
-    const rows = await executeQuery<any[]>("SELECT * FROM inquiries ORDER BY created_at DESC");
-    if (rows && Array.isArray(rows) && rows.length > 0) {
-      return rows.map(mapRowToInquiry);
-    }
+  const rows = await executeQuery<any[]>("SELECT * FROM inquiries ORDER BY created_at DESC");
+  if (rows !== null && Array.isArray(rows)) {
+    console.log(`[MySQL] Fetched ${rows.length} inquiries from MySQL inquiries table.`);
+    return rows.map(mapRowToInquiry);
   }
+
+  console.warn("[MySQL] Not connected. Falling back to local JSON file.");
   return await readLeadsFromFile();
 });
 
@@ -196,40 +198,48 @@ export const submitInquiryFn = createServerFn({ method: "POST" })
       createdAt: new Date().toISOString(),
     };
 
-    if (isMySQLConfigured()) {
-      await executeQuery(
-        `INSERT INTO inquiries (id, name, phone, email, plot_preference, visit_date, slot, cab_pickup, pickup_location, message, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          newInquiry.id,
-          newInquiry.name,
-          newInquiry.phone,
-          newInquiry.email || null,
-          newInquiry.plotPreference,
-          newInquiry.visitDate || null,
-          newInquiry.slot,
-          newInquiry.cabPickup ? 1 : 0,
-          newInquiry.pickupLocation,
-          newInquiry.message || null,
-          newInquiry.status,
-        ]
-      );
+    const res = await executeQuery(
+      `INSERT INTO inquiries (id, name, phone, email, plot_preference, visit_date, slot, cab_pickup, pickup_location, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newInquiry.id,
+        newInquiry.name,
+        newInquiry.phone,
+        newInquiry.email || null,
+        newInquiry.plotPreference,
+        newInquiry.visitDate || null,
+        newInquiry.slot,
+        newInquiry.cabPickup ? 1 : 0,
+        newInquiry.pickupLocation,
+        newInquiry.message || null,
+        newInquiry.status,
+      ]
+    );
+
+    await forwardToGoogleSheets(newInquiry);
+
+    if (res !== null) {
+      console.log(`[MySQL] Lead ${newInquiry.id} successfully saved to MySQL inquiries table.`);
+      return { success: true, inquiry: newInquiry };
     }
 
+    console.warn("[MySQL] Failed to save to MySQL, writing to leads.json as emergency backup.");
     const leads = await readLeadsFromFile();
     leads.unshift(newInquiry);
     await writeLeadsToFile(leads);
-    await forwardToGoogleSheets(newInquiry);
     return { success: true, inquiry: newInquiry };
   });
 
 export const updateInquiryStatusFn = createServerFn({ method: "POST" })
   .validator((data: { id: string; status: Inquiry["status"] }) => data)
   .handler(async ({ data }) => {
-    if (isMySQLConfigured()) {
-      await executeQuery("UPDATE inquiries SET status = ? WHERE id = ?", [data.status, data.id]);
+    const res = await executeQuery("UPDATE inquiries SET status = ? WHERE id = ?", [data.status, data.id]);
+    if (res !== null) {
+      console.log(`[MySQL] Inquiry ${data.id} status updated to ${data.status} in MySQL.`);
+      return { success: true };
     }
 
+    console.warn("[MySQL] Update failed, falling back to local JSON file.");
     const leads = await readLeadsFromFile();
     const lead = leads.find((l) => l.id === data.id);
     if (lead) {
