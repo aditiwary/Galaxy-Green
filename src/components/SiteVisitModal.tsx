@@ -36,7 +36,7 @@ const PHONE_NUMBER = "919044412642";
 export function SiteVisitModal({
   open,
   onOpenChange,
-  defaultPlotPreference = "1000 sq ft",
+  defaultPlotPreference = "600 sq ft",
 }: SiteVisitModalProps) {
   const [step, setStep] = useState<"form" | "confirmed">("form");
   const [submitting, setSubmitting] = useState(false);
@@ -211,12 +211,13 @@ export function SiteVisitModal({
                   onChange={(e) => setPlotPreference(e.target.value)}
                   className="mt-1 h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
                 >
-                  <option value="1000 sq ft">1,000 Sq Ft (Compact Investment · ₹14.00 L)</option>
-                  <option value="1200 sq ft">1,200 Sq Ft (₹16.80 L)</option>
-                  <option value="1500 sq ft">1,500 Sq Ft (Executive Duplex · ₹21.00 L)</option>
-                  <option value="2000 sq ft">2,000 Sq Ft (Luxury Villa Plot · ₹28.00 L)</option>
-                  <option value="3000 sq ft Corner">3,000 Sq Ft (Boulevard Corner Estate)</option>
-                  <option value="Custom Size">Custom Requirement / Multiple Plots</option>
+                  <option value="600 sq ft">600 Sq Ft (Starting Plot · ₹7.19 L)</option>
+                  <option value="800 sq ft">800 Sq Ft (Compact Home · ₹9.59 L)</option>
+                  <option value="1000 sq ft">1,000 Sq Ft (Most Popular · ₹11.99 L)</option>
+                  <option value="1200 sq ft">1,200 Sq Ft (Spacious Duplex · ₹14.39 L)</option>
+                  <option value="1500 sq ft">1,500 Sq Ft (Executive Villa · ₹17.99 L)</option>
+                  <option value="2000 sq ft">2,000 Sq Ft (Luxury Villa · ₹23.98 L)</option>
+                  <option value="Custom Size">Custom Requirement (Any Size On Buyer Wish)</option>
                 </select>
               </div>
 

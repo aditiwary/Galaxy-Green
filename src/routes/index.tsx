@@ -35,6 +35,9 @@ import {
   User,
   X,
   Zap,
+  Camera,
+  Train,
+  ShoppingBag,
 } from "lucide-react";
 
 // Asset imports
@@ -57,6 +60,7 @@ import {
 
 // Custom Interactive Real Estate Modules
 import { MasterPlanViewer } from "@/components/MasterPlanViewer";
+import { ActualSiteGallery } from "@/components/ActualSiteGallery";
 import { EmiRoiCalculator } from "@/components/EmiRoiCalculator";
 import { SiteVisitModal } from "@/components/SiteVisitModal";
 import { BrochureModal } from "@/components/BrochureModal";
@@ -152,12 +156,12 @@ function Index() {
   const [siteVisitOpen, setSiteVisitOpen] = useState(false);
   const [brochureOpen, setBrochureOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
-  const [selectedPlotForVisit, setSelectedPlotForVisit] = useState("1000 sq ft");
+  const [selectedPlotForVisit, setSelectedPlotForVisit] = useState("600 sq ft");
 
   // Lead Form State
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
-  const [contactPlot, setContactPlot] = useState("1000 sq ft");
+  const [contactPlot, setContactPlot] = useState("600 sq ft");
   const [contactMessage, setContactMessage] = useState("");
   const [formError, setFormError] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
@@ -239,8 +243,9 @@ function Index() {
             {[
               ["About", "#about"],
               ["Master Plan", "#masterplan"],
+              ["Live Photos", "#site-gallery"],
               ["Amenities", "#amenities"],
-              ["Location", "#location"],
+              ["Connectivity", "#location"],
               ["ROI Calculator", "#calculator"],
               ["Pricing", "#pricing"],
               ["FAQ", "#faq"],
@@ -309,8 +314,9 @@ function Index() {
               {[
                 ["About", "#about"],
                 ["Master Plan", "#masterplan"],
+                ["Live Photos", "#site-gallery"],
                 ["Amenities", "#amenities"],
-                ["Location", "#location"],
+                ["Connectivity", "#location"],
                 ["ROI Calculator", "#calculator"],
                 ["Pricing", "#pricing"],
                 ["FAQ", "#faq"],
@@ -420,9 +426,9 @@ function Index() {
           {/* Quick Metrics Bar */}
           <div className="mt-14 grid max-w-4xl grid-cols-2 border border-border/80 bg-background/60 backdrop-blur-xl rounded-md divide-y sm:divide-y-0 sm:divide-x divide-border/60 sm:grid-cols-4 shadow-glow">
             {[
-              ["₹1,400", "Per Sq Ft Rate", "Limited Phase 1 pricing"],
-              ["1,000+", "Sq Ft Plot Sizes", "Custom villa options"],
-              ["5 Mins", "Amausi Airport", "CCSIA Terminal 3"],
+              ["₹1,199", "Per Sq Ft Rate", "Phase 1 fixed pricing"],
+              ["600+", "Sq Ft Min Size", "Up to custom requirement"],
+              ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
               ["100%", "Freehold & Mutation", "Dakhil Kharij ready"],
             ].map(([value, label, sub]) => (
               <div key={label} className="p-5">
@@ -660,6 +666,14 @@ function Index() {
         </div>
       </section>
 
+      {/* Real On-Ground Site Gallery & Live Progress */}
+      <ActualSiteGallery
+        onScheduleVisit={(plotText) => {
+          setSelectedPlotForVisit(plotText || "600 sq ft");
+          setSiteVisitOpen(true);
+        }}
+      />
+
       {/* Location & Connectivity Matrix */}
       <section id="location" className="section-shell bg-background border-b border-border">
         <div className="mx-auto max-w-7xl">
@@ -670,30 +684,30 @@ function Index() {
                 Direct Airport & Metro Connectivity
               </h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Located at Sai Suraksha Nagar, Amausi, Lucknow (PIN 226008). Benefit from immediate access to the international airport, Kanpur Road (NH-27), Amausi Metro, and the upcoming expressway link.
+                Located at Sai Suraksha Nagar, Amausi, Lucknow (PIN 226008). Benefit from premier connectivity: 2.7 km from Amausi Railway Station, 3 km from T.S. Misra Medical College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market, and 5 km from CCS International Airport & Amausi Metro Station.
               </p>
 
-              {/* Transit Distances */}
+              {/* Transit & Key Nearby Facilities */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 {[
-                  { time: "5 Mins", label: "Amausi Airport", sub: "CCSIA Terminal 3" },
-                  { time: "4 Mins", label: "Amausi Metro", sub: "Red Line Station" },
-                  { time: "3 Mins", label: "Kanpur Road", sub: "NH-27 Highway" },
-                  { time: "12 Mins", label: "Shaheed Path", sub: "Ring Road Link" },
-                  { time: "15 Mins", label: "Apollo Hospital", sub: "Super Speciality" },
-                  { time: "20 Mins", label: "Charbagh Rly", sub: "Central Station" },
+                  { dist: "2.7 km", label: "Amausi Railway Station", sub: "~5 Mins · Express & Local Hub" },
+                  { dist: "3.0 km", label: "T.S. Misra Medical College", sub: "~6 Mins · Hospital & Trauma" },
+                  { dist: "5.0 km", label: "CCS International Airport", sub: "~8-10 Mins · Terminal 3" },
+                  { dist: "5.0 km", label: "Amausi Metro Station", sub: "~8-10 Mins · Red Line Link" },
+                  { dist: "3.0 km", label: "Kanpur-Lucknow Expressway", sub: "~5 Mins · High-Speed Link" },
+                  { dist: "2.5 km", label: "Main Market", sub: "~4 Mins · Daily Essentials" },
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className="p-3.5 rounded bg-surface border border-border/80 text-center"
+                    className="p-3.5 rounded bg-surface border border-border/80 text-center hover:border-primary/50 transition-colors group"
                   >
-                    <strong className="font-display text-xl text-primary block">
-                      {item.time}
+                    <strong className="font-display text-2xl text-primary block group-hover:scale-105 transition-transform">
+                      {item.dist}
                     </strong>
-                    <span className="text-xs font-semibold text-foreground uppercase block mt-0.5">
+                    <span className="text-xs font-semibold text-foreground uppercase block mt-1 line-clamp-1">
                       {item.label}
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-mono block">
+                    <span className="text-[10px] text-muted-foreground font-mono block mt-0.5">
                       {item.sub}
                     </span>
                   </div>
@@ -857,47 +871,60 @@ function Index() {
             </div>
             <div className="border-l-2 border-primary pl-5">
               <p className="font-display text-3xl font-semibold text-primary">
-                ₹1,400 / Sq Ft
+                ₹1,199 / Sq Ft
               </p>
               <p className="text-xs text-muted-foreground font-mono mt-1">
-                Fixed Phase 1 Base Rate · Token: 10% on confirmation
+                Fixed Phase 1 Base Rate · Min 600 Sq Ft to Custom Requirements
               </p>
             </div>
           </div>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
+              {
+                size: "600",
+                dim: "20 × 30 ft",
+                total: "₹7,19,400",
+                note: "Minimum entry size. Ideal for compact smart duplex or high-yield investment.",
+                tag: "Starting Size",
+                popular: false,
+              },
               {
                 size: "1,000",
                 dim: "25 × 40 ft",
-                total: "₹14,00,000",
-                note: "Compact high-demand plot. Ideal for 3BHK duplex or long-term growth.",
+                total: "₹11,99,000",
+                note: "Most sought-after layout. Perfect for luxury 3BHK independent villa with lawn & parking.",
+                tag: "Most Popular",
                 popular: true,
               },
               {
                 size: "1,500",
                 dim: "30 × 50 ft",
-                total: "₹21,00,000",
-                note: "Generous frontage for front lawn, two-car parking, and spacious terrace.",
+                total: "₹17,98,500",
+                note: "Generous frontage for front lawn, two-car parking, and spacious terrace garden.",
+                tag: "Executive Villa",
                 popular: false,
               },
               {
-                size: "2,000",
-                dim: "40 × 50 ft",
-                total: "₹28,00,000",
-                note: "Grand villa plot overlooking botanical park or wide avenue.",
+                size: "Custom",
+                dim: "As Per Requirement",
+                total: "₹1,199 / sq ft",
+                note: "Tailored to your exact wish. Combine multiple plots for large commercial or luxury estates.",
+                tag: "On Buyer Wish",
                 popular: false,
               },
             ].map((card) => (
               <article
                 key={card.size}
-                className={`relative rounded-md border p-8 bg-card flex flex-col justify-between transition-all hover:shadow-glow ${
-                  card.popular ? "border-primary shadow-glow" : "border-border"
+                className={`relative rounded-md border p-6 bg-card flex flex-col justify-between transition-all hover:shadow-glow ${
+                  card.popular ? "border-primary shadow-glow ring-1 ring-primary/40" : "border-border"
                 }`}
               >
-                {card.popular && (
-                  <span className="absolute right-0 top-0 bg-primary px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground font-mono rounded-bl">
-                    Most Popular
+                {card.tag && (
+                  <span className={`absolute right-0 top-0 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider font-mono rounded-bl ${
+                    card.popular ? "bg-primary text-primary-foreground" : "bg-surface border-b border-l border-border text-muted-foreground"
+                  }`}>
+                    {card.tag}
                   </span>
                 )}
 
@@ -905,48 +932,48 @@ function Index() {
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-mono">
                     Residential Plot
                   </span>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <strong className="font-display text-5xl font-semibold text-foreground">
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <strong className="font-display text-4xl font-semibold text-foreground">
                       {card.size}
                     </strong>
                     <span className="text-xs uppercase font-mono text-muted-foreground">
-                      Sq Ft
+                      {card.size === "Custom" ? "Sizes" : "Sq Ft"}
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground font-mono block mt-1">
-                    Dimensions: {card.dim}
+                    {card.dim}
                   </span>
 
-                  <div className="my-6 h-px bg-border" />
+                  <div className="my-5 h-px bg-border" />
 
                   <span className="text-[10px] uppercase font-mono text-muted-foreground block">
-                    Allotment Consideration
+                    Allotment Cost
                   </span>
-                  <p className="mt-1 font-display text-3xl font-semibold text-primary">
+                  <p className="mt-1 font-display text-2xl font-semibold text-primary">
                     {card.total}
                   </p>
 
-                  <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
+                  <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
                     {card.note}
                   </p>
                 </div>
 
-                <div className="mt-8 space-y-2.5">
+                <div className="mt-6 space-y-2">
                   <Button
                     onClick={() => {
-                      setSelectedPlotForVisit(`${card.size} sq ft`);
+                      setSelectedPlotForVisit(card.size === "Custom" ? "Custom Requirement" : `${card.size} sq ft`);
                       setSiteVisitOpen(true);
                     }}
-                    className="w-full h-11 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="w-full h-10 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     Reserve This Plot <ArrowRight className="size-3.5 ml-1.5" />
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setBrochureOpen(true)}
-                    className="w-full h-10 uppercase text-xs tracking-wider border-border"
+                    className="w-full h-9 uppercase text-[11px] tracking-wider border-border"
                   >
-                    <Download className="size-3.5 mr-1.5" /> View Specifications
+                    <Download className="size-3 mr-1.5" /> Specifications
                   </Button>
                 </div>
               </article>
@@ -979,7 +1006,7 @@ function Index() {
                   Where is Galaxy Green Sai Suraksha Nagar located in Lucknow?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus Code: QR4X+39W, Pin 226008). It is positioned directly in the high-growth Lucknow-Kanpur National Highway corridor, just 5 to 7 minutes from Chaudhary Charan Singh International Airport (CCSIA), Amausi Metro Station, and Amausi Railway Station.
+                  Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus Code: QR4X+39W, Pin 226008). Key nearby connectivity points include: Amausi Railway Station (2.7 km), T.S. Misra Medical College & Hospital (3 km), Kanpur-Lucknow Expressway (3 km), Main Market (2.5 km), and CCS International Airport & Amausi Metro Station (5 km).
                 </AccordionContent>
               </AccordionItem>
 
@@ -988,13 +1015,15 @@ function Index() {
                   What are the plot sizes and rates per sq ft at Galaxy Green?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Standard residential plots start at an introductory Phase 1 rate of ₹1,400 per sq ft. We offer multiple plot dimensions to suit various budgets:
+                  Standard residential plots start at a transparent Phase 1 rate of ₹1,199 per sq ft. Minimum plot area starts from 600 sq ft, and maximum can be fully tailored to your wish and architectural requirements:
                   <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm font-mono text-foreground/90">
-                    <li>1,000 Sq Ft (25 × 40 ft) — starting at ₹14.00 Lakh</li>
-                    <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹16.80 Lakh</li>
-                    <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹21.00 Lakh</li>
-                    <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹28.00 Lakh</li>
-                    <li>Custom commercial &amp; corner estates up to 3,000+ sq ft</li>
+                    <li>600 Sq Ft (20 × 30 ft) — starting at ₹7.19 Lakh (Ideal budget duplex)</li>
+                    <li>800 Sq Ft (20 × 40 ft) — starting at ₹9.59 Lakh</li>
+                    <li>1,000 Sq Ft (25 × 40 ft) — starting at ₹11.99 Lakh (Most popular 3BHK)</li>
+                    <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹14.39 Lakh</li>
+                    <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹17.99 Lakh (Executive villa)</li>
+                    <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹23.98 Lakh (Luxury estate)</li>
+                    <li>Custom plot sizes up to 5,000+ sq ft customized as per buyer requirement</li>
                   </ul>
                   Corner and wide-boulevard facing plots carry standard Preferential Location Charges (PLC).
                 </AccordionContent>
@@ -1159,12 +1188,13 @@ function Index() {
                     onChange={(e) => setContactPlot(e.target.value)}
                     className="form-control block w-full appearance-none px-4 text-xs font-mono"
                   >
-                    <option value="1000 sq ft">1,000 Sq Ft (₹14.00 Lakh)</option>
-                    <option value="1200 sq ft">1,200 Sq Ft (₹16.80 Lakh)</option>
-                    <option value="1500 sq ft">1,500 Sq Ft (₹21.00 Lakh)</option>
-                    <option value="2000 sq ft">2,000 Sq Ft (₹28.00 Lakh)</option>
-                    <option value="3000 sq ft Corner">3,000 Sq Ft Corner Estate</option>
-                    <option value="Custom Size">Custom / Commercial Requirement</option>
+                    <option value="600 sq ft">600 Sq Ft (₹7.19 Lakh · Starting Size)</option>
+                    <option value="800 sq ft">800 Sq Ft (₹9.59 Lakh)</option>
+                    <option value="1000 sq ft">1,000 Sq Ft (₹11.99 Lakh · Most Popular)</option>
+                    <option value="1200 sq ft">1,200 Sq Ft (₹14.39 Lakh)</option>
+                    <option value="1500 sq ft">1,500 Sq Ft (₹17.99 Lakh)</option>
+                    <option value="2000 sq ft">2,000 Sq Ft (₹23.98 Lakh)</option>
+                    <option value="Custom Size">Custom Requirement (Any Size On Buyer Wish)</option>
                   </select>
                 </div>
 

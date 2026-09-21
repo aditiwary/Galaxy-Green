@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `plots` (
   `dimensions` VARCHAR(64) NOT NULL,
   `facing` ENUM('East', 'North', 'Park Facing', 'Boulevard Corner', 'West', 'South') NOT NULL,
   `road_width` VARCHAR(64) NOT NULL DEFAULT '30 ft Internal',
-  `rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1400.00,
+  `rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1199.00,
   `status` ENUM('Available', 'Fast Selling', 'Reserved', 'Sold Out') NOT NULL DEFAULT 'Available',
   `feature` TEXT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `admin_config` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `google_sheets_webhook_url` VARCHAR(255) DEFAULT '',
   `dealer_pin` VARCHAR(32) NOT NULL DEFAULT '0000',
-  `base_rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1400.00,
+  `base_rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1199.00,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

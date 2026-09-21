@@ -85,12 +85,12 @@ const realEstateSchema = {
   offers: {
     "@type": "AggregateOffer",
     priceCurrency: "INR",
-    lowPrice: "1400000",
+    lowPrice: "719400",
     highPrice: "3500000",
     offerCount: "118",
     priceSpecification: {
       "@type": "UnitPriceSpecification",
-      price: "1400",
+      price: "1199",
       priceCurrency: "INR",
       unitText: "SQFT",
     },
@@ -194,7 +194,7 @@ const faqSchema = {
       name: "Where is Galaxy Green Sai Suraksha Nagar located in Lucknow?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Galaxy Green Sai Suraksha Nagar is located in Amausi, Lucknow, just minutes from Chaudhary Charan Singh International Airport (CCSIA), Amausi Railway Station, and the Lucknow-Kanpur National Highway.",
+        text: "Galaxy Green Sai Suraksha Nagar is located in Amausi, Lucknow — just 2.7 km from Amausi Railway Station, 3 km from T.S. Misra Medical College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market, and 5 km from CCS International Airport & Amausi Metro Station.",
       },
     },
     {
@@ -202,7 +202,7 @@ const faqSchema = {
       name: "What is the plot rate per sq ft at Galaxy Green Sai Suraksha Nagar?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Plot prices start from ₹1,400 per sq ft for standard plots. Preferred location charges (PLC) apply for corner and park-facing plots. Plot sizes range from 1,000 sq ft to 2,000+ sq ft.",
+        text: "Plot prices start from ₹1,199 per sq ft for standard plots. Preferred location charges (PLC) apply for corner and park-facing plots. Plot sizes range from 1,000 sq ft to 2,000+ sq ft.",
       },
     },
     {
