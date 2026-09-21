@@ -1,5 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { plotSchema, type Plot } from "./plot-types";
+import { isMySQLConfigured, executeQuery } from "./db";
+
+function mapRowToPlot(row: any): Plot {
+  return {
+    id: row.id,
+    number: row.number,
+    sizeSqFt: Number(row.size_sq_ft),
+    dimensions: row.dimensions,
+    facing: row.facing,
+    roadWidth: row.road_width,
+    ratePerSqFt: Number(row.rate_per_sq_ft),
+    status: row.status,
+    feature: row.feature,
+  };
+}
 
 async function getFsAndPath() {
   if (typeof window !== "undefined") return null;
@@ -41,17 +56,42 @@ async function writePlotsToFile(plots: Plot[]): Promise<void> {
 }
 
 export const getPlotsFn = createServerFn({ method: "GET" }).handler(async () => {
+  if (isMySQLConfigured()) {
+    const rows = await executeQuery<any[]>("SELECT * FROM plots ORDER BY number ASC");
+    if (rows && Array.isArray(rows) && rows.length > 0) {
+      return rows.map(mapRowToPlot);
+    }
+  }
   return await readPlotsFromFile();
 });
 
 export const createPlotFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => plotSchema.parse(data))
   .handler(async ({ data }) => {
-    const plots = await readPlotsFromFile();
     const newPlot: Plot = {
       ...data,
       id: `plot-${Date.now()}`,
     };
+
+    if (isMySQLConfigured()) {
+      await executeQuery(
+        `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          newPlot.id,
+          newPlot.number,
+          newPlot.sizeSqFt,
+          newPlot.dimensions,
+          newPlot.facing,
+          newPlot.roadWidth,
+          newPlot.ratePerSqFt,
+          newPlot.status,
+          newPlot.feature,
+        ]
+      );
+    }
+
+    const plots = await readPlotsFromFile();
     plots.push(newPlot);
     await writePlotsToFile(plots);
     return { success: true, plot: newPlot };
@@ -60,6 +100,10 @@ export const createPlotFn = createServerFn({ method: "POST" })
 export const updatePlotStatusFn = createServerFn({ method: "POST" })
   .validator((data: { id: string; status: Plot["status"] }) => data)
   .handler(async ({ data }) => {
+    if (isMySQLConfigured()) {
+      await executeQuery("UPDATE plots SET status = ? WHERE id = ?", [data.status, data.id]);
+    }
+
     const plots = await readPlotsFromFile();
     const target = plots.find((p) => p.id === data.id);
     if (target) {
@@ -73,6 +117,10 @@ export const updatePlotStatusFn = createServerFn({ method: "POST" })
 export const deletePlotFn = createServerFn({ method: "POST" })
   .validator((data: { id: string }) => data)
   .handler(async ({ data }) => {
+    if (isMySQLConfigured()) {
+      await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
+    }
+
     const plots = await readPlotsFromFile();
     const filtered = plots.filter((p) => p.id !== data.id);
     await writePlotsToFile(filtered);
