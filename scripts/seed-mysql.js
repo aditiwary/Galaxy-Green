@@ -41,15 +41,49 @@ async function main() {
 
   try {
     if (connectionUri) {
-      // Obfuscate password in log
       const safeUri = connectionUri.replace(/:([^:@]+)@/, ":****@");
       console.log(`Connecting via DATABASE_URL: ${safeUri}`);
-      connection = await mysql.createConnection({
-        uri: connectionUri,
-        multipleStatements: true,
-      });
+
+      // If database doesn't exist yet, connect to server without db first to create it
+      try {
+        connection = await mysql.createConnection({
+          uri: connectionUri,
+          multipleStatements: true,
+        });
+      } catch (connErr) {
+        if (connErr.code === "ER_BAD_DB_ERROR") {
+          // Parse URI without database name
+          const parsed = new URL(connectionUri);
+          const dbName = parsed.pathname.replace(/^\//, "");
+          parsed.pathname = "";
+          console.log(`Database '${dbName}' not found yet. Creating database '${dbName}'...`);
+          const adminConn = await mysql.createConnection({
+            uri: parsed.toString(),
+          });
+          await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+          await adminConn.end();
+
+          // Reconnect with database
+          connection = await mysql.createConnection({
+            uri: connectionUri,
+            multipleStatements: true,
+          });
+        } else {
+          throw connErr;
+        }
+      }
     } else {
-      console.log(`Connecting to MySQL host=${host}:${port}, user=${user}, database=${database}...`);
+      console.log(`Connecting to MySQL host=${host}:${port}, user=${user}...`);
+      // Connect without db first to ensure db exists
+      const adminConn = await mysql.createConnection({
+        host,
+        port,
+        user,
+        password,
+      });
+      await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      await adminConn.end();
+
       connection = await mysql.createConnection({
         host,
         port,
@@ -86,11 +120,12 @@ async function main() {
     const errMsg = err.message || String(err);
     console.error(`\nMigration failed: [${errCode}] ${errMsg}`);
 
-    if (errCode === "ECONNREFUSED") {
+    if (errCode === "ER_ACCESS_DENIED_ERROR") {
+      console.log("\n[Notice]: Access denied. Check your MySQL user and password in .env.");
+      console.log("If using Homebrew MySQL with no password, set: DATABASE_URL=mysql://root@localhost:3306/galaxy_green");
+    } else if (errCode === "ECONNREFUSED") {
       console.log(`\n[Notice]: No MySQL server is listening at ${host}:${port}.`);
-      console.log("1. If you are using a local MySQL service (Homebrew/MAMP/XAMPP), make sure the service is started.");
-      console.log("2. If you are using a cloud MySQL database (Aiven, Railway, AWS RDS, PlanetScale), set DATABASE_URL in your .env file.");
-      console.log("3. You can also import 'database/galaxy_green_mysql.sql' directly in phpMyAdmin or MySQL Workbench.");
+      console.log("Make sure your MySQL service is started with: brew services start mysql");
     }
     process.exit(1);
   } finally {
