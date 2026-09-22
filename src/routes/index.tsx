@@ -38,6 +38,10 @@ import {
   Camera,
   Train,
   ShoppingBag,
+  Maximize2,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 
 // Asset imports
@@ -153,6 +157,8 @@ function Index() {
   const [brochureOpen, setBrochureOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [selectedPlotForVisit, setSelectedPlotForVisit] = useState("600 sq ft");
+  const [airportModalOpen, setAirportModalOpen] = useState(false);
+  const [airportZoom, setAirportZoom] = useState(1);
 
   // Floating dock visibility & minimization state
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -179,6 +185,17 @@ function Index() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!airportModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setAirportModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [airportModalOpen]);
 
   // Trigger site visit modal with pre-filled plot
   const handlePlotSelectForBooking = (plotNumber: string, size: string) => {
@@ -786,14 +803,39 @@ function Index() {
 
             {/* Connectivity Visual Render */}
             <div className="lg:col-span-6">
-              <div className="relative overflow-hidden rounded-lg border border-border shadow-glow group">
+              <div
+                className="relative overflow-hidden rounded-lg border border-border shadow-glow group cursor-pointer"
+                onClick={() => {
+                  setAirportZoom(1);
+                  setAirportModalOpen(true);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="View Chaudhary Charan Singh International Airport connectivity map in full screen HD"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setAirportZoom(1);
+                    setAirportModalOpen(true);
+                  }
+                }}
+              >
                 <img
                   src={connectivityImage}
                   alt="Galaxy Green strategic location map and connectivity to Chaudhary Charan Singh International Airport Lucknow"
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-transparent to-transparent" />
-                <div className="absolute bottom-5 left-5 right-5 p-4 rounded bg-background/80 backdrop-blur-md border border-border">
+                <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-transparent to-transparent pointer-events-none" />
+
+                {/* Full-Screen HD Badge */}
+                <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-2 rounded-full border border-primary/40 bg-background/85 px-3 py-1.5 backdrop-blur-md shadow-md transition-all group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
+                  <Maximize2 className="size-3.5" />
+                  <span className="text-[11px] font-mono font-medium uppercase tracking-wider">
+                    Full Screen HD
+                  </span>
+                </div>
+
+                <div className="absolute bottom-5 left-5 right-5 p-4 rounded bg-background/80 backdrop-blur-md border border-border flex items-center justify-between pointer-events-none">
                   <div className="flex items-center gap-3">
                     <MapPin className="size-5 text-primary shrink-0" />
                     <div>
@@ -805,6 +847,9 @@ function Index() {
                       </p>
                     </div>
                   </div>
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-mono text-primary font-semibold">
+                    Click To Enlarge <Maximize2 className="size-3.5" />
+                  </span>
                 </div>
               </div>
             </div>
@@ -1559,6 +1604,142 @@ function Index() {
       />
       <BrochureModal open={brochureOpen} onOpenChange={setBrochureOpen} />
       <AdminLeadsDrawer open={adminOpen} onOpenChange={setAdminOpen} />
+
+      {/* Full Screen High-Definition Airport & Connectivity Modal */}
+      {airportModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-2xl flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Lightbox Header */}
+          <div className="flex items-center justify-between border-b border-border/80 pb-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <Badge
+                variant="outline"
+                className="border-primary/50 text-primary bg-primary/10 font-mono text-[11px] uppercase tracking-wider"
+              >
+                Full Screen HD · Original Quality
+              </Badge>
+              <span className="text-xs font-mono text-foreground font-medium hidden md:inline">
+                Chaudhary Charan Singh International Airport (LKO) &amp; Amausi Plots
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setAirportZoom((prev) => Math.max(0.75, prev - 0.25))}
+                  disabled={airportZoom <= 0.75}
+                  className="size-7 sm:size-8 text-foreground hover:bg-background"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="size-3.5 sm:size-4" />
+                </Button>
+                <span className="text-[11px] font-mono font-semibold px-1 min-w-[2.8rem] text-center">
+                  {Math.round(airportZoom * 100)}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setAirportZoom((prev) => Math.min(3, prev + 0.25))}
+                  disabled={airportZoom >= 3}
+                  className="size-7 sm:size-8 text-foreground hover:bg-background"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="size-3.5 sm:size-4" />
+                </Button>
+                {airportZoom !== 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setAirportZoom(1)}
+                    className="size-7 sm:size-8 text-muted-foreground hover:text-foreground hover:bg-background"
+                    title="Reset Zoom"
+                  >
+                    <RotateCcw className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+
+              <Button
+                size="sm"
+                onClick={() => {
+                  setAirportModalOpen(false);
+                  setSelectedPlotForVisit("Airport Vicinity Plot");
+                  setSiteVisitOpen(true);
+                }}
+                className="h-8 px-3 uppercase text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 hidden sm:inline-flex"
+              >
+                Inquire Plots <ArrowRight className="size-3 ml-1" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setAirportModalOpen(false)}
+                className="size-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface"
+                aria-label="Close Full Screen View"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Modal Body: Pan & Zoom High Quality Container */}
+          <div className="relative flex-1 flex items-center justify-center my-3 overflow-auto rounded-xl border border-border/80 bg-black/60 p-2 sm:p-4 select-none">
+            <div
+              className="transition-transform duration-200 ease-out origin-center"
+              style={{
+                transform: `scale(${airportZoom})`,
+                cursor: airportZoom > 1 ? "grab" : "zoom-in",
+              }}
+              onClick={() => {
+                setAirportZoom((prev) => (prev === 1 ? 1.75 : 1));
+              }}
+              title={airportZoom === 1 ? "Click to zoom into photograph" : "Click to reset zoom"}
+            >
+              <img
+                src={connectivityImage}
+                alt="Chaudhary Charan Singh International Airport (LKO) and Amausi Available Plots aerial photograph"
+                className="max-h-[76vh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="border-t border-border/80 pt-3 max-w-5xl mx-auto w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <strong className="text-xs sm:text-sm font-display uppercase tracking-wide text-foreground block">
+                  Chaudhary Charan Singh International Airport · Runway (09/27) · Terminals 1 &amp;
+                  2
+                </strong>
+                <p className="text-[11px] sm:text-xs text-muted-foreground font-mono mt-0.5">
+                  Direct connectivity to Kanpur Road (NH27), Amausi Metro Station &amp; Galaxy Green
+                  Sai Suraksha Nagar available plots.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setAirportModalOpen(false);
+                    setSelectedPlotForVisit("Airport Vicinity Plot");
+                    setSiteVisitOpen(true);
+                  }}
+                  className="sm:hidden w-full h-8 uppercase text-[11px] font-semibold bg-primary text-primary-foreground"
+                >
+                  Inquire Nearby Plots <ArrowRight className="size-3 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

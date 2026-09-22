@@ -15,6 +15,9 @@ import {
   Layers,
   Zap,
   ArrowRight,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -202,23 +205,29 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
   const filteredPhotos =
     activeTab === "all" ? photos : photos.filter((photo) => photo.category === activeTab);
 
+  const [galleryZoom, setGalleryZoom] = useState<number>(1);
+
   const openLightbox = (index: number) => {
     if (index >= 0 && index < filteredPhotos.length) {
+      setGalleryZoom(1);
       setLightboxIndex(index);
     }
   };
 
   const closeLightbox = () => {
+    setGalleryZoom(1);
     setLightboxIndex(null);
   };
 
   const nextPhoto = useCallback(() => {
     if (lightboxIndex === null || filteredPhotos.length === 0) return;
+    setGalleryZoom(1);
     setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % filteredPhotos.length));
   }, [lightboxIndex, filteredPhotos.length]);
 
   const prevPhoto = useCallback(() => {
     if (lightboxIndex === null || filteredPhotos.length === 0) return;
+    setGalleryZoom(1);
     setLightboxIndex((prev) =>
       prev === null ? null : (prev - 1 + filteredPhotos.length) % filteredPhotos.length,
     );
@@ -490,6 +499,44 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Zoom In / Zoom Out Controls */}
+              <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setGalleryZoom((prev) => Math.max(0.75, prev - 0.25))}
+                  disabled={galleryZoom <= 0.75}
+                  className="size-7 sm:size-8 text-foreground hover:bg-background"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="size-3.5 sm:size-4" />
+                </Button>
+                <span className="text-[11px] font-mono font-semibold px-1 min-w-[2.8rem] text-center">
+                  {Math.round(galleryZoom * 100)}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setGalleryZoom((prev) => Math.min(3, prev + 0.25))}
+                  disabled={galleryZoom >= 3}
+                  className="size-7 sm:size-8 text-foreground hover:bg-background"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="size-3.5 sm:size-4" />
+                </Button>
+                {galleryZoom !== 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setGalleryZoom(1)}
+                    className="size-7 sm:size-8 text-muted-foreground hover:text-foreground hover:bg-background"
+                    title="Reset Zoom"
+                  >
+                    <RotateCcw className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+
               <Button
                 size="sm"
                 onClick={() => {
@@ -499,7 +546,7 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
                     onScheduleVisit(`${p.title} (${p.dimensionsLabel || "On-Site"})`);
                   }
                 }}
-                className="h-8 px-3 uppercase text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+                className="h-8 px-3 uppercase text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 hidden sm:inline-flex"
               >
                 Inquire This Plot <ArrowRight className="size-3 ml-1.5" />
               </Button>
@@ -515,24 +562,36 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
           </div>
 
           {/* Lightbox Body (Image + Prev/Next Controls) */}
-          <div className="relative flex-1 flex items-center justify-center my-4 overflow-hidden">
+          <div className="relative flex-1 flex items-center justify-center my-3 overflow-auto rounded-xl border border-border/80 bg-black/60 p-2 sm:p-4 select-none">
             <button
               onClick={prevPhoto}
-              className="absolute left-2 sm:left-4 z-10 size-10 sm:size-12 rounded-full bg-background/80 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
+              className="absolute left-2 sm:left-4 z-20 size-10 sm:size-12 rounded-full bg-background/85 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
               aria-label="Previous photograph"
             >
               <ChevronLeft className="size-5 sm:size-6" />
             </button>
 
-            <img
-              src={filteredPhotos[lightboxIndex].src}
-              alt={filteredPhotos[lightboxIndex].title}
-              className="max-h-[68vh] w-auto max-w-full object-contain rounded-lg border border-border shadow-2xl"
-            />
+            <div
+              className="transition-transform duration-200 ease-out origin-center"
+              style={{
+                transform: `scale(${galleryZoom})`,
+                cursor: galleryZoom > 1 ? "grab" : "zoom-in",
+              }}
+              onClick={() => {
+                setGalleryZoom((prev) => (prev === 1 ? 1.75 : 1));
+              }}
+              title={galleryZoom === 1 ? "Click to zoom into photograph" : "Click to reset zoom"}
+            >
+              <img
+                src={filteredPhotos[lightboxIndex].src}
+                alt={filteredPhotos[lightboxIndex].title}
+                className="max-h-[76vh] w-auto max-w-full object-contain rounded-lg shadow-2xl"
+              />
+            </div>
 
             <button
               onClick={nextPhoto}
-              className="absolute right-2 sm:right-4 z-10 size-10 sm:size-12 rounded-full bg-background/80 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
+              className="absolute right-2 sm:right-4 z-20 size-10 sm:size-12 rounded-full bg-background/85 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
               aria-label="Next photograph"
             >
               <ChevronRight className="size-5 sm:size-6" />
