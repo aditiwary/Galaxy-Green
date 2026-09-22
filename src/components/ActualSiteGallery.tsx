@@ -32,7 +32,7 @@ export interface SitePhoto {
   dimensionsLabel?: string;
 }
 
-export const SITE_PHOTOS: SitePhoto[] = [
+const DEFAULT_SITE_PHOTOS: SitePhoto[] = [
   {
     id: "site-photo-1",
     src: "/site-photos/galaxy-green-actual-site-1.jpg",
@@ -127,7 +127,7 @@ interface ActualSiteGalleryProps {
 export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [photos, setPhotos] = useState<SitePhoto[]>(SITE_PHOTOS);
+  const [photos, setPhotos] = useState<SitePhoto[]>(DEFAULT_SITE_PHOTOS);
 
   useEffect(() => {
     let isMounted = true;

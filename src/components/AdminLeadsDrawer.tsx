@@ -333,6 +333,12 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       toast.error("Plot number cannot be empty.");
       return;
     }
+
+    const confirmSave = confirm(
+      `Confirm database save: Are you sure you want to commit changes to Plot ${editPlotNumber}? These changes will be permanently stored in your MySQL database and live on the website.`,
+    );
+    if (!confirmSave) return;
+
     setSavingPlotEdit(true);
     try {
       const updates: Partial<PlotInput> = {
@@ -350,12 +356,15 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         setPlots((prev) => prev.map((p) => (p.id === editingPlot.id ? { ...p, ...res } : p)));
         window.dispatchEvent(new CustomEvent("plots-updated"));
         setEditingPlot(null);
-        toast.success(`Plot ${res.number} updated in database & live website!`);
+        toast.success(
+          `✓ Plot ${res.number} successfully saved to MySQL database & permanently remembered!`,
+          { duration: 6000 },
+        );
       } else {
         toast.error("Failed to update plot. Please check authentication.");
       }
     } catch {
-      toast.error("Failed to save plot updates");
+      toast.error("Failed to save plot updates to database.");
     } finally {
       setSavingPlotEdit(false);
     }
@@ -459,6 +468,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       toast.error("Password / PIN must be between 4 and 32 characters.");
       return;
     }
+
+    const confirmChange = confirm(
+      "Confirm password update: Are you sure you want to change the security password? This will be permanently saved into your MySQL database and all active sessions will be logged out.",
+    );
+    if (!confirmChange) return;
 
     setSavingSettings(true);
     try {
@@ -1108,19 +1122,45 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+
+                    {/* Safe Database Commit Notice */}
+                    <div className="p-3 bg-[#081812] border border-emerald-500/40 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-emerald-300">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                        <span>
+                          <strong>Safe Database Commit:</strong> Changes write directly to MySQL
+                          database ledger and persist permanently.
+                        </span>
+                      </div>
+                      <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+                        Permanent Storage Active
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-1">
                       <Button
                         type="submit"
                         size="sm"
                         disabled={savingPlotEdit}
-                        className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg"
+                        className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg shadow-glow flex items-center gap-2"
                       >
-                        {savingPlotEdit ? "Saving..." : "Save Plot Changes to Database"}
+                        {savingPlotEdit ? (
+                          <>
+                            <RefreshCw className="size-3.5 animate-spin mr-1.5" />
+                            Saving to Database...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="size-3.5 mr-1.5" />
+                            Save Changes & Commit to Database
+                          </>
+                        )}
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
+                        disabled={savingPlotEdit}
                         onClick={() => setEditingPlot(null)}
                         className="h-10 px-4 text-xs rounded-lg"
                       >
@@ -1625,15 +1665,38 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     <p className="text-[11px] text-muted-foreground italic">
                       Leave blank to keep your current security password unchanged.
                     </p>
+
+                    {/* Safe Authentication Commit Notice */}
+                    <div className="p-3 bg-[#081812] border border-emerald-500/40 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-emerald-300">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                        <span>
+                          <strong>Safe Database Persistence:</strong> Password changes are encrypted
+                          with bcrypt and stored in MySQL.
+                        </span>
+                      </div>
+                      <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+                        Bcrypt Hash Encrypted
+                      </span>
+                    </div>
                   </div>
 
                   <Button
                     type="submit"
                     disabled={savingSettings}
-                    className="h-12 px-8 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg shadow-glow"
+                    className="h-12 px-8 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg shadow-glow flex items-center gap-2"
                   >
-                    <Check className="size-4 mr-2" />
-                    {savingSettings ? "Updating Database..." : "Save Settings & Update Password"}
+                    {savingSettings ? (
+                      <>
+                        <RefreshCw className="size-4 animate-spin mr-1.5" />
+                        Saving to Database...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="size-4 mr-1.5" />
+                        Save Changes & Remember in Database
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>

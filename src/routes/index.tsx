@@ -88,17 +88,17 @@ export const Route = createFileRoute("/")({
       {
         name: "keywords",
         content:
-          "plots in lucknow, residential plots amausi, plots near lucknow airport, galaxy green lucknow, sai suraksha nagar, freehold plots lucknow, immediate registry plots, dakhil kharij plots, buy plot kanpur road lucknow, investment plots lucknow, property near ccs airport",
+          "plots in lucknow, freehold plots lucknow, residential plots amausi, plots near lucknow airport, galaxy green lucknow, sai suraksha nagar, freehold plots lucknow uttar pradesh, immediate registry plots lucknow, dakhil kharij plots lucknow, buy plot kanpur road lucknow, investment plots lucknow, real estate lucknow uttar pradesh india, property near ccs airport lucknow india, land for sale in lucknow uttar pradesh",
       },
-      { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar" },
+      { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar · Lucknow, India" },
       {
         property: "og:title",
-        content: "Galaxy Green | Freehold Plots Near Lucknow Airport · Amausi",
+        content: "Galaxy Green | Freehold Residential Plots Near Lucknow Airport · Amausi, India",
       },
       {
         property: "og:description",
         content:
-          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & verified clear land titles.",
+          "Eco-luxury freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India (near CCS International Airport). Immediate registry, 100% Dakhil Kharij mutation, 30ft wide roads, 24/7 security & verified clear land titles.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://galaxygreenlucknow.com/" },
@@ -110,12 +110,12 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
+        content: "Galaxy Green | Plots Near Lucknow Airport · Uttar Pradesh, India",
       },
       {
         name: "twitter:description",
         content:
-          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & instant legal mutation.",
+          "Freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India. Immediate registry, 30ft roads, bank loan assistance & instant legal mutation.",
       },
       {
         name: "twitter:image",

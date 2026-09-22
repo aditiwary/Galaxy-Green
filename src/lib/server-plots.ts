@@ -142,9 +142,24 @@ export const updatePlotFn = createServerFn({ method: "POST" })
       return { success: false, error: "Unauthorized: Valid dealer authentication required." };
     }
 
-    const current = memoryPlots.find((p) => p.id === data.id);
+    let current = memoryPlots.find((p) => p.id === data.id);
     if (!current) {
-      return { success: false, error: "Plot not found." };
+      const rows = await executeQuery<PlotDbRow[]>("SELECT * FROM plots WHERE id = ? LIMIT 1", [
+        data.id,
+      ]);
+      if (rows && rows.length > 0 && rows[0]) {
+        current = mapRowToPlot(rows[0]);
+      } else {
+        const disk = tryLoadPlotsDisk();
+        if (disk) {
+          const found = disk.find((p) => p.id === data.id);
+          if (found) current = found;
+        }
+      }
+    }
+
+    if (!current) {
+      return { success: false, error: "Plot not found in database." };
     }
 
     const updated: Plot = {

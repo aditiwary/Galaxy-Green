@@ -76,9 +76,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 const realEstateSchema = {
   "@context": "https://schema.org",
   "@type": "RealEstateListing",
-  name: "Galaxy Green Sai Suraksha Nagar - Freehold Plots Near Lucknow Airport",
+  name: "Galaxy Green Sai Suraksha Nagar - Freehold Plots Near Lucknow Airport, Uttar Pradesh, India",
   description:
-    "Eco-luxury plotted township featuring freehold residential plots in Amausi, Lucknow near CCS International Airport. Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, and round-the-clock security.",
+    "Eco-luxury plotted township featuring freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India near CCS International Airport. Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, and round-the-clock security.",
   url: "https://galaxygreenlucknow.com/",
   image:
     "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
@@ -100,11 +100,12 @@ const realEstateSchema = {
     name: "Galaxy Green Sai Suraksha Nagar",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Amausi, Near CCS International Airport",
+      streetAddress:
+        "Sai Suraksha Nagar, QR4X+39W, Amausi, Near Chaudhary Charan Singh International Airport",
       addressLocality: "Lucknow",
       addressRegion: "Uttar Pradesh",
       postalCode: "226008",
-      addressCountry: "IN",
+      addressCountry: "India",
     },
     geo: {
       "@type": "GeoCoordinates",
@@ -125,11 +126,12 @@ const localBusinessSchema = {
   priceRange: "₹₹",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Amausi, Near CCS International Airport",
+    streetAddress:
+      "Sai Suraksha Nagar, QR4X+39W, Amausi, Near Chaudhary Charan Singh International Airport",
     addressLocality: "Lucknow",
     addressRegion: "Uttar Pradesh",
     postalCode: "226008",
-    addressCountry: "IN",
+    addressCountry: "India",
   },
   geo: {
     "@type": "GeoCoordinates",
@@ -159,18 +161,30 @@ const breadcrumbSchema = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Lucknow Real Estate",
-      item: "https://galaxygreenlucknow.com/#plots",
+      name: "India Real Estate",
+      item: "https://galaxygreenlucknow.com/#about",
     },
     {
       "@type": "ListItem",
       position: 3,
-      name: "Plots in Amausi",
+      name: "Uttar Pradesh Properties",
       item: "https://galaxygreenlucknow.com/#location",
     },
     {
       "@type": "ListItem",
       position: 4,
+      name: "Lucknow Freehold Plots",
+      item: "https://galaxygreenlucknow.com/#masterplan",
+    },
+    {
+      "@type": "ListItem",
+      position: 5,
+      name: "Amausi Plotted Township",
+      item: "https://galaxygreenlucknow.com/#pricing",
+    },
+    {
+      "@type": "ListItem",
+      position: 6,
       name: "Galaxy Green Sai Suraksha Nagar",
       item: "https://galaxygreenlucknow.com/",
     },
@@ -334,22 +348,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1",
       },
 
-      // Geographic SEO
+      // Geographic SEO - Lucknow, Uttar Pradesh, India
       { name: "geo.region", content: "IN-UP" },
-      { name: "geo.placename", content: "Lucknow" },
+      { name: "geo.placename", content: "Lucknow, Uttar Pradesh, India" },
       { name: "geo.position", content: "26.7592;80.8791" },
       { name: "ICBM", content: "26.7592, 80.8791" },
+      {
+        name: "address",
+        content: "Sai Suraksha Nagar, QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008, India",
+      },
+      { name: "coverage", content: "Lucknow, Uttar Pradesh, India" },
+      { name: "country", content: "India" },
 
       // OpenGraph
-      { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar" },
+      { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar · Lucknow, India" },
       {
         property: "og:title",
-        content: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
+        content: "Galaxy Green | Freehold Residential Plots Near Lucknow Airport · Amausi, India",
       },
       {
         property: "og:description",
         content:
-          "Eco-luxury freehold plots in Amausi, Lucknow with immediate registry, 30ft wide roads, 24/7 security & verified clear land titles.",
+          "Eco-luxury freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India (near CCS International Airport). Immediate registry, 100% Dakhil Kharij mutation, 30ft wide roads, 24/7 security & verified clear land titles.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://galaxygreenlucknow.com/" },
@@ -364,19 +384,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:image:alt",
         content:
-          "Galaxy Green Sai Suraksha Nagar plotted township entrance and landscaped green boulevards",
+          "Galaxy Green Sai Suraksha Nagar plotted township entrance in Lucknow, Uttar Pradesh, India",
       },
 
       // Twitter Cards
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
+        content: "Galaxy Green | Plots Near Lucknow Airport · Uttar Pradesh, India",
       },
       {
         name: "twitter:description",
         content:
-          "Freehold residential plots in Amausi, Lucknow. Immediate registry, 30ft roads, bank loan assistance & instant legal mutation.",
+          "Freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India. Immediate registry, 30ft roads, bank loan assistance & instant legal mutation.",
       },
       {
         name: "twitter:image",
