@@ -181,10 +181,10 @@ export const uploadGalleryPhotoFn = createServerFn({ method: "POST" })
       ],
     );
 
-    if (res !== null) {
-      return { success: true, photo: newPhoto };
+    if (res === null) {
+      return { success: false, error: "Database write failed. Photo could not be saved to MySQL." };
     }
-    return { success: true, photo: newPhoto, message: "Photo uploaded and synchronized." };
+    return { success: true, photo: newPhoto };
   });
 
 export const deleteGalleryPhotoFn = createServerFn({ method: "POST" })
@@ -198,8 +198,8 @@ export const deleteGalleryPhotoFn = createServerFn({ method: "POST" })
     trySavePhotosDisk(memoryPhotos);
 
     const res = await executeQuery("DELETE FROM gallery_photos WHERE id = ?", [data.id]);
-    if (res !== null) {
-      return { success: true };
+    if (res === null) {
+      return { success: false, error: "Database delete failed in MySQL." };
     }
-    return { success: true, message: "Photo removed and synchronized." };
+    return { success: true };
   });

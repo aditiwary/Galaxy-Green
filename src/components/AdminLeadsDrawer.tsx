@@ -197,15 +197,22 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   }, []);
 
-  // Auto-lock whenever closed or on initial website visit; load public data when opened
+  // Restore authenticated session from sessionStorage if active, load public data when opened
   useEffect(() => {
     if (open) {
+      if (typeof window !== "undefined") {
+        const savedToken = sessionStorage.getItem("gg_dealer_token");
+        if (savedToken) {
+          authTokenRef.current = savedToken;
+          setAuthToken(savedToken);
+          setIsAuthenticated(true);
+          loadData(savedToken);
+          return;
+        }
+      }
       loadData();
-    } else {
-      // Auto-lock when closed so subsequent visits require the password
-      handleLogout();
     }
-  }, [open, loadData, handleLogout]);
+  }, [open, loadData]);
 
   // Handle Secure Server-Side Password/PIN verification
   const handlePinSubmit = async (e: React.FormEvent) => {
@@ -225,6 +232,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         authTokenRef.current = res.token;
         setAuthToken(res.token);
         setIsAuthenticated(true);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("gg_dealer_token", res.token);
+        }
         setPinError(false);
         setPinInput("");
         toast.success("Dealer Portal Unlocked Successfully");
@@ -476,10 +486,13 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
     setSavingSettings(true);
     try {
-      const activeToken = authToken;
+      const activeToken =
+        authToken ||
+        authTokenRef.current ||
+        (typeof window !== "undefined" ? sessionStorage.getItem("gg_dealer_token") || "" : "");
       const res = await updateAdminConfigFn({
         data: {
-          token: activeToken,
+          token: activeToken || undefined,
           newPin: cleanNewPin,
         },
       });

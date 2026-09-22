@@ -13,6 +13,9 @@ export async function fetchLivePlots(): Promise<Plot[]> {
   try {
     const serverPlots = await getPlotsFn();
     if (Array.isArray(serverPlots) && serverPlots.length > 0) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(serverPlots));
+      }
       return serverPlots;
     }
   } catch (err) {
@@ -34,33 +37,28 @@ export async function fetchLivePlots(): Promise<Plot[]> {
   return DEFAULT_PLOTS;
 }
 
-export async function addLivePlot(input: PlotInput, token?: string): Promise<Plot> {
-  let created: Plot | null = null;
+export async function addLivePlot(input: PlotInput, token?: string): Promise<Plot | null> {
   try {
     const res = await createPlotFn({ data: { plot: input, ...(token ? { token } : {}) } });
-    if (res?.plot) created = res.plot;
-  } catch (err) {
-    console.warn("Server add plot fallback:", err);
-  }
-
-  if (!created) {
-    created = {
-      ...input,
-      id: `plot-${Date.now()}`,
-    };
-  }
-
-  if (typeof window !== "undefined") {
-    try {
-      const current = await fetchLivePlots();
-      const updated = [...current, created];
-      localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // ignore
+    if (res?.success && res.plot) {
+      if (typeof window !== "undefined") {
+        try {
+          const current = await fetchLivePlots();
+          const updated = [...current.filter((p) => p.id !== res.plot.id), res.plot];
+          localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+      }
+      return res.plot;
     }
+    if (res?.error) {
+      console.error("Failed to add plot to database:", res.error);
+    }
+  } catch (err) {
+    console.error("Server add plot error:", err);
   }
-
-  return created;
+  return null;
 }
 
 export async function setPlotStatus(
@@ -69,42 +67,44 @@ export async function setPlotStatus(
   token?: string,
 ): Promise<boolean> {
   try {
-    await updatePlotStatusFn({ data: { id, status, ...(token ? { token } : {}) } });
-  } catch (err) {
-    console.warn("Server plot status update fallback:", err);
-  }
-
-  if (typeof window !== "undefined") {
-    try {
-      const current = await fetchLivePlots();
-      const updated = current.map((p) => (p.id === id ? { ...p, status } : p));
-      localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // ignore
+    const res = await updatePlotStatusFn({ data: { id, status, ...(token ? { token } : {}) } });
+    if (res?.success) {
+      if (typeof window !== "undefined") {
+        try {
+          const current = await fetchLivePlots();
+          const updated = current.map((p) => (p.id === id ? { ...p, status } : p));
+          localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+      }
+      return true;
     }
+  } catch (err) {
+    console.error("Server plot status update error:", err);
   }
-
-  return true;
+  return false;
 }
 
 export async function removePlot(id: string, token?: string): Promise<boolean> {
   try {
-    await deletePlotFn({ data: { id, ...(token ? { token } : {}) } });
-  } catch (err) {
-    console.warn("Server plot deletion fallback:", err);
-  }
-
-  if (typeof window !== "undefined") {
-    try {
-      const current = await fetchLivePlots();
-      const updated = current.filter((p) => p.id !== id);
-      localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // ignore
+    const res = await deletePlotFn({ data: { id, ...(token ? { token } : {}) } });
+    if (res?.success) {
+      if (typeof window !== "undefined") {
+        try {
+          const current = await fetchLivePlots();
+          const updated = current.filter((p) => p.id !== id);
+          localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+      }
+      return true;
     }
+  } catch (err) {
+    console.error("Server plot deletion error:", err);
   }
-
-  return true;
+  return false;
 }
 
 export async function updateLivePlot(
@@ -112,44 +112,24 @@ export async function updateLivePlot(
   plotUpdates: Partial<PlotInput>,
   token?: string,
 ): Promise<Plot | null> {
-  let updatedPlot: Plot | null = null;
   try {
     const res = await updatePlotFn({
       data: { id, plot: plotUpdates, ...(token ? { token } : {}) },
     });
-    if (res?.plot) {
-      updatedPlot = res.plot;
+    if (res?.success && res.plot) {
+      if (typeof window !== "undefined") {
+        try {
+          const current = await fetchLivePlots();
+          const updatedList = current.map((p) => (p.id === id ? res.plot : p));
+          localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updatedList));
+        } catch {
+          // ignore
+        }
+      }
+      return res.plot;
     }
   } catch (err) {
-    console.warn("Server plot update fallback:", err);
+    console.error("Server plot update error:", err);
   }
-
-  if (typeof window !== "undefined") {
-    try {
-      const current = await fetchLivePlots();
-      const updatedList = current.map((p) => {
-        if (p.id === id) {
-          const merged: Plot = {
-            ...p,
-            ...plotUpdates,
-            number: plotUpdates.number ? plotUpdates.number.toUpperCase().trim() : p.number,
-            sizeSqFt:
-              plotUpdates.sizeSqFt !== undefined ? Number(plotUpdates.sizeSqFt) : p.sizeSqFt,
-            ratePerSqFt:
-              plotUpdates.ratePerSqFt !== undefined
-                ? Number(plotUpdates.ratePerSqFt)
-                : p.ratePerSqFt,
-          };
-          if (!updatedPlot) updatedPlot = merged;
-          return merged;
-        }
-        return p;
-      });
-      localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updatedList));
-    } catch {
-      // ignore
-    }
-  }
-
-  return updatedPlot;
+  return null;
 }

@@ -50,63 +50,52 @@ export async function uploadLivePhoto(
   },
   token?: string,
 ): Promise<GalleryPhoto | null> {
-  let created: GalleryPhoto | null = null;
   try {
     const res = await uploadGalleryPhotoFn({
       data: { photo: photoInput, ...(token ? { token } : {}) },
     });
-    if (res?.photo) {
-      created = res.photo;
+    if (res?.success && res.photo) {
+      if (typeof window !== "undefined") {
+        try {
+          const current = await fetchLiveGalleryPhotos();
+          const updated = [res.photo, ...current.filter((p) => p.id !== res.photo.id)];
+          localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent("gallery-updated"));
+        } catch {
+          // ignore
+        }
+      }
+      return res.photo;
+    }
+    if (res?.error) {
+      console.error("Failed to upload photo to database:", res.error);
     }
   } catch (err) {
-    console.warn("Server photo upload fallback:", err);
+    console.error("Server photo upload error:", err);
   }
 
-  if (!created) {
-    created = {
-      id: `photo-${Date.now()}`,
-      src: photoInput.src,
-      title: photoInput.title.trim(),
-      category: photoInput.category,
-      categoryLabel: photoInput.categoryLabel || "Actual Site",
-      tag: photoInput.tag || "Live Upload",
-      description: photoInput.description || "Uploaded via Dealer Portal",
-      dimensionsLabel: photoInput.dimensionsLabel,
-      createdAt: new Date().toISOString(),
-    };
-  }
-
-  if (typeof window !== "undefined") {
-    try {
-      const current = await fetchLiveGalleryPhotos();
-      const updated = [...current, created];
-      localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent("gallery-updated"));
-    } catch {
-      // ignore
-    }
-  }
-
-  return created;
+  return null;
 }
 
 export async function removeLivePhoto(id: string, token?: string): Promise<boolean> {
   try {
-    await deleteGalleryPhotoFn({ data: { id, ...(token ? { token } : {}) } });
-  } catch (err) {
-    console.warn("Server photo deletion fallback:", err);
-  }
-
-  if (typeof window !== "undefined") {
-    try {
-      const current = await fetchLiveGalleryPhotos();
-      const updated = current.filter((p) => p.id !== id);
-      localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent("gallery-updated"));
-    } catch {
-      // ignore
+    const res = await deleteGalleryPhotoFn({ data: { id, ...(token ? { token } : {}) } });
+    if (res?.success) {
+      if (typeof window !== "undefined") {
+        try {
+          const current = await fetchLiveGalleryPhotos();
+          const updated = current.filter((p) => p.id !== id);
+          localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent("gallery-updated"));
+        } catch {
+          // ignore
+        }
+      }
+      return true;
     }
+  } catch (err) {
+    console.error("Server photo deletion error:", err);
   }
 
-  return true;
+  return false;
 }

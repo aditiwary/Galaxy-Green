@@ -398,18 +398,17 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     const sql = `UPDATE admin_config SET ${updates.join(", ")} WHERE id = 1`;
     const res = await executeQuery(sql, params);
 
-    if (res !== null) {
+    if (res === null) {
       return {
-        success: true,
-        signedPinToken,
-        message:
-          "Security Password updated in MySQL database! All sessions logged out across all devices.",
+        success: false,
+        error: "Database write failed. Unable to update security settings in MySQL.",
       };
     }
     return {
       success: true,
       signedPinToken,
-      message: "Security Password updated and synchronized across all devices!",
+      message:
+        "Security Password updated in MySQL database! All sessions logged out across all devices.",
     };
   });
 

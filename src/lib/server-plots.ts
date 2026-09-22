@@ -91,11 +91,10 @@ export const createPlotFn = createServerFn({ method: "POST" })
       ],
     );
 
-    if (res !== null) {
-      return { success: true, plot: newPlot };
+    if (res === null) {
+      return { success: false, error: "Database write failed. Unable to insert plot into MySQL." };
     }
-    // Return success with in-memory persistence fallback
-    return { success: true, plot: newPlot, message: "Plot created and synchronized." };
+    return { success: true, plot: newPlot };
   });
 
 export const updatePlotStatusFn = createServerFn({ method: "POST" })
@@ -112,10 +111,10 @@ export const updatePlotStatusFn = createServerFn({ method: "POST" })
       data.status,
       data.id,
     ]);
-    if (res !== null) {
-      return { success: true };
+    if (res === null) {
+      return { success: false, error: "Database update failed in MySQL." };
     }
-    return { success: true, message: "Plot status updated and synchronized." };
+    return { success: true };
   });
 
 export const deletePlotFn = createServerFn({ method: "POST" })
@@ -129,10 +128,10 @@ export const deletePlotFn = createServerFn({ method: "POST" })
     trySavePlotsDisk(memoryPlots);
 
     const res = await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
-    if (res !== null) {
-      return { success: true };
+    if (res === null) {
+      return { success: false, error: "Database delete failed in MySQL." };
     }
-    return { success: true, message: "Plot deleted and synchronized." };
+    return { success: true };
   });
 
 export const updatePlotFn = createServerFn({ method: "POST" })
@@ -212,7 +211,10 @@ export const updatePlotFn = createServerFn({ method: "POST" })
 
     if (updates.length > 0) {
       params.push(data.id);
-      await executeQuery(`UPDATE plots SET ${updates.join(", ")} WHERE id = ?`, params);
+      const res = await executeQuery(`UPDATE plots SET ${updates.join(", ")} WHERE id = ?`, params);
+      if (res === null) {
+        return { success: false, error: "Database update failed in MySQL." };
+      }
     }
 
     return { success: true, plot: updated, message: "Plot details updated and synchronized." };
