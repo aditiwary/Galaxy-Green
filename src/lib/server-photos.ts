@@ -12,6 +12,7 @@ export interface GalleryPhoto {
   tag: string;
   description: string;
   dimensionsLabel?: string;
+  highlights?: string[];
   createdAt?: string;
 }
 
@@ -26,6 +27,12 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     dimensionsLabel: "Min 600 sq ft to Custom Requirements",
     description:
       "Clear on-ground plot boundaries with reinforced stone pillars and concrete edging. Plots start from compact 600 sq ft up to large custom footprints.",
+    highlights: [
+      "Physical boundary curbing & corner pillars installed",
+      "Immediate registry & mutation (Dakhil Kharij) ready",
+      "Customizable plot dimensions starting from 600 sq ft",
+      "Direct frontage onto wide 30ft internal access roads",
+    ],
   },
   {
     id: "site-photo-2",
@@ -37,6 +44,12 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     dimensionsLabel: "30-Ft Wide Internal Avenue",
     description:
       "Wide, leveled internal township road network illuminated by active street lighting poles with utility pathways.",
+    highlights: [
+      "30-ft wide internal avenue for smooth two-way driving",
+      "Functional electric poles and evening streetlights active",
+      "Direct connectivity to Kanpur-Lucknow Expressway (3 km)",
+      "Unobstructed access for construction materials and private vehicles",
+    ],
   },
   {
     id: "site-photo-3",
@@ -48,6 +61,12 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     dimensionsLabel: "Pollution-Free Eco Zone",
     description:
       "Panoramic elevated perspective of Sai Suraksha Nagar showing peaceful residential surroundings and overhead water infrastructure.",
+    highlights: [
+      "Overhead water reservoir ensuring reliable high-pressure water supply",
+      "Clean, green environment away from city congestion",
+      "Close proximity to Amausi Railway Station (2.7 km) & Market (2.5 km)",
+      "Vastu-compliant residential zoning with open morning sunlight",
+    ],
   },
   {
     id: "site-photo-4",
@@ -59,6 +78,12 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     dimensionsLabel: "Allotment Starting ₹7.19 Lakh",
     description:
       "Central access road traversing the plotted layout with clearly lined plot parcels ready for boundary walling.",
+    highlights: [
+      "Transparent Phase 1 allotment at ₹1,199 / sq ft",
+      "Compact 600 sq ft villas start at only ₹7.19 Lakh",
+      "Wide turning radiuses suitable for SUVs and delivery trucks",
+      "Independent housing cluster already developing rapidly on site",
+    ],
   },
   {
     id: "site-photo-5",
@@ -70,6 +95,12 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     dimensionsLabel: "Phase 1 Fast-Track Delivery",
     description:
       "Active compaction and leveling machinery preparing future residential sectors with pre-laid drainage conduits.",
+    highlights: [
+      "Real residential buildings under active brick and pillar construction",
+      "Immediate possession allows buyers to start building immediately",
+      "Only 3 km from T.S. Misra Medical College & Hospital",
+      "5 km from CCS International Airport & Amausi Metro Station",
+    ],
   },
 ];
 

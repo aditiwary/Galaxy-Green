@@ -135,7 +135,34 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
       try {
         const live = await fetchLiveGalleryPhotos();
         if (isMounted && live && live.length > 0) {
-          setPhotos(live as SitePhoto[]);
+          const enriched: SitePhoto[] = live.map((photo) => {
+            const defaultMatch = DEFAULT_SITE_PHOTOS.find(
+              (d) => d.id === photo.id || d.title.toLowerCase() === photo.title.toLowerCase(),
+            );
+            return {
+              id: photo.id,
+              src: photo.src,
+              title: photo.title,
+              category: photo.category,
+              categoryLabel: photo.categoryLabel || defaultMatch?.categoryLabel || "Actual Site",
+              tag: photo.tag || defaultMatch?.tag || "Live Update",
+              dimensionsLabel:
+                photo.dimensionsLabel || defaultMatch?.dimensionsLabel || "On-Ground Progress",
+              description:
+                photo.description ||
+                defaultMatch?.description ||
+                "Authentic on-site photograph of Galaxy Green township in Lucknow.",
+              highlights:
+                photo.highlights && photo.highlights.length > 0
+                  ? photo.highlights
+                  : defaultMatch?.highlights || [
+                      "Physical boundary curbs & pillars installed",
+                      "Immediate registry & mutation (Dakhil Kharij) ready",
+                      "Direct frontage onto wide 30ft internal roads",
+                    ],
+            };
+          });
+          setPhotos(enriched);
         }
       } catch (err) {
         console.warn("Failed to load live gallery photos:", err);
@@ -159,7 +186,9 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
     activeTab === "all" ? photos : photos.filter((photo) => photo.category === activeTab);
 
   const openLightbox = (index: number) => {
-    setLightboxIndex(index);
+    if (index >= 0 && index < filteredPhotos.length) {
+      setLightboxIndex(index);
+    }
   };
 
   const closeLightbox = () => {
@@ -167,12 +196,12 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
   };
 
   const nextPhoto = useCallback(() => {
-    if (lightboxIndex === null) return;
+    if (lightboxIndex === null || filteredPhotos.length === 0) return;
     setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % filteredPhotos.length));
   }, [lightboxIndex, filteredPhotos.length]);
 
   const prevPhoto = useCallback(() => {
-    if (lightboxIndex === null) return;
+    if (lightboxIndex === null || filteredPhotos.length === 0) return;
     setLightboxIndex((prev) =>
       prev === null ? null : (prev - 1 + filteredPhotos.length) % filteredPhotos.length,
     );
@@ -251,7 +280,10 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setLightboxIndex(null);
+              }}
               className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all ${
                 activeTab === tab.id
                   ? "bg-primary text-primary-foreground font-semibold shadow-glow"
@@ -502,19 +534,38 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                {filteredPhotos[lightboxIndex].description}
+                {filteredPhotos[lightboxIndex].description ||
+                  "Authentic on-site photograph of Galaxy Green township in Lucknow."}
               </p>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                {filteredPhotos[lightboxIndex].highlights.map((h, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface/90 border border-border/80 text-[11px] font-mono text-foreground shadow-sm"
-                  >
+              {Array.isArray(filteredPhotos[lightboxIndex].highlights) &&
+              filteredPhotos[lightboxIndex].highlights.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {filteredPhotos[lightboxIndex].highlights.map((h, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface/90 border border-border/80 text-[11px] font-mono text-foreground shadow-sm"
+                    >
+                      <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
+                      {h}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface/90 border border-border/80 text-[11px] font-mono text-foreground shadow-sm">
                     <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
-                    {h}
+                    Physical Boundary Pillars Installed
                   </span>
-                ))}
-              </div>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface/90 border border-border/80 text-[11px] font-mono text-foreground shadow-sm">
+                    <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
+                    Immediate Registry & Possession Ready
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface/90 border border-border/80 text-[11px] font-mono text-foreground shadow-sm">
+                    <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
+                    Direct 30-Ft Internal Road Connectivity
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
