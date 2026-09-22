@@ -113,8 +113,8 @@ const DEFAULT_SITE_PHOTOS: SitePhoto[] = [
       "Top-angle view displaying finished concrete boundary curbs on vacant plots alongside multi-storey brick masonry construction underway. Demonstrates authentic livability and rapid on-site pace.",
     highlights: [
       "Real residential buildings under active brick and pillar construction",
-      "Immediate possession allows buyers to start building immediately",
-      "Only 3 km from T.S. Misra Medical College & Hospital",
+      "Immediate possession allows buyers to begin construction right away",
+      "Only 3 km from T.S. Mishra Medical College & Hospital",
       "5 km from CCS International Airport & Amausi Metro Station",
     ],
   },
@@ -131,7 +131,7 @@ const DEFAULT_SITE_PHOTOS: SitePhoto[] = [
     highlights: [
       "Direct proximity to CCS International Airport (LKO) & Terminals 1 & 2",
       "Immediate access to Kanpur Road (NH27) & Amausi Metro Station",
-      "Rapidly appreciating high-capital growth growth corridor",
+      "Rapidly appreciating high-capital growth corridor",
       "Direct expressway arterial connectivity across Lucknow & NCR",
     ],
   },

@@ -694,7 +694,7 @@ function Index() {
               <h2 className="section-title">Direct Airport & Metro Connectivity</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
                 Located at Sai Suraksha Nagar, Amausi, Lucknow (PIN 226008). Benefit from premier
-                connectivity: 2.7 km from Amausi Railway Station, 3 km from T.S. Misra Medical
+                connectivity: 2.7 km from Amausi Railway Station, 3 km from T.S. Mishra Medical
                 College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market,
                 and 5 km from CCS International Airport & Amausi Metro Station.
               </p>
@@ -711,7 +711,7 @@ function Index() {
                   {
                     icon: HeartPulse,
                     dist: "3.0 km",
-                    label: "T.S. Misra Medical College",
+                    label: "T.S. Mishra Medical College",
                     sub: "~6 Mins · Hospital & Trauma",
                   },
                   {
@@ -1070,7 +1070,7 @@ function Index() {
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
                   Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus
                   Code: QR4X+39W, Pin 226008). Key nearby connectivity points include: Amausi
-                  Railway Station (2.7 km), T.S. Misra Medical College & Hospital (3 km),
+                  Railway Station (2.7 km), T.S. Mishra Medical College & Hospital (3 km),
                   Kanpur-Lucknow Expressway (3 km), Main Market (2.5 km), and CCS International
                   Airport & Amausi Metro Station (5 km).
                 </AccordionContent>
