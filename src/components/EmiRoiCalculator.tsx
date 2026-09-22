@@ -19,7 +19,7 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
   const [customAreaInput, setCustomAreaInput] = useState<string>("600");
   const [downPaymentPercent, setDownPaymentPercent] = useState<number>(20);
   const [tenureYears, setTenureYears] = useState<number>(10);
-  const [annualInterestRate] = useState<number>(8.65); // Indicative bank plot loan interest rate
+  const [annualInterestRate, setAnnualInterestRate] = useState<number>(8.5); // Indicative bank plot loan interest rate
 
   const BASE_RATE = 1199; // Rs 1,199 per sq ft fixed base rate
   const effectiveArea = Math.max(100, plotArea);
@@ -221,6 +221,57 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
               </div>
             </div>
 
+            {/* Annual Interest Rate Slider */}
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs uppercase font-mono tracking-wider text-muted-foreground">
+                  Bank Loan Interest Rate
+                </span>
+                <span className="text-lg font-display font-semibold text-primary font-mono">
+                  {annualInterestRate.toFixed(2)}% p.a.
+                </span>
+              </div>
+              <Slider
+                value={[annualInterestRate]}
+                min={7.0}
+                max={14.0}
+                step={0.05}
+                onValueChange={(val) => {
+                  const v = val[0] ?? 8.5;
+                  setAnnualInterestRate(Number(v.toFixed(2)));
+                }}
+                className="py-2"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1">
+                <span>7.0% (Subsidized)</span>
+                <span>8.5% (SBI / HDFC Standard)</span>
+                <span>14.0% (NBFC)</span>
+              </div>
+
+              {/* Quick Interest Presets */}
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {[
+                  { rate: 8.4, label: "8.40% (SBI Prime)" },
+                  { rate: 8.65, label: "8.65% (HDFC Standard)" },
+                  { rate: 9.25, label: "9.25% (Private Bank)" },
+                  { rate: 10.5, label: "10.50% (Plot Loan)" },
+                ].map((preset) => (
+                  <button
+                    key={preset.rate}
+                    type="button"
+                    onClick={() => setAnnualInterestRate(preset.rate)}
+                    className={`px-2.5 py-1 rounded text-[10px] font-mono transition-all cursor-pointer ${
+                      Math.abs(annualInterestRate - preset.rate) < 0.05
+                        ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                        : "bg-surface hover:bg-surface-hover text-muted-foreground hover:text-foreground border border-border"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* UP Stamp Duty & Statutory Registration Breakdown */}
             <div className="pt-4 border-t border-border/70 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
@@ -290,6 +341,12 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                   <span className="text-muted-foreground">Financed Loan Amount</span>
                   <strong className="text-foreground font-medium text-sm">
                     {formatINR(loanAmount)}
+                  </strong>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Interest Rate & Tenure</span>
+                  <strong className="text-primary font-mono text-xs font-semibold">
+                    {annualInterestRate.toFixed(2)}% p.a. · {tenureYears} Yrs
                   </strong>
                 </div>
               </div>

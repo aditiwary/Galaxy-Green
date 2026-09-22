@@ -254,15 +254,15 @@ function Index() {
     <main id="home" className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
       {/* Top Header */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl transition-all">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
+        <div className="mx-auto flex h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <Logo />
 
-          <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation">
+          <nav className="hidden items-center gap-1.5 xl:gap-3.5 2xl:gap-5 lg:flex" aria-label="Main navigation">
             {[
               ["About", "#about"],
               ["Master Plan", "#masterplan"],
-              ["Live Photos", "#site-gallery"],
               ["Amenities", "#amenities"],
+              ["Live Photos", "#site-gallery"],
               ["Connectivity", "#location"],
               ["ROI Calculator", "#calculator"],
               ["Pricing", "#pricing"],
@@ -272,20 +272,22 @@ function Index() {
               <a
                 key={href}
                 href={href}
-                className="text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary font-medium"
+                className="px-2 xl:px-2.5 py-1 rounded text-[11px] xl:text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all font-medium whitespace-nowrap"
               >
                 {label}
               </a>
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2.5 xl:gap-3 shrink-0">
+            <div className="h-6 w-px bg-border/80 mx-1 xl:mx-1.5" />
+
             {/* Sales CRM launcher button for businessman */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setAdminOpen(true)}
-              className="h-10 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-wider font-mono"
+              className="h-9 px-3 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-wider font-mono shrink-0"
             >
               <Lock className="size-3.5 mr-1.5" /> Sales CRM
             </Button>
@@ -296,7 +298,7 @@ function Index() {
                 setSelectedPlotForVisit("1000 sq ft");
                 setSiteVisitOpen(true);
               }}
-              className="h-10 px-4 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+              className="h-9 px-3.5 xl:px-4 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 whitespace-nowrap"
             >
               Book Site Visit <ArrowRight className="size-3.5 ml-1.5" />
             </Button>
@@ -325,28 +327,29 @@ function Index() {
         {/* Mobile Navigation Drawer */}
         {menuOpen && (
           <nav
-            className="border-t border-border bg-background px-5 py-6 lg:hidden animate-in fade-in slide-in-from-top-4"
+            className="border-t border-border bg-background px-5 py-6 lg:hidden animate-in fade-in slide-in-from-top-4 shadow-xl"
             aria-label="Mobile navigation"
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               {[
                 ["About", "#about"],
                 ["Master Plan", "#masterplan"],
-                ["Live Photos", "#site-gallery"],
                 ["Amenities", "#amenities"],
+                ["Live Photos", "#site-gallery"],
                 ["Connectivity", "#location"],
                 ["ROI Calculator", "#calculator"],
                 ["Pricing", "#pricing"],
                 ["FAQ", "#faq"],
                 ["Contact", "#contact"],
-              ].map(([label, href]) => (
+              ].map(([label, href], idx) => (
                 <a
                   key={label}
                   href={href}
                   onClick={() => setMenuOpen(false)}
-                  className="text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium"
+                  className="flex items-center justify-between py-2.5 px-2 rounded hover:bg-surface text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium border-b border-border/40 transition-colors"
                 >
-                  {label}
+                  <span>{label}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground/60">0{idx + 1}</span>
                 </a>
               ))}
               <div className="pt-4 border-t border-border flex flex-col gap-2.5">
@@ -355,7 +358,7 @@ function Index() {
                     setMenuOpen(false);
                     setSiteVisitOpen(true);
                   }}
-                  className="w-full uppercase text-xs font-semibold bg-primary text-primary-foreground"
+                  className="w-full h-11 uppercase text-xs font-semibold bg-primary text-primary-foreground"
                 >
                   Book Free Site Visit <ArrowRight className="size-3.5 ml-1.5" />
                 </Button>
@@ -365,7 +368,7 @@ function Index() {
                     setMenuOpen(false);
                     setBrochureOpen(true);
                   }}
-                  className="w-full uppercase text-xs"
+                  className="w-full h-11 uppercase text-xs"
                 >
                   <Download className="size-3.5 mr-1.5" /> Download E-Brochure
                 </Button>
@@ -449,10 +452,10 @@ function Index() {
             {[
               ["₹1,199", "Per Sq Ft Rate", "Phase 1 fixed pricing"],
               ["600+", "Sq Ft Min Size", "Up to custom requirement"],
-              ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
               ["100%", "Freehold & Mutation", "Dakhil Kharij ready"],
+              ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
             ].map(([value, label, sub]) => (
-              <div key={label} className="p-5 transition-colors hover:bg-white/[0.02]">
+              <div key={label} className="p-4 sm:p-5 transition-colors hover:bg-white/[0.02]">
                 <strong className="font-display text-2xl text-primary block tracking-tight sm:text-3xl">
                   {value}
                 </strong>
