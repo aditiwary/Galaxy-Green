@@ -139,15 +139,7 @@ const localBusinessSchema = {
   openingHoursSpecification: [
     {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       opens: "09:00",
       closes: "19:00",
     },
@@ -238,8 +230,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
-        title:
-          "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
+        title: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
       },
       {
         name: "description",
@@ -252,8 +243,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "plots in lucknow, residential plots amausi, plots near lucknow airport, galaxy green lucknow, sai suraksha nagar, freehold plots lucknow, immediate registry plots, dakhil kharij plots, buy plot kanpur road lucknow, investment plots lucknow, property near ccs airport",
       },
       { name: "author", content: "Galaxy Green Sai Suraksha Nagar" },
-      { name: "robots", content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" },
-      
+      {
+        name: "robots",
+        content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1",
+      },
+
       // Geographic SEO
       { name: "geo.region", content: "IN-UP" },
       { name: "geo.placename", content: "Lucknow" },
@@ -264,8 +258,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar" },
       {
         property: "og:title",
-        content:
-          "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
+        content: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
       },
       {
         property: "og:description",
@@ -292,8 +285,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content:
-          "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
+        content: "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
       },
       {
         name: "twitter:description",

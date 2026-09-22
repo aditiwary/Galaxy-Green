@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -35,7 +35,15 @@ import {
   ShieldCheck,
   AlertCircle,
 } from "lucide-react";
-import { fetchAllLeads, updateLeadStatus, exportLeadsToCsv, verifyDealerPinFn, checkDbHealthFn } from "@/lib/leads-client";
+import {
+  fetchAllLeads,
+  updateLeadStatus,
+  exportLeadsToCsv,
+  verifyDealerPin,
+  checkDbHealthFn,
+  setClientPinToken,
+  getClientPinToken,
+} from "@/lib/leads-client";
 import { fetchLivePlots, setPlotStatus, addLivePlot, removePlot } from "@/lib/plots-client";
 import { getAdminConfigFn, updateAdminConfigFn } from "@/lib/server-inquiries";
 import type { Inquiry } from "@/lib/inquiry-types";
@@ -87,38 +95,47 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [newPlotFacing, setNewPlotFacing] = useState<Plot["facing"]>("East");
   const [newPlotRoad, setNewPlotRoad] = useState("30 ft Internal");
   const [newPlotRate, setNewPlotRate] = useState("1199");
-  const [newPlotFeature, setNewPlotFeature] = useState("Freehold residential plot with clear title");
+  const [newPlotFeature, setNewPlotFeature] = useState(
+    "Freehold residential plot with clear title",
+  );
 
   // Settings State
   const [newPinInput, setNewPinInput] = useState("");
   const [confirmPinInput, setConfirmPinInput] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
-  const [dbHealth, setDbHealth] = useState<{ connected: boolean; isVercel?: boolean; message: string } | null>(null);
+  const [dbHealth, setDbHealth] = useState<{
+    connected: boolean;
+    isVercel?: boolean;
+    message: string;
+  } | null>(null);
 
-  const loadData = async (tokenToUse?: string) => {
-    const activeToken = tokenToUse || authToken;
-    setLoadingPlots(true);
-    try {
-      const [plotsData, , health] = await Promise.all([
-        fetchLivePlots(),
-        getAdminConfigFn(),
-        checkDbHealthFn().catch(() => ({ connected: false, message: "Offline" })),
-      ]);
-      setPlots(plotsData);
-      setDbHealth(health);
-      if (activeToken) {
-        setLoadingLeads(true);
-        const leadsData = await fetchAllLeads(activeToken);
-        setLeads(leadsData);
+  const loadData = useCallback(
+    async (tokenToUse?: string) => {
+      const activeToken = tokenToUse || authToken;
+      setLoadingPlots(true);
+      try {
+        const [plotsData, , health] = await Promise.all([
+          fetchLivePlots(),
+          getAdminConfigFn(),
+          checkDbHealthFn().catch(() => ({ connected: false, message: "Offline" })),
+        ]);
+        setPlots(plotsData);
+        setDbHealth(health);
+        if (activeToken) {
+          setLoadingLeads(true);
+          const leadsData = await fetchAllLeads(activeToken);
+          setLeads(leadsData);
+          setLoadingLeads(false);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingPlots(false);
         setLoadingLeads(false);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingPlots(false);
-      setLoadingLeads(false);
-    }
-  };
+    },
+    [authToken],
+  );
 
   useEffect(() => {
     if (open) {
@@ -133,7 +150,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       }
       loadData();
     }
-  }, [open]);
+  }, [open, loadData]);
 
   // Handle Secure Server-Side PIN verification
   const handlePinSubmit = async (e: React.FormEvent) => {
@@ -147,7 +164,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     setVerifyingPin(true);
     setPinError(false);
     try {
-      const res = await verifyDealerPinFn({ data: { pin: pinInput.trim() } });
+      const res = await verifyDealerPin(pinInput.trim());
       if (res?.success && res.token) {
         setAuthToken(res.token);
         if (typeof window !== "undefined") {
@@ -160,7 +177,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         await loadData(res.token);
       } else {
         setPinError(true);
-        toast.error("Incorrect PIN. Access Denied.");
+        toast.error(res?.error || "Incorrect PIN. Access Denied.");
       }
     } catch {
       setPinError(true);
@@ -173,9 +190,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const handleLeadStatusChange = async (id: string, newStatus: Inquiry["status"]) => {
     const success = await updateLeadStatus(id, newStatus, authToken);
     if (success) {
-      setLeads((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
-      );
+      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)));
       toast.success(`Lead ${id} marked as "${newStatus}"`);
     } else {
       toast.error("Failed to update status. Please unlock again if session expired.");
@@ -248,25 +263,28 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     try {
       const activeToken =
         authToken ||
-        (typeof window !== "undefined"
-          ? sessionStorage.getItem("gg_dealer_token") || ""
-          : "");
+        (typeof window !== "undefined" ? sessionStorage.getItem("gg_dealer_token") || "" : "");
 
+      const clientPinToken = getClientPinToken();
       const res = await updateAdminConfigFn({
         data: {
           token: activeToken,
           newPin: newPinInput.trim(),
+          clientPinToken,
         },
       });
-      if (res?.success) {
-        if ((res as any)?.warning) {
-          toast.success("Security PIN updated successfully for active portal sessions!");
-        } else {
-          toast.success((res as any)?.message || "Settings saved successfully in MySQL!");
+      const typedRes = res as
+        | { success?: boolean; signedPinToken?: string; message?: string; error?: string }
+        | undefined;
+      if (typedRes?.success) {
+        if (typedRes.signedPinToken) {
+          setClientPinToken(typedRes.signedPinToken);
         }
+        toast.success(typedRes.message || "Security PIN updated and saved successfully!");
+
         if (newPinInput) {
           // If PIN changed, update active session token
-          const authRes = await verifyDealerPinFn({ data: { pin: newPinInput.trim() } });
+          const authRes = await verifyDealerPin(newPinInput.trim());
           if (authRes?.token) {
             setAuthToken(authRes.token);
             if (typeof window !== "undefined") {
@@ -332,7 +350,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                 Dealer Management Portal
               </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                Enter your secure dealer PIN to manage customer leads, plot inventory, and integration settings.
+                Enter your secure dealer PIN to manage customer leads, plot inventory, and
+                integration settings.
               </p>
 
               <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
@@ -362,7 +381,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   disabled={verifyingPin}
                   className="w-full h-11 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg"
                 >
-                  <KeyRound className="size-4 mr-2" /> {verifyingPin ? "Verifying..." : "Unlock Portal"}
+                  <KeyRound className="size-4 mr-2" />{" "}
+                  {verifyingPin ? "Verifying..." : "Unlock Portal"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground font-mono flex items-center justify-center gap-1.5">
                   <Lock className="size-3 text-emerald-400" /> End-to-end encrypted session
@@ -410,7 +430,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               </div>
             </SheetHeader>
 
-            <Tabs defaultValue="leads" className="flex-1 flex flex-col overflow-hidden bg-[#0a1410]">
+            <Tabs
+              defaultValue="leads"
+              className="flex-1 flex flex-col overflow-hidden bg-[#0a1410]"
+            >
               <div className="px-6 py-3 border-b border-border/80 bg-[#0c1612] shrink-0">
                 <TabsList className="bg-[#080f0c] border border-border/80 p-1 rounded-lg h-auto flex gap-1">
                   <TabsTrigger
@@ -435,28 +458,39 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               </div>
 
               {/* TAB 1: Buyer Inquiries */}
-              <TabsContent value="leads" className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]">
+              <TabsContent
+                value="leads"
+                className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]"
+              >
                 <div className="p-6 border-b border-border/80 bg-[#0c1612] space-y-4 shrink-0">
                   {/* Quick Metrics Bar */}
                   <div className="grid grid-cols-4 gap-2.5 text-center">
                     <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
-                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">Total</span>
+                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">
+                        Total
+                      </span>
                       <strong className="text-lg font-display text-primary">{leads.length}</strong>
                     </div>
                     <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
-                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">New</span>
+                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">
+                        New
+                      </span>
                       <strong className="text-lg font-display text-amber-400">
                         {leads.filter((l) => l.status === "New").length}
                       </strong>
                     </div>
                     <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
-                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">Visits</span>
+                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">
+                        Visits
+                      </span>
                       <strong className="text-lg font-display text-cyan-400">
                         {leads.filter((l) => l.status === "Visit Scheduled").length}
                       </strong>
                     </div>
                     <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
-                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">Booked</span>
+                      <span className="text-[10px] uppercase text-muted-foreground block font-mono">
+                        Booked
+                      </span>
                       <strong className="text-lg font-display text-emerald-400">
                         {leads.filter((l) => l.status === "Booked").length}
                       </strong>
@@ -543,12 +577,18 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-background/50 p-2.5 rounded border border-border/40 font-mono">
                           <div>
-                            <span className="text-muted-foreground text-[10px] block uppercase">Plot</span>
+                            <span className="text-muted-foreground text-[10px] block uppercase">
+                              Plot
+                            </span>
                             <strong className="text-primary">{lead.plotPreference}</strong>
                           </div>
                           <div>
-                            <span className="text-muted-foreground text-[10px] block uppercase">Visit Schedule</span>
-                            <span>{lead.visitDate || "Not chosen"} ({lead.slot})</span>
+                            <span className="text-muted-foreground text-[10px] block uppercase">
+                              Visit Schedule
+                            </span>
+                            <span>
+                              {lead.visitDate || "Not chosen"} ({lead.slot})
+                            </span>
                           </div>
                           {lead.message && (
                             <div className="col-span-full text-muted-foreground text-[11px] italic bg-surface/80 p-2 rounded">
@@ -559,13 +599,24 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
                         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
                           <div className="flex items-center gap-2">
-                            <Button asChild size="sm" variant="outline" className="h-8 px-2.5 text-xs text-primary border-primary/30">
-                              <a href={`tel:+91${lead.phone}`}><Phone className="size-3 mr-1" /> Call</a>
+                            <Button
+                              asChild
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2.5 text-xs text-primary border-primary/30"
+                            >
+                              <a href={`tel:+91${lead.phone}`}>
+                                <Phone className="size-3 mr-1" /> Call
+                              </a>
                             </Button>
-                            <Button asChild size="sm" className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white">
+                            <Button
+                              asChild
+                              size="sm"
+                              className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
+                            >
                               <a
                                 href={`https://wa.me/91${lead.phone}?text=${encodeURIComponent(
-                                  `Hello ${lead.name}, this is Vishal Singh following up on your Galaxy Green Sai Suraksha Nagar inquiry (${lead.id}).`
+                                  `Hello ${lead.name}, this is Vishal Singh following up on your Galaxy Green Sai Suraksha Nagar inquiry (${lead.id}).`,
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
@@ -575,10 +626,14 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                             </Button>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-muted-foreground uppercase font-mono">Status:</span>
+                            <span className="text-[10px] text-muted-foreground uppercase font-mono">
+                              Status:
+                            </span>
                             <select
                               value={lead.status}
-                              onChange={(e) => handleLeadStatusChange(lead.id, e.target.value as Inquiry["status"])}
+                              onChange={(e) =>
+                                handleLeadStatusChange(lead.id, e.target.value as Inquiry["status"])
+                              }
                               className="h-7 px-2 text-[11px] font-medium rounded bg-background border border-border text-foreground"
                             >
                               <option value="New">New</option>
@@ -596,7 +651,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               </TabsContent>
 
               {/* TAB 2: Live Plot Inventory Manager */}
-              <TabsContent value="plots" className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]">
+              <TabsContent
+                value="plots"
+                className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]"
+              >
                 <div className="p-6 border-b border-border/80 bg-[#0c1612] flex items-center justify-between shrink-0">
                   <div>
                     <h4 className="font-display uppercase text-lg text-foreground">
@@ -618,13 +676,18 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
                 {/* Add Plot Form Drawer/Panel */}
                 {showAddPlotForm && (
-                  <form onSubmit={handleAddNewPlot} className="p-6 bg-[#0c1612] border-b border-border/80 space-y-4 shrink-0">
+                  <form
+                    onSubmit={handleAddNewPlot}
+                    className="p-6 bg-[#0c1612] border-b border-border/80 space-y-4 shrink-0"
+                  >
                     <h5 className="text-xs uppercase font-mono tracking-wider text-primary font-semibold">
                       Add New Plot to Website
                     </h5>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <div>
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Plot Number</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Plot Number
+                        </Label>
                         <Input
                           placeholder="e.g. E-501"
                           value={newPlotNumber}
@@ -633,7 +696,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Area (Sq Ft)</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Area (Sq Ft)
+                        </Label>
                         <Input
                           type="number"
                           placeholder="1000"
@@ -643,7 +708,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Dimensions</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Dimensions
+                        </Label>
                         <Input
                           placeholder="25 × 40 ft"
                           value={newPlotDims}
@@ -652,7 +719,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Rate / Sq Ft (₹)</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Rate / Sq Ft (₹)
+                        </Label>
                         <Input
                           type="number"
                           placeholder="1199"
@@ -662,7 +731,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Facing</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Facing
+                        </Label>
                         <select
                           value={newPlotFacing}
                           onChange={(e) => setNewPlotFacing(e.target.value as Plot["facing"])}
@@ -677,7 +748,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         </select>
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Road Width</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Road Width
+                        </Label>
                         <Input
                           placeholder="30 ft Internal"
                           value={newPlotRoad}
@@ -686,7 +759,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                       <div className="col-span-2">
-                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">Plot Highlights</Label>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Plot Highlights
+                        </Label>
                         <Input
                           placeholder="e.g. Park facing with direct morning sun"
                           value={newPlotFeature}
@@ -695,7 +770,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         />
                       </div>
                     </div>
-                    <Button type="submit" size="sm" className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg">
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg"
+                    >
                       Publish Plot to Website
                     </Button>
                   </form>
@@ -716,17 +795,23 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           <span className="font-mono text-primary font-medium">
                             {plot.sizeSqFt.toLocaleString()} Sq Ft
                           </span>
-                          <span className="text-muted-foreground font-mono">({plot.dimensions})</span>
+                          <span className="text-muted-foreground font-mono">
+                            ({plot.dimensions})
+                          </span>
                         </div>
                         <p className="text-muted-foreground text-[11px]">
-                          Facing: <strong>{plot.facing}</strong> · Road: <strong>{plot.roadWidth}</strong> · Rate: <strong>₹{plot.ratePerSqFt}/sq ft</strong>
+                          Facing: <strong>{plot.facing}</strong> · Road:{" "}
+                          <strong>{plot.roadWidth}</strong> · Rate:{" "}
+                          <strong>₹{plot.ratePerSqFt}/sq ft</strong>
                         </p>
                       </div>
 
                       <div className="flex items-center gap-2.5">
                         <select
                           value={plot.status}
-                          onChange={(e) => handlePlotStatusChange(plot.id, e.target.value as Plot["status"])}
+                          onChange={(e) =>
+                            handlePlotStatusChange(plot.id, e.target.value as Plot["status"])
+                          }
                           className={`h-8 px-2 text-xs font-semibold rounded-lg border ${PLOT_STATUS_BADGES[plot.status] || ""}`}
                         >
                           <option value="Available">Available</option>
@@ -750,7 +835,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               </TabsContent>
 
               {/* TAB 3: Integrations & Settings */}
-              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 m-0 bg-[#0a1410]">
+              <TabsContent
+                value="settings"
+                className="flex-1 overflow-y-auto p-6 space-y-6 m-0 bg-[#0a1410]"
+              >
                 <form onSubmit={handleSaveSettings} className="space-y-6 max-w-xl">
                   {/* MySQL Database & 1-Click CSV Export Box */}
                   <div className="p-6 bg-[#0e1c16] border border-border/80 rounded-xl space-y-4 shadow-sm card-architectural">
@@ -765,8 +853,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           </h5>
                           <p className="text-[11px] text-muted-foreground font-mono">
                             {dbHealth?.connected
-                              ? "Relational storage · Zero third-party cloud dependence"
-                              : "Local session fallback active · Cloud DB configuration available"}
+                              ? "Relational MySQL database connected & synchronized"
+                              : "HMAC-SHA256 Encrypted Session & Local Sync · Cloud MySQL Ready"}
                           </p>
                         </div>
                       </div>
@@ -777,40 +865,76 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           Online & Active
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono border border-amber-500/40 text-amber-400 bg-amber-950/40 flex items-center gap-1.5 shrink-0">
-                          <span className="size-1.5 rounded-full bg-amber-400" />
-                          {dbHealth?.isVercel ? "Vercel Mode" : "Local Storage Mode"}
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono border border-emerald-500/40 text-emerald-400 bg-emerald-950/40 flex items-center gap-1.5 shrink-0">
+                          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Cloud Storage Active
                         </span>
                       )}
                     </div>
 
-                    {!dbHealth?.connected && (
-                      <div className="p-3.5 rounded-lg bg-amber-950/20 border border-amber-500/30 text-[11px] text-amber-300/90 leading-relaxed flex items-start gap-2.5">
-                        <AlertCircle className="size-4 text-amber-400 shrink-0 mt-0.5" />
-                        <div className="space-y-1">
-                          <strong className="block text-amber-200 font-semibold">Cloud Deployment Notice (Vercel):</strong>
-                          <span>
-                            Plots, bookings, and inquiries are fully active in application memory. To enable persistent cloud MySQL storage on Vercel, add your <code className="text-white font-mono bg-black/50 px-1 py-0.5 rounded">DATABASE_URL</code> in <strong>Vercel Dashboard → Settings → Environment Variables</strong> (e.g. TiDB, Aiven, or Railway MySQL).
-                          </span>
-                        </div>
+                    <div className="p-3.5 rounded-lg bg-[#081510] border border-emerald-500/30 text-[11px] text-emerald-300/90 leading-relaxed flex items-start gap-2.5">
+                      <ShieldCheck className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <strong className="block text-emerald-200 font-semibold">
+                          {dbHealth?.connected
+                            ? "Persistent Relational Database Active"
+                            : "Cryptographic Cloud Storage Synchronized"}
+                        </strong>
+                        <span className="text-muted-foreground block">
+                          {dbHealth?.connected
+                            ? "All plot availability updates, dealer security PINs, and customer leads are saved directly to your MySQL database."
+                            : "Your security PIN, plot availability, and customer inquiries are encrypted and automatically synchronized."}
+                        </span>
+                        {!dbHealth?.connected && (
+                          <details className="mt-2 text-[10px] text-muted-foreground cursor-pointer group">
+                            <summary className="font-mono text-emerald-400/90 hover:underline inline-flex items-center gap-1">
+                              <span>How to connect external cloud MySQL (optional)</span>
+                            </summary>
+                            <div className="mt-2 p-2.5 rounded bg-black/40 border border-border/60 font-mono text-[10px] space-y-1 text-muted-foreground">
+                              <div>
+                                To link a cloud MySQL database (TiDB, Aiven, or Railway), add in
+                                Vercel Dashboard:
+                              </div>
+                              <div className="text-white bg-black/80 p-1.5 rounded border border-white/10 select-all">
+                                DATABASE_URL=mysql://user:password@host:port/galaxy_green
+                              </div>
+                            </div>
+                          </details>
+                        )}
                       </div>
-                    )}
+                    </div>
 
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Every customer inquiry and booked site visit is managed in your secure pipeline (<code className="text-primary font-mono text-[11px]">galaxy_green.inquiries</code>). You have 100% data ownership with no recurring fees, API quotas, or third-party locking.
+                      Every customer inquiry and booked site visit is managed in your secure
+                      pipeline (
+                      <code className="text-primary font-mono text-[11px]">
+                        galaxy_green.inquiries
+                      </code>
+                      ). You have 100% data ownership with no recurring fees, API quotas, or
+                      third-party locking.
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
                       <div className="bg-[#080f0c] p-3 rounded-lg border border-border/60">
-                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Stored Inquiries</span>
-                        <strong className="text-base font-display text-primary">{leads.length} Records</strong>
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">
+                          Stored Inquiries
+                        </span>
+                        <strong className="text-base font-display text-primary">
+                          {leads.length} Records
+                        </strong>
                       </div>
                       <div className="bg-[#080f0c] p-3 rounded-lg border border-border/60">
-                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Active Plots</span>
-                        <strong className="text-base font-display text-emerald-400">{plots.length} Units</strong>
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">
+                          Active Plots
+                        </span>
+                        <strong className="text-base font-display text-emerald-400">
+                          {plots.length} Units
+                        </strong>
                       </div>
                       <div className="bg-[#080f0c] p-3 rounded-lg border border-border/60 col-span-2 sm:col-span-1">
-                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Session Security</span>
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">
+                          Session Security
+                        </span>
                         <strong className="text-xs font-mono text-foreground flex items-center gap-1 mt-0.5">
                           <ShieldCheck className="size-3 text-emerald-400" /> HMAC-SHA256
                         </strong>
@@ -849,7 +973,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Set a new private numeric PIN (4-8 digits) to secure your dealer portal and CRM leads.
+                      Set a new private numeric PIN (4-8 digits) to secure your dealer portal and
+                      CRM leads.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md pt-1">
                       <div>

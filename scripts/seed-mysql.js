@@ -13,7 +13,10 @@ function loadEnv() {
       if (trimmed && !trimmed.startsWith("#")) {
         const [key, ...rest] = trimmed.split("=");
         if (key && rest.length > 0) {
-          const val = rest.join("=").trim().replace(/^["']|["']$/g, "");
+          const val = rest
+            .join("=")
+            .trim()
+            .replace(/^["']|["']$/g, "");
           if (!process.env[key.trim()]) {
             process.env[key.trim()] = val;
           }
@@ -60,7 +63,9 @@ async function main() {
           const adminConn = await mysql.createConnection({
             uri: parsed.toString(),
           });
-          await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+          await adminConn.query(
+            `CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+          );
           await adminConn.end();
 
           // Reconnect with database
@@ -81,7 +86,9 @@ async function main() {
         user,
         password,
       });
-      await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      await adminConn.query(
+        `CREATE DATABASE IF NOT EXISTS \`${database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+      );
       await adminConn.end();
 
       connection = await mysql.createConnection({
@@ -122,7 +129,9 @@ async function main() {
 
     if (errCode === "ER_ACCESS_DENIED_ERROR") {
       console.log("\n[Notice]: Access denied. Check your MySQL user and password in .env.");
-      console.log("If using Homebrew MySQL with no password, set: DATABASE_URL=mysql://root@localhost:3306/galaxy_green");
+      console.log(
+        "If using Homebrew MySQL with no password, set: DATABASE_URL=mysql://root@localhost:3306/galaxy_green",
+      );
     } else if (errCode === "ECONNREFUSED") {
       console.log(`\n[Notice]: No MySQL server is listening at ${host}:${port}.`);
       console.log("Make sure your MySQL service is started with: brew services start mysql");

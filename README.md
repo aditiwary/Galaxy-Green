@@ -37,33 +37,42 @@ A modern, high-performance real estate portal and interactive plotted layout sho
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+
 - Node.js (v20 or higher recommended)
 - MySQL Server running locally or remotely
 
 ### 2. Environment Configuration
+
 Create a `.env` file in the root directory:
+
 ```env
 DATABASE_URL=mysql://root:your_password@localhost:3306/galaxy_green
 ```
 
 ### 3. Database Initialization & Seeding
+
 To initialize the MySQL tables (`plots`, `inquiries`, `admin_config`) and seed baseline inventory:
+
 ```sh
 npm run db:seed
 ```
 
 Alternatively, you can import `database/galaxy_green_mysql.sql` directly into MySQL Workbench or phpMyAdmin:
+
 ```sh
 mysql -u root -p galaxy_green < database/galaxy_green_mysql.sql
 ```
 
 ### 4. Run Development Server
+
 ```sh
 npm run dev
 ```
+
 The application will be available at `http://localhost:8080`.
 
 ### 5. Build for Production
+
 ```sh
 npm run build
 npm run preview
@@ -88,4 +97,5 @@ npm run preview
 ---
 
 ## 📄 License
+
 Private repository — All rights reserved © Galaxy Green.

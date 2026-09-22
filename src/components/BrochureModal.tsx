@@ -100,18 +100,20 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
       <DialogContent className="max-w-2xl bg-card border-border text-foreground p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono">
+            <Badge
+              variant="outline"
+              className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
+            >
               Official Prospectus 2026
             </Badge>
-            <span className="text-xs text-muted-foreground font-mono">
-              Phase 1 Master Document
-            </span>
+            <span className="text-xs text-muted-foreground font-mono">Phase 1 Master Document</span>
           </div>
           <DialogTitle className="text-2xl font-display uppercase tracking-tight text-foreground mt-1">
             Galaxy Green Sai Suraksha Nagar
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Complete architectural specifications, plot dimension matrix, and legal credentials for Amausi, Lucknow.
+            Complete architectural specifications, plot dimension matrix, and legal credentials for
+            Amausi, Lucknow.
           </DialogDescription>
         </DialogHeader>
 

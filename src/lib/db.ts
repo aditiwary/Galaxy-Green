@@ -18,7 +18,10 @@ async function ensureEnv() {
         if (trimmed && !trimmed.startsWith("#")) {
           const [key, ...rest] = trimmed.split("=");
           if (key && rest.length > 0) {
-            const val = rest.join("=").trim().replace(/^["']|["']$/g, "");
+            const val = rest
+              .join("=")
+              .trim()
+              .replace(/^["']|["']$/g, "");
             if (!process.env[key.trim()]) {
               process.env[key.trim()] = val;
             }
@@ -41,7 +44,7 @@ export async function isMySQLConfigured(): Promise<boolean> {
   return Boolean(
     process.env["DATABASE_URL"] ||
     process.env["MYSQL_URL"] ||
-    (process.env["MYSQL_HOST"] && process.env["MYSQL_DATABASE"])
+    (process.env["MYSQL_HOST"] && process.env["MYSQL_DATABASE"]),
   );
 }
 
@@ -86,7 +89,12 @@ export async function getDbPool(): Promise<Pool | null> {
   }
 }
 
-export async function executeQuery<T = any>(sql: string, params: any[] = []): Promise<T | null> {
+export type DbParam = string | number | boolean | Date | null | undefined;
+
+export async function executeQuery<T = unknown>(
+  sql: string,
+  params: DbParam[] = [],
+): Promise<T | null> {
   try {
     const db = await getDbPool();
     if (!db) {

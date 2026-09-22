@@ -10,6 +10,29 @@ import {
 export { verifyDealerPinFn, checkDbHealthFn };
 
 const STORAGE_KEY = "galaxy_green_leads_v1";
+const PIN_TOKEN_KEY = "gg_dealer_pin_signed_token";
+
+export function getClientPinToken(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return localStorage.getItem(PIN_TOKEN_KEY) || undefined;
+}
+
+export function setClientPinToken(token: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PIN_TOKEN_KEY, token);
+}
+
+export async function verifyDealerPin(
+  pin: string,
+): Promise<{ success: boolean; token?: string; error?: string }> {
+  const clientPinToken = getClientPinToken();
+  const res = await verifyDealerPinFn({ data: { pin, clientPinToken } });
+  const typedRes = res as { success?: boolean; signedPinToken?: string } | undefined;
+  if (typedRes?.success && typedRes?.signedPinToken) {
+    setClientPinToken(typedRes.signedPinToken);
+  }
+  return res;
+}
 
 export async function fetchAllLeads(token?: string): Promise<Inquiry[]> {
   if (!token) return [];
@@ -85,7 +108,7 @@ export async function recordNewInquiry(input: InquiryInput): Promise<Inquiry> {
 export async function updateLeadStatus(
   id: string,
   status: Inquiry["status"],
-  token?: string
+  token?: string,
 ): Promise<boolean> {
   if (!token) return false;
 
@@ -100,7 +123,9 @@ export async function updateLeadStatus(
             const updated = list.map((item) => (item.id === id ? { ...item, status } : item));
             localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
           }
-        } catch {}
+        } catch (err) {
+          void err;
+        }
       }
       return true;
     }

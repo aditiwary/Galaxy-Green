@@ -2,13 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import {
-  TrendingUp,
-  ShieldCheck,
-  ArrowRight,
-  BadgePercent,
-  FileText,
-} from "lucide-react";
+import { TrendingUp, ShieldCheck, ArrowRight, BadgePercent, FileText } from "lucide-react";
 
 interface EmiRoiCalculatorProps {
   onLockPriceClick: (plotSizeText: string) => void;
@@ -34,11 +28,11 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
     loanAmount > 0 && monthlyRate > 0
       ? Math.round(
           (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) /
-            (Math.pow(1 + monthlyRate, totalMonths) - 1)
+            (Math.pow(1 + monthlyRate, totalMonths) - 1),
         )
       : loanAmount > 0
-      ? Math.round(loanAmount / totalMonths)
-      : 0;
+        ? Math.round(loanAmount / totalMonths)
+        : 0;
 
   // Estimated UP Statutory Registration & Stamp Duty Breakdown
   const estimatedStampDuty = Math.round(totalCost * 0.07); // ~7% Stamp Duty (UP)
@@ -47,9 +41,7 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
 
   // 5-Year Capital Appreciation: 18% CAGR conservative estimate for Amausi Airport Growth Corridor
   const appreciationRate = 0.18;
-  const estimatedFutureValue5Years = Math.round(
-    totalCost * Math.pow(1 + appreciationRate, 5)
-  );
+  const estimatedFutureValue5Years = Math.round(totalCost * Math.pow(1 + appreciationRate, 5));
   const projectedNetGain = estimatedFutureValue5Years - totalCost;
 
   const formatINR = (val: number) =>
@@ -94,12 +86,14 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                 Official Rate: ₹1,199 / Sq Ft
               </span>
             </div>
-            <h2 className="section-title">
-              Investment ROI & EMI Calculator
-            </h2>
+            <h2 className="section-title">Investment ROI & EMI Calculator</h2>
             <p className="mt-3 max-w-2xl text-sm md:text-base text-muted-foreground leading-relaxed">
-              Minimum allotment starts from <strong className="text-foreground font-medium">600 sq. ft. ({formatINR(600 * 1199)})</strong>, 
-              with flexible dimensions scalable up to commercial parcels and luxury multi-plot estates.
+              Minimum allotment starts from{" "}
+              <strong className="text-foreground font-medium">
+                600 sq. ft. ({formatINR(600 * 1199)})
+              </strong>
+              , with flexible dimensions scalable up to commercial parcels and luxury multi-plot
+              estates.
             </p>
           </div>
           <div className="flex items-center gap-2.5 bg-accent/10 border border-accent/30 px-4 py-2.5 rounded text-xs text-accent font-mono">
@@ -284,8 +278,14 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                 </strong>
               </div>
               <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-muted-foreground bg-background/50 p-2.5 rounded border border-border/50">
-                <div>Stamp Duty (~7%): <span className="text-foreground">{formatINR(estimatedStampDuty)}</span></div>
-                <div>Registration (~1%): <span className="text-foreground">{formatINR(estimatedRegistration)}</span></div>
+                <div>
+                  Stamp Duty (~7%):{" "}
+                  <span className="text-foreground">{formatINR(estimatedStampDuty)}</span>
+                </div>
+                <div>
+                  Registration (~1%):{" "}
+                  <span className="text-foreground">{formatINR(estimatedRegistration)}</span>
+                </div>
               </div>
             </div>
 
@@ -293,8 +293,10 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
             <div className="pt-2 flex items-start gap-2.5 text-xs text-muted-foreground">
               <BadgePercent className="size-4 text-primary shrink-0 mt-0.5" />
               <span>
-                Computed at transparent fixed base rate <strong className="text-foreground">₹1,199 / sq ft</strong>. 
-                Pre-approved plot loans available with nationalized lenders (SBI, HDFC, PNB) up to 80% financing with immediate legal title clearance.
+                Computed at transparent fixed base rate{" "}
+                <strong className="text-foreground">₹1,199 / sq ft</strong>. Pre-approved plot loans
+                available with nationalized lenders (SBI, HDFC, PNB) up to 80% financing with
+                immediate legal title clearance.
               </span>
             </div>
           </div>
@@ -311,9 +313,7 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                 <strong className="text-4xl sm:text-5xl font-display font-semibold text-foreground">
                   {formatINR(emi)}
                 </strong>
-                <span className="text-xs uppercase font-mono text-muted-foreground">
-                  / month
-                </span>
+                <span className="text-xs uppercase font-mono text-muted-foreground">/ month</span>
               </div>
 
               <div className="my-6 h-px bg-border" />
@@ -332,7 +332,9 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                   </strong>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Down Payment ({downPaymentPercent}%)</span>
+                  <span className="text-muted-foreground">
+                    Down Payment ({downPaymentPercent}%)
+                  </span>
                   <strong className="text-accent font-medium text-sm">
                     {formatINR(downPaymentAmount)}
                   </strong>
@@ -368,7 +370,8 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                   </span>
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Conservative projection anchored on Lucknow Airport expansion, Amausi Railway & Metro transit connectivity.
+                  Conservative projection anchored on Lucknow Airport expansion, Amausi Railway &
+                  Metro transit connectivity.
                 </p>
               </div>
 
@@ -387,7 +390,9 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                 <ShieldCheck className="size-4 text-primary shrink-0" />
                 <span className="text-muted-foreground">Pre-approved Bank Loans Available</span>
               </div>
-              <span className="font-mono text-[11px] text-accent font-medium">SBI · HDFC · PNB</span>
+              <span className="font-mono text-[11px] text-accent font-medium">
+                SBI · HDFC · PNB
+              </span>
             </div>
           </div>
         </div>

@@ -9,12 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "btn-luxury btn-shimmer bg-primary text-primary-foreground shadow-glow hover:bg-primary/95",
-        luxury: "btn-luxury btn-shimmer bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold shadow-gold hover:brightness-105",
-        destructive: "btn-luxury bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        default:
+          "btn-luxury btn-shimmer bg-primary text-primary-foreground shadow-glow hover:bg-primary/95",
+        luxury:
+          "btn-luxury btn-shimmer bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold shadow-gold hover:brightness-105",
+        destructive:
+          "btn-luxury bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline: "btn-luxury-outline border border-border text-foreground hover:border-primary/60",
-        secondary: "btn-luxury-outline bg-secondary/80 text-secondary-foreground shadow-sm hover:bg-secondary",
-        ghost: "transition-all duration-200 hover:bg-surface/90 hover:text-primary text-foreground/90",
+        secondary:
+          "btn-luxury-outline bg-secondary/80 text-secondary-foreground shadow-sm hover:bg-secondary",
+        ghost:
+          "transition-all duration-200 hover:bg-surface/90 hover:text-primary text-foreground/90",
         link: "text-primary underline-offset-4 hover:underline normal-case tracking-normal text-sm",
       },
       size: {

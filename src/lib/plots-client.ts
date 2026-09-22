@@ -1,10 +1,5 @@
 import { DEFAULT_PLOTS, type Plot, type PlotInput } from "./plot-types";
-import {
-  getPlotsFn,
-  createPlotFn,
-  updatePlotStatusFn,
-  deletePlotFn,
-} from "./server-plots";
+import { getPlotsFn, createPlotFn, updatePlotStatusFn, deletePlotFn } from "./server-plots";
 
 const PLOTS_STORAGE_KEY = "galaxy_green_plots_v1";
 
@@ -65,7 +60,7 @@ export async function addLivePlot(input: PlotInput, token?: string): Promise<Plo
 export async function setPlotStatus(
   id: string,
   status: Plot["status"],
-  token?: string
+  token?: string,
 ): Promise<boolean> {
   try {
     await updatePlotStatusFn({ data: { id, status, ...(token ? { token } : {}) } });

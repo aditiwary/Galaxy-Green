@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
   Clock,
   CheckCircle2,
   MessageCircle,
-  Phone,
-  ShieldCheck,
-  User,
   ArrowRight,
   Sparkles,
+  Sliders,
+  Maximize2,
+  Compass,
 } from "lucide-react";
 import { recordNewInquiry } from "@/lib/leads-client";
 import type { Inquiry } from "@/lib/inquiry-types";
@@ -32,6 +31,15 @@ interface SiteVisitModalProps {
 }
 
 const PHONE_NUMBER = "919044412642";
+const BASE_RATE = 1199;
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 
 export function SiteVisitModal({
   open,
@@ -45,16 +53,58 @@ export function SiteVisitModal({
   // Form State
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [plotPreference, setPlotPreference] = useState(defaultPlotPreference);
   const [visitDate, setVisitDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().slice(0, 10);
   });
-  const [slot, setSlot] = useState("Morning (10:00 AM)");
+
+  // Time Slot State (Preset vs Custom)
+  const [slotType, setSlotType] = useState<"preset" | "custom">("preset");
+  const [presetSlot, setSlotPreset] = useState("Morning (10:00 AM)");
+  const [customTime, setCustomTime] = useState("11:30 AM");
+
+  // Plot Preference State (Preset vs Custom)
+  const [plotMode, setPlotMode] = useState<"preset" | "custom">("preset");
+  const [presetPlot, setPresetPlot] = useState(defaultPlotPreference);
+  const [customSqFt, setCustomSqFt] = useState<number>(2000);
+  const [customPlotType, setCustomPlotType] = useState("East Facing (Vaastu Compliant)");
+  const [customPlotNotes, setCustomPlotNotes] = useState("");
+
   const [message, setMessage] = useState("");
   const [websiteHoneypot, setWebsiteHoneypot] = useState("");
   const [error, setError] = useState("");
+
+  // Sync defaultPlotPreference when opening
+  useEffect(() => {
+    if (open && defaultPlotPreference) {
+      const lower = defaultPlotPreference.toLowerCase();
+      if (lower.includes("custom")) {
+        setPlotMode("custom");
+        const matchNum = defaultPlotPreference.match(/(\d[\d,]*)/);
+        if (matchNum && matchNum[1]) {
+          const parsed = parseInt(matchNum[1].replace(/,/g, ""), 10);
+          if (!isNaN(parsed) && parsed >= 600) {
+            setCustomSqFt(parsed);
+          }
+        }
+      } else {
+        setPlotMode("preset");
+        setPresetPlot(defaultPlotPreference);
+      }
+    }
+  }, [open, defaultPlotPreference]);
+
+  // Derived Values
+  const effectiveSlot =
+    slotType === "custom" ? `Custom Time: ${customTime.trim() || "Client Flexible"}` : presetSlot;
+
+  const customAllotmentCost = Math.round(customSqFt * BASE_RATE);
+
+  const effectivePlotPreference =
+    plotMode === "custom"
+      ? `Custom ${customSqFt} Sq Ft (${formatCurrency(customAllotmentCost)} · ${customPlotType}${customPlotNotes ? ` · ${customPlotNotes}` : ""})`
+      : presetPlot;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -67,6 +117,15 @@ export function SiteVisitModal({
       setError("Please enter a valid 10-digit Indian mobile number.");
       return;
     }
+    if (plotMode === "custom" && (!customSqFt || customSqFt < 600)) {
+      setError("Minimum plot allotment size starts from 600 Sq Ft.");
+      return;
+    }
+    if (slotType === "custom" && !customTime.trim()) {
+      setError("Please enter your preferred custom visit timing.");
+      return;
+    }
+
     setError("");
     setSubmitting(true);
 
@@ -74,9 +133,9 @@ export function SiteVisitModal({
       const created = await recordNewInquiry({
         name: name.trim(),
         phone: cleanPhone,
-        plotPreference,
+        plotPreference: effectivePlotPreference,
         visitDate,
-        slot,
+        slot: effectiveSlot,
         cabPickup: false,
         pickupLocation: "On Site",
         message: message.trim(),
@@ -85,7 +144,7 @@ export function SiteVisitModal({
 
       setConfirmedBooking(created);
       setStep("confirmed");
-      toast.success("Site Visit Reserved! Confirmation Reference: " + created.id);
+      toast.success("Site Visit Reserved! Reference: " + created.id);
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit. Please try again.");
@@ -111,7 +170,7 @@ export function SiteVisitModal({
     window.open(
       `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(text)}`,
       "_blank",
-      "noopener,noreferrer"
+      "noopener,noreferrer",
     );
   };
 
@@ -125,27 +184,31 @@ export function SiteVisitModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg bg-card border-border text-foreground p-6 sm:p-8">
+      <DialogContent className="max-w-xl bg-card border-border text-foreground p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
         {step === "form" ? (
           <>
             <DialogHeader>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono">
+                <Badge
+                  variant="outline"
+                  className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
+                >
                   VIP Experience
                 </Badge>
                 <span className="text-xs text-muted-foreground font-mono">
-                  Zero Obligation · Free Guided Tour
+                  Zero Obligation · Free Guided Ground Tour
                 </span>
               </div>
-              <DialogTitle className="text-2xl font-display uppercase tracking-tight text-foreground mt-1">
+              <DialogTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-1">
                 Book Your Private Site Visit
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Walk the ground, inspect plot boundary pillars, review legal title papers, and experience the green environment firsthand.
+                Inspect physical plot boundary pillars, review original legal registry documents,
+                and choose custom dimensions with complete freedom.
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
+            <form onSubmit={handleSubmit} className="space-y-4 mt-3" noValidate>
               {/* Name & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -156,7 +219,7 @@ export function SiteVisitModal({
                     placeholder="e.g. Rahul Sharma"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 h-10 text-xs bg-surface border-border"
+                    className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
                   />
                 </div>
                 <div>
@@ -169,7 +232,7 @@ export function SiteVisitModal({
                     placeholder="10-digit mobile"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1 h-10 text-xs bg-surface border-border"
+                    className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
                   />
                 </div>
               </div>
@@ -184,43 +247,258 @@ export function SiteVisitModal({
                     type="date"
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
-                    className="mt-1 h-10 text-xs bg-surface border-border"
+                    className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
                   />
                 </div>
+
                 <div>
-                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
-                    Time Slot
-                  </Label>
-                  <select
-                    value={slot}
-                    onChange={(e) => setSlot(e.target.value)}
-                    className="mt-1 h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option>Morning (10:00 AM)</option>
-                    <option>Afternoon (2:00 PM)</option>
-                    <option>Evening Sunset (4:30 PM)</option>
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                      Time Slot
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => setSlotType(slotType === "preset" ? "custom" : "preset")}
+                      className="text-[10px] font-mono text-primary hover:underline"
+                    >
+                      {slotType === "preset" ? "+ Custom Time" : "Use Preset Slots"}
+                    </button>
+                  </div>
+
+                  {slotType === "preset" ? (
+                    <select
+                      value={presetSlot}
+                      onChange={(e) => {
+                        if (e.target.value === "CUSTOM_SLOT_TRIGGER") {
+                          setSlotType("custom");
+                        } else {
+                          setSlotPreset(e.target.value);
+                        }
+                      }}
+                      className="mt-1 h-9 sm:h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="Morning (10:00 AM)">Morning (10:00 AM)</option>
+                      <option value="Afternoon (2:00 PM)">Afternoon (2:00 PM)</option>
+                      <option value="Evening Sunset (4:30 PM)">Evening Sunset (4:30 PM)</option>
+                      <option value="CUSTOM_SLOT_TRIGGER">⚡ Choose Custom Timing...</option>
+                    </select>
+                  ) : (
+                    <div className="mt-1 relative">
+                      <Input
+                        placeholder="e.g. 11:30 AM or 05:15 PM"
+                        value={customTime}
+                        onChange={(e) => setCustomTime(e.target.value)}
+                        className="h-9 sm:h-10 text-xs bg-surface border-primary/60 text-foreground pr-8"
+                      />
+                      <Clock className="size-3.5 absolute right-2.5 top-3 text-primary pointer-events-none" />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Plot preference */}
+              {/* Custom Timing Quick Chips (Only visible when custom slot is chosen) */}
+              {slotType === "custom" && (
+                <div className="p-2.5 rounded-md bg-surface/80 border border-border/80 space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+                    <span>Quick Select Preferred Timing:</span>
+                    <span className="text-emerald-400">Coordinators Available 7 AM - 7 PM</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "08:30 AM",
+                      "11:00 AM",
+                      "11:30 AM",
+                      "01:30 PM",
+                      "03:30 PM",
+                      "05:30 PM",
+                      "06:30 PM",
+                    ].map((time) => (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => setCustomTime(time)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                          customTime === time
+                            ? "bg-primary text-primary-foreground border-primary font-semibold"
+                            : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Plot Preference Section */}
+              <div className="space-y-2 pt-1 border-t border-border/60">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                    Plot Sizing Preference
+                  </Label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPlotMode("preset")}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                        plotMode === "preset"
+                          ? "bg-primary text-primary-foreground border-primary font-semibold"
+                          : "bg-surface border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Standard Sizes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPlotMode("custom")}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                        plotMode === "custom"
+                          ? "bg-primary text-primary-foreground border-primary font-semibold"
+                          : "bg-surface border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Sparkles className="size-2.5 inline mr-1" /> Custom Plot
+                    </button>
+                  </div>
+                </div>
+
+                {plotMode === "preset" ? (
+                  <select
+                    value={presetPlot}
+                    onChange={(e) => {
+                      if (e.target.value === "CUSTOM_PLOT_TRIGGER") {
+                        setPlotMode("custom");
+                      } else {
+                        setPresetPlot(e.target.value);
+                      }
+                    }}
+                    className="h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
+                  >
+                    <option value="600 sq ft">600 Sq Ft (Starting Plot · ₹7.19 L)</option>
+                    <option value="800 sq ft">800 Sq Ft (Compact Home · ₹9.59 L)</option>
+                    <option value="1000 sq ft">1,000 Sq Ft (Most Popular · ₹11.99 L)</option>
+                    <option value="1200 sq ft">1,200 Sq Ft (Spacious Duplex · ₹14.39 L)</option>
+                    <option value="1500 sq ft">1,500 Sq Ft (Executive Villa · ₹17.99 L)</option>
+                    <option value="2000 sq ft">2,000 Sq Ft (Luxury Villa · ₹23.98 L)</option>
+                    <option value="CUSTOM_PLOT_TRIGGER">
+                      ⚡ Custom Requirement (Any Size On Buyer Wish)...
+                    </option>
+                  </select>
+                ) : (
+                  /* Custom Plot Configuration Box */
+                  <div className="p-3.5 rounded-lg bg-surface/90 border border-primary/40 space-y-3 animate-in fade-in duration-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[11px] font-mono font-semibold text-primary flex items-center gap-1.5">
+                        <Sliders className="size-3.5" /> Flexible Plot Customizer
+                      </span>
+                      <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                        {formatCurrency(customAllotmentCost)}{" "}
+                        <span className="text-muted-foreground text-[10px] font-normal">
+                          (@ ₹1,199/sq ft)
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Sq Ft Input with Quick Presets */}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type="number"
+                            min={600}
+                            max={25000}
+                            step={50}
+                            value={customSqFt}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setCustomSqFt(isNaN(val) ? 600 : val);
+                            }}
+                            className="h-9 text-xs font-mono font-semibold bg-background pr-14"
+                          />
+                          <span className="absolute right-3 top-2.5 text-[10px] font-mono text-muted-foreground pointer-events-none">
+                            Sq Ft
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Quick Size Pills */}
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {[
+                          { sqFt: 750, label: "750 Sq Ft" },
+                          { sqFt: 1800, label: "1,800 Sq Ft" },
+                          { sqFt: 2500, label: "2,500 Sq Ft" },
+                          { sqFt: 3500, label: "3,500 Sq Ft" },
+                          { sqFt: 5000, label: "5,000+ (Multi-Plot)" },
+                        ].map((item) => (
+                          <button
+                            key={item.sqFt}
+                            type="button"
+                            onClick={() => setCustomSqFt(item.sqFt)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                              customSqFt === item.sqFt
+                                ? "bg-primary text-primary-foreground border-primary font-semibold"
+                                : "bg-background border-border text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Orientation & Feature */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-border/40">
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground flex items-center gap-1">
+                          <Compass className="size-3" /> Orientation / Feature
+                        </Label>
+                        <select
+                          value={customPlotType}
+                          onChange={(e) => setCustomPlotType(e.target.value)}
+                          className="mt-1 h-8 w-full px-2 text-[11px] bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
+                        >
+                          <option value="East Facing (Vaastu Compliant)">
+                            East Facing (Vaastu)
+                          </option>
+                          <option value="Corner Plot (Dual 30ft Road)">
+                            Corner Plot (Dual Road)
+                          </option>
+                          <option value="North Facing (Prime Airflow)">North Facing</option>
+                          <option value="West Facing (Sunset Boulevard)">West Facing</option>
+                          <option value="Adjacent Multi-Plots (Joint Family)">
+                            Adjacent Multi-Plots
+                          </option>
+                          <option value="Commercial Roadside Frontage">Commercial Frontage</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground flex items-center gap-1">
+                          <Maximize2 className="size-3" /> Dimensions / Request
+                        </Label>
+                        <Input
+                          placeholder="e.g. 50×50 ft, near park"
+                          value={customPlotNotes}
+                          onChange={(e) => setCustomPlotNotes(e.target.value)}
+                          className="mt-1 h-8 text-[11px] bg-background border-border"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Special Note */}
               <div>
                 <Label className="text-[11px] uppercase font-mono text-muted-foreground">
-                  Plot Preference
+                  Special Notes or Queries (Optional)
                 </Label>
-                <select
-                  value={plotPreference}
-                  onChange={(e) => setPlotPreference(e.target.value)}
-                  className="mt-1 h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
-                >
-                  <option value="600 sq ft">600 Sq Ft (Starting Plot · ₹7.19 L)</option>
-                  <option value="800 sq ft">800 Sq Ft (Compact Home · ₹9.59 L)</option>
-                  <option value="1000 sq ft">1,000 Sq Ft (Most Popular · ₹11.99 L)</option>
-                  <option value="1200 sq ft">1,200 Sq Ft (Spacious Duplex · ₹14.39 L)</option>
-                  <option value="1500 sq ft">1,500 Sq Ft (Executive Villa · ₹17.99 L)</option>
-                  <option value="2000 sq ft">2,000 Sq Ft (Luxury Villa · ₹23.98 L)</option>
-                  <option value="Custom Size">Custom Requirement (Any Size On Buyer Wish)</option>
-                </select>
+                <Input
+                  placeholder="Need cab pickup, bank loan inquiry, boundary stone verification..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
+                />
               </div>
 
               {/* Anti-Bot Invisible Honeypot */}
@@ -237,18 +515,22 @@ export function SiteVisitModal({
               />
 
               {error && (
-                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
-                  {error}
-                </p>
+                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{error}</p>
               )}
 
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
+                className="w-full h-11 sm:h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer mt-2"
               >
-                {submitting ? "Confirming Visit..." : "Schedule Site Tour"} <ArrowRight className="size-3.5 ml-2" />
+                {submitting ? "Confirming Visit..." : "Schedule Site Tour"}{" "}
+                <ArrowRight className="size-3.5 ml-2" />
               </Button>
+
+              <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground font-mono">
+                <CheckCircle2 className="size-3 text-emerald-400" />
+                <span>Instant Confirmation with Managing Director Vishal Singh</span>
+              </div>
             </form>
           </>
         ) : (
@@ -259,25 +541,33 @@ export function SiteVisitModal({
             </div>
 
             <div>
-              <Badge variant="outline" className="border-primary text-primary bg-primary/10 font-mono text-xs mb-2">
+              <Badge
+                variant="outline"
+                className="border-primary text-primary bg-primary/10 font-mono text-xs mb-2"
+              >
                 Booking ID: {confirmedBooking?.id}
               </Badge>
               <h3 className="text-2xl font-display uppercase tracking-tight text-foreground">
                 Site Visit Confirmed!
               </h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
-                Thank you, <strong>{confirmedBooking?.name}</strong>. Our project coordinator will contact you at +91 {confirmedBooking?.phone} to confirm your scheduled site visit.
+                Thank you, <strong>{confirmedBooking?.name}</strong>. Our project coordinator will
+                contact you at +91 {confirmedBooking?.phone} to confirm your scheduled site visit.
               </p>
             </div>
 
             <div className="bg-surface/90 border border-border/80 rounded p-4 text-xs text-left space-y-1.5 font-mono">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date & Slot:</span>
-                <span className="text-foreground font-semibold">{confirmedBooking?.visitDate} ({confirmedBooking?.slot})</span>
+                <span className="text-foreground font-semibold">
+                  {confirmedBooking?.visitDate} ({confirmedBooking?.slot})
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Plot Preference:</span>
-                <span className="text-primary font-semibold">{confirmedBooking?.plotPreference}</span>
+                <span className="text-primary font-semibold">
+                  {confirmedBooking?.plotPreference}
+                </span>
               </div>
             </div>
 

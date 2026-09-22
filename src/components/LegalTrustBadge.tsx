@@ -40,9 +40,7 @@ export function LegalTrustBadge() {
             <span className="text-[10px] uppercase text-muted-foreground block font-mono">
               Partner Banks
             </span>
-            <strong className="text-xs text-foreground font-mono">
-              SBI · HDFC · PNB · ICICI
-            </strong>
+            <strong className="text-xs text-foreground font-mono">SBI · HDFC · PNB · ICICI</strong>
           </div>
           <span className="h-8 w-px bg-border hidden sm:block" />
           <div className="bg-primary/10 border border-primary/30 px-3 py-1.5 rounded text-xs text-primary font-mono font-semibold">
@@ -62,9 +60,7 @@ export function LegalTrustBadge() {
               <h4 className="font-display text-sm uppercase text-foreground font-semibold tracking-tight group-hover:text-primary transition-colors">
                 {item.title}
               </h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {item.desc}
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
             </div>
           );
         })}

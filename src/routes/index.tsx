@@ -78,8 +78,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title:
-          "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
+        title: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
       },
       {
         name: "description",
@@ -94,8 +93,7 @@ export const Route = createFileRoute("/")({
       { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar" },
       {
         property: "og:title",
-        content:
-          "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
+        content: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
       },
       {
         property: "og:description",
@@ -112,8 +110,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content:
-          "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
+        content: "Galaxy Green Sai Suraksha Nagar | Plots Near Lucknow Airport",
       },
       {
         name: "twitter:description",
@@ -233,7 +230,7 @@ function Index() {
       window.open(
         `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`,
         "_blank",
-        "noopener,noreferrer"
+        "noopener,noreferrer",
       );
 
       setContactName("");
@@ -247,17 +244,22 @@ function Index() {
     }
   }
 
-  const isFloatingDockVisible =
-    scrolledPastHero && !siteVisitOpen && !brochureOpen && !adminOpen;
+  const isFloatingDockVisible = scrolledPastHero && !siteVisitOpen && !brochureOpen && !adminOpen;
 
   return (
-    <main id="home" className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+    <main
+      id="home"
+      className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground"
+    >
       {/* Top Header */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl transition-all">
         <div className="mx-auto flex h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <Logo />
 
-          <nav className="hidden items-center gap-1.5 xl:gap-3.5 2xl:gap-5 lg:flex" aria-label="Main navigation">
+          <nav
+            className="hidden items-center gap-1.5 xl:gap-3.5 2xl:gap-5 lg:flex"
+            aria-label="Main navigation"
+          >
             {[
               ["About", "#about"],
               ["Master Plan", "#masterplan"],
@@ -405,13 +407,13 @@ function Index() {
 
             <h1 className="font-display text-5xl font-semibold uppercase leading-[0.96] sm:text-7xl lg:text-8xl tracking-tight">
               Galaxy Green
-              <span className="mt-2 block text-emerald-gradient">
-                Sai Suraksha Nagar
-              </span>
+              <span className="mt-2 block text-emerald-gradient">Sai Suraksha Nagar</span>
             </h1>
 
             <p className="mt-7 max-w-2xl text-base leading-relaxed text-foreground/80 sm:text-lg">
-              Secure your freehold residential plot at Amausi, Lucknow—where high-yield airport connectivity meets an eco-luxury gated community. Immediate registry and bank loan approvals.
+              Secure your freehold residential plot at Amausi, Lucknow—where high-yield airport
+              connectivity meets an eco-luxury gated community. Immediate registry and bank loan
+              approvals.
             </p>
 
             {/* CTAs */}
@@ -477,11 +479,12 @@ function Index() {
           <div className="grid gap-12 lg:grid-cols-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <p className="eyebrow">01 · Prime Plotted Living</p>
-              <h2 className="section-title">
-                Build The Villa You Always Envisioned
-              </h2>
+              <h2 className="section-title">Build The Villa You Always Envisioned</h2>
               <p className="text-base sm:text-lg leading-relaxed text-muted-foreground">
-                Galaxy Green Sai Suraksha Nagar is meticulously planned for homeowners and astute real estate investors. Spread across lush green surroundings near Chaudhary Charan Singh International Airport, our layout gives you complete architectural freedom to design your private 2-storey duplex, family estate, or lush green retirement haven.
+                Galaxy Green Sai Suraksha Nagar is meticulously planned for homeowners and astute
+                real estate investors. Spread across lush green surroundings near Chaudhary Charan
+                Singh International Airport, our layout gives you complete architectural freedom to
+                design your private 2-storey duplex, family estate, or lush green retirement haven.
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2 pt-2">
@@ -493,7 +496,8 @@ function Index() {
                     Airport Growth Hub
                   </h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                    Just 5 minutes from Amausi Airport. Prime zone benefiting from Lucknow’s infrastructure surge.
+                    Just 5 minutes from Amausi Airport. Prime zone benefiting from Lucknow’s
+                    infrastructure surge.
                   </p>
                 </div>
                 <div className="card-architectural group p-5 rounded-lg">
@@ -504,7 +508,8 @@ function Index() {
                     Zero Legal Ambiguity
                   </h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                    100% freehold land with instant registry and mutation. Bank loan assistance up to 80%.
+                    100% freehold land with instant registry and mutation. Bank loan assistance up
+                    to 80%.
                   </p>
                 </div>
               </div>
@@ -541,7 +546,10 @@ function Index() {
                         Contemporary 2-Storey Duplex on 1,500 Sq Ft
                       </strong>
                     </div>
-                    <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10 text-[10px] font-mono">
+                    <Badge
+                      variant="outline"
+                      className="border-primary/50 text-primary bg-primary/10 text-[10px] font-mono"
+                    >
                       Vastu Compliant
                     </Badge>
                   </div>
@@ -561,12 +569,11 @@ function Index() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
               <p className="eyebrow">03 · Planned Infrastructure</p>
-              <h2 className="section-title max-w-2xl">
-                Everyday Luxury & Community Amenities
-              </h2>
+              <h2 className="section-title max-w-2xl">Everyday Luxury & Community Amenities</h2>
             </div>
             <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Thoughtfully engineered infrastructure designed to support a serene, active, and multi-generational lifestyle.
+              Thoughtfully engineered infrastructure designed to support a serene, active, and
+              multi-generational lifestyle.
             </p>
           </div>
 
@@ -637,9 +644,7 @@ function Index() {
                 <h4 className="mt-6 font-display text-lg uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">
                   {title}
                 </h4>
-                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                  {desc}
-                </p>
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </article>
             ))}
           </div>
@@ -660,22 +665,53 @@ function Index() {
           <div className="grid gap-12 lg:grid-cols-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <p className="eyebrow">04 · Strategic Positioning</p>
-              <h2 className="section-title">
-                Direct Airport & Metro Connectivity
-              </h2>
+              <h2 className="section-title">Direct Airport & Metro Connectivity</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Located at Sai Suraksha Nagar, Amausi, Lucknow (PIN 226008). Benefit from premier connectivity: 2.7 km from Amausi Railway Station, 3 km from T.S. Misra Medical College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market, and 5 km from CCS International Airport & Amausi Metro Station.
+                Located at Sai Suraksha Nagar, Amausi, Lucknow (PIN 226008). Benefit from premier
+                connectivity: 2.7 km from Amausi Railway Station, 3 km from T.S. Misra Medical
+                College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market,
+                and 5 km from CCS International Airport & Amausi Metro Station.
               </p>
 
               {/* Transit & Key Nearby Facilities */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 {[
-                  { icon: Train, dist: "2.7 km", label: "Amausi Railway Station", sub: "~5 Mins · Express & Local Hub" },
-                  { icon: HeartPulse, dist: "3.0 km", label: "T.S. Misra Medical College", sub: "~6 Mins · Hospital & Trauma" },
-                  { icon: Plane, dist: "5.0 km", label: "CCS International Airport", sub: "~8-10 Mins · Terminal 3" },
-                  { icon: RouteIcon, dist: "5.0 km", label: "Amausi Metro Station", sub: "~8-10 Mins · Red Line Link" },
-                  { icon: Car, dist: "3.0 km", label: "Kanpur-Lucknow Expressway", sub: "~5 Mins · High-Speed Link" },
-                  { icon: ShoppingBag, dist: "2.5 km", label: "Main Market", sub: "~4 Mins · Daily Essentials" },
+                  {
+                    icon: Train,
+                    dist: "2.7 km",
+                    label: "Amausi Railway Station",
+                    sub: "~5 Mins · Express & Local Hub",
+                  },
+                  {
+                    icon: HeartPulse,
+                    dist: "3.0 km",
+                    label: "T.S. Misra Medical College",
+                    sub: "~6 Mins · Hospital & Trauma",
+                  },
+                  {
+                    icon: Plane,
+                    dist: "5.0 km",
+                    label: "CCS International Airport",
+                    sub: "~8-10 Mins · Terminal 3",
+                  },
+                  {
+                    icon: RouteIcon,
+                    dist: "5.0 km",
+                    label: "Amausi Metro Station",
+                    sub: "~8-10 Mins · Red Line Link",
+                  },
+                  {
+                    icon: Car,
+                    dist: "3.0 km",
+                    label: "Kanpur-Lucknow Expressway",
+                    sub: "~5 Mins · High-Speed Link",
+                  },
+                  {
+                    icon: ShoppingBag,
+                    dist: "2.5 km",
+                    label: "Main Market",
+                    sub: "~4 Mins · Daily Essentials",
+                  },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -767,20 +803,31 @@ function Index() {
             {/* Milestones */}
             <div className="lg:col-span-5 space-y-6">
               <p className="eyebrow">05 · Ground Execution</p>
-              <h2 className="section-title">
-                On-Site Progress Tracker
-              </h2>
+              <h2 className="section-title">On-Site Progress Tracker</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                We believe in complete transparency. Every infrastructure component is being developed as per timeline.
+                We believe in complete transparency. Every infrastructure component is being
+                developed as per timeline.
               </p>
 
               <div className="space-y-4 pt-2">
                 {[
                   { name: "Boundary Wall & Gate", progress: "100% Completed", status: "Complete" },
                   { name: "40-Ft Main Boulevard", progress: "100% Asphalted", status: "Complete" },
-                  { name: "Plot Demarcation Stones", progress: "100% Installed", status: "Complete" },
-                  { name: "Internal 30-Ft Concrete Pavers", progress: "90% Laid", status: "In Progress" },
-                  { name: "Central Landscaped Park & Walkways", progress: "Phase 1 Landscaping", status: "Active" },
+                  {
+                    name: "Plot Demarcation Stones",
+                    progress: "100% Installed",
+                    status: "Complete",
+                  },
+                  {
+                    name: "Internal 30-Ft Concrete Pavers",
+                    progress: "90% Laid",
+                    status: "In Progress",
+                  },
+                  {
+                    name: "Central Landscaped Park & Walkways",
+                    progress: "Phase 1 Landscaping",
+                    status: "Active",
+                  },
                 ].map((item) => (
                   <div
                     key={item.name}
@@ -790,9 +837,7 @@ function Index() {
                       <CheckCircle2 className="size-4 text-primary shrink-0" />
                       <span className="text-foreground font-medium">{item.name}</span>
                     </div>
-                    <span className="font-mono text-primary font-semibold">
-                      {item.progress}
-                    </span>
+                    <span className="font-mono text-primary font-semibold">{item.progress}</span>
                   </div>
                 ))}
               </div>
@@ -801,17 +846,15 @@ function Index() {
             {/* Testimonials */}
             <div className="lg:col-span-7 space-y-6">
               <p className="eyebrow">06 · Buyer Experiences</p>
-              <h2 className="section-title">
-                Trusted By Families & Investors
-              </h2>
+              <h2 className="section-title">Trusted By Families & Investors</h2>
 
               <div className="grid gap-4 sm:grid-cols-2 pt-2">
                 <article className="bg-card border border-border p-6 rounded space-y-3">
-                  <div className="flex text-amber-400 gap-1 text-xs">
-                    {"★".repeat(5)}
-                  </div>
+                  <div className="flex text-amber-400 gap-1 text-xs">{"★".repeat(5)}</div>
                   <p className="text-xs text-muted-foreground leading-relaxed italic">
-                    "Visiting the site near Amausi Airport gave us huge confidence. The road widths are actually 40 feet as promised, and the title paperwork was crystal clear. We booked a 1,500 sq ft plot for our family home."
+                    "Visiting the site near Amausi Airport gave us huge confidence. The road widths
+                    are actually 40 feet as promised, and the title paperwork was crystal clear. We
+                    booked a 1,500 sq ft plot for our family home."
                   </p>
                   <div className="pt-2 border-t border-border/60">
                     <strong className="text-xs text-foreground uppercase block font-display">
@@ -824,11 +867,11 @@ function Index() {
                 </article>
 
                 <article className="bg-card border border-border p-6 rounded space-y-3">
-                  <div className="flex text-amber-400 gap-1 text-xs">
-                    {"★".repeat(5)}
-                  </div>
+                  <div className="flex text-amber-400 gap-1 text-xs">{"★".repeat(5)}</div>
                   <p className="text-xs text-muted-foreground leading-relaxed italic">
-                    "From an investment standpoint, the proximity to the new airport terminal and Shaheed Path made this an easy choice. Vishal Singh and his team arranged immediate registry documentation without any hassle."
+                    "From an investment standpoint, the proximity to the new airport terminal and
+                    Shaheed Path made this an easy choice. Vishal Singh and his team arranged
+                    immediate registry documentation without any hassle."
                   </p>
                   <div className="pt-2 border-t border-border/60">
                     <strong className="text-xs text-foreground uppercase block font-display">
@@ -851,14 +894,10 @@ function Index() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
               <p className="eyebrow">07 · Phase 1 Pricing</p>
-              <h2 className="section-title">
-                Transparent Allotment Rates
-              </h2>
+              <h2 className="section-title">Transparent Allotment Rates</h2>
             </div>
             <div className="border-l-2 border-primary pl-5">
-              <p className="font-display text-3xl font-semibold text-primary">
-                ₹1,199 / Sq Ft
-              </p>
+              <p className="font-display text-3xl font-semibold text-primary">₹1,199 / Sq Ft</p>
               <p className="text-xs text-muted-foreground font-mono mt-1">
                 Fixed Phase 1 Base Rate · Min 600 Sq Ft to Custom Requirements
               </p>
@@ -903,13 +942,19 @@ function Index() {
               <article
                 key={card.size}
                 className={`relative rounded-md border p-6 bg-card flex flex-col justify-between transition-all hover:shadow-glow ${
-                  card.popular ? "border-primary shadow-glow ring-1 ring-primary/40" : "border-border"
+                  card.popular
+                    ? "border-primary shadow-glow ring-1 ring-primary/40"
+                    : "border-border"
                 }`}
               >
                 {card.tag && (
-                  <span className={`absolute right-0 top-0 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider font-mono rounded-bl ${
-                    card.popular ? "bg-primary text-primary-foreground" : "bg-surface border-b border-l border-border text-muted-foreground"
-                  }`}>
+                  <span
+                    className={`absolute right-0 top-0 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider font-mono rounded-bl ${
+                      card.popular
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-surface border-b border-l border-border text-muted-foreground"
+                    }`}
+                  >
                     {card.tag}
                   </span>
                 )}
@@ -939,15 +984,15 @@ function Index() {
                     {card.total}
                   </p>
 
-                  <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-                    {card.note}
-                  </p>
+                  <p className="mt-3 text-xs text-muted-foreground leading-relaxed">{card.note}</p>
                 </div>
 
                 <div className="mt-6 space-y-2">
                   <Button
                     onClick={() => {
-                      setSelectedPlotForVisit(card.size === "Custom" ? "Custom Requirement" : `${card.size} sq ft`);
+                      setSelectedPlotForVisit(
+                        card.size === "Custom" ? "Custom Requirement" : `${card.size} sq ft`,
+                      );
                       setSiteVisitOpen(true);
                     }}
                     className="w-full h-10 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
@@ -967,7 +1012,8 @@ function Index() {
           </div>
 
           <p className="mt-6 text-center text-xs text-muted-foreground font-mono">
-            * Prices are exclusive of government registration fees and stamp duty. Bank loan financing available up to 80%.
+            * Prices are exclusive of government registration fees and stamp duty. Bank loan
+            financing available up to 80%.
           </p>
         </div>
       </section>
@@ -977,22 +1023,30 @@ function Index() {
         <div className="mx-auto max-w-5xl">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="eyebrow">08 · Buyer Knowledge Base</p>
-            <h2 className="section-title">
-              Frequently Asked Questions
-            </h2>
+            <h2 className="section-title">Frequently Asked Questions</h2>
             <p className="section-subtitle mx-auto">
-              Everything property buyers and NRI investors need to know about freehold land registry, bank loans, location advantages, and payment schedules at Galaxy Green.
+              Everything property buyers and NRI investors need to know about freehold land
+              registry, bank loans, location advantages, and payment schedules at Galaxy Green.
             </p>
           </div>
 
           <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-glow">
-            <Accordion type="single" collapsible defaultValue="item-1" className="w-full divide-y divide-border/60">
+            <Accordion
+              type="single"
+              collapsible
+              defaultValue="item-1"
+              className="w-full divide-y divide-border/60"
+            >
               <AccordionItem value="item-1" className="border-b-0 py-2">
                 <AccordionTrigger className="text-left font-display uppercase tracking-wide text-foreground hover:text-primary text-base sm:text-lg">
                   Where is Galaxy Green Sai Suraksha Nagar located in Lucknow?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus Code: QR4X+39W, Pin 226008). Key nearby connectivity points include: Amausi Railway Station (2.7 km), T.S. Misra Medical College & Hospital (3 km), Kanpur-Lucknow Expressway (3 km), Main Market (2.5 km), and CCS International Airport & Amausi Metro Station (5 km).
+                  Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus
+                  Code: QR4X+39W, Pin 226008). Key nearby connectivity points include: Amausi
+                  Railway Station (2.7 km), T.S. Misra Medical College & Hospital (3 km),
+                  Kanpur-Lucknow Expressway (3 km), Main Market (2.5 km), and CCS International
+                  Airport & Amausi Metro Station (5 km).
                 </AccordionContent>
               </AccordionItem>
 
@@ -1001,7 +1055,9 @@ function Index() {
                   What are the plot sizes and rates per sq ft at Galaxy Green?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Standard residential plots start at a transparent Phase 1 rate of ₹1,199 per sq ft. Minimum plot area starts from 600 sq ft, and maximum can be fully tailored to your wish and architectural requirements:
+                  Standard residential plots start at a transparent Phase 1 rate of ₹1,199 per sq
+                  ft. Minimum plot area starts from 600 sq ft, and maximum can be fully tailored to
+                  your wish and architectural requirements:
                   <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm font-mono text-foreground/90">
                     <li>600 Sq Ft (20 × 30 ft) — starting at ₹7.19 Lakh (Ideal budget duplex)</li>
                     <li>800 Sq Ft (20 × 40 ft) — starting at ₹9.59 Lakh</li>
@@ -1009,9 +1065,12 @@ function Index() {
                     <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹14.39 Lakh</li>
                     <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹17.99 Lakh (Executive villa)</li>
                     <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹23.98 Lakh (Luxury estate)</li>
-                    <li>Custom plot sizes up to 5,000+ sq ft customized as per buyer requirement</li>
+                    <li>
+                      Custom plot sizes up to 5,000+ sq ft customized as per buyer requirement
+                    </li>
                   </ul>
-                  Corner and wide-boulevard facing plots carry standard Preferential Location Charges (PLC).
+                  Corner and wide-boulevard facing plots carry standard Preferential Location
+                  Charges (PLC).
                 </AccordionContent>
               </AccordionItem>
 
@@ -1020,7 +1079,10 @@ function Index() {
                   Are the plots freehold with immediate registry and Dakhil Kharij?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Yes, 100%. All plots at Galaxy Green are strictly freehold with clear, unencumbered land titles. We guarantee instant registry upon payment completion along with full government land mutation (Dakhil Kharij) documentation assistance. You receive complete legal ownership rights to build or hold.
+                  Yes, 100%. All plots at Galaxy Green are strictly freehold with clear,
+                  unencumbered land titles. We guarantee instant registry upon payment completion
+                  along with full government land mutation (Dakhil Kharij) documentation assistance.
+                  You receive complete legal ownership rights to build or hold.
                 </AccordionContent>
               </AccordionItem>
 
@@ -1029,7 +1091,10 @@ function Index() {
                   Can I avail a bank loan or easy EMI facility for plot purchase?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Yes. We have active tie-ups and verification processes with leading nationalized and private banking institutions (SBI, HDFC, ICICI, PNB, and Bank of Baroda). Eligible buyers can secure up to 75%–80% financing with low interest rates and flexible tenures up to 20 years.
+                  Yes. We have active tie-ups and verification processes with leading nationalized
+                  and private banking institutions (SBI, HDFC, ICICI, PNB, and Bank of Baroda).
+                  Eligible buyers can secure up to 75%–80% financing with low interest rates and
+                  flexible tenures up to 20 years.
                 </AccordionContent>
               </AccordionItem>
 
@@ -1042,9 +1107,14 @@ function Index() {
                   <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm text-foreground/90">
                     <li>30-ft and 40-ft wide paved internal concrete boulevards</li>
                     <li>Underground drainage and sewage system</li>
-                    <li>Solar-powered street illumination and dedicated transformer power supply</li>
+                    <li>
+                      Solar-powered street illumination and dedicated transformer power supply
+                    </li>
                     <li>24/7 manned security checkpoint with automated RFID barrier &amp; CCTV</li>
-                    <li>Landscaped community park, children's play area, and open green recreational spaces</li>
+                    <li>
+                      Landscaped community park, children's play area, and open green recreational
+                      spaces
+                    </li>
                   </ul>
                 </AccordionContent>
               </AccordionItem>
@@ -1054,7 +1124,14 @@ function Index() {
                   How can I schedule a personal site visit to Galaxy Green?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  You can schedule a personalized site tour directly on our website or by contacting our project sales desk at <a href="tel:+919044412642" className="text-primary font-semibold underline">+91 90444 12642</a>. Our site coordinators are available daily from 9:00 AM to 6:30 PM to guide you through the property, inspect plot demarcation stones, and verify registry paperwork on-site.
+                  You can schedule a personalized site tour directly on our website or by contacting
+                  our project sales desk at{" "}
+                  <a href="tel:+919044412642" className="text-primary font-semibold underline">
+                    +91 90444 12642
+                  </a>
+                  . Our site coordinators are available daily from 9:00 AM to 6:30 PM to guide you
+                  through the property, inspect plot demarcation stones, and verify registry
+                  paperwork on-site.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -1068,11 +1145,11 @@ function Index() {
           <div className="grid gap-12 lg:grid-cols-12 items-start">
             <div className="lg:col-span-5 space-y-6">
               <p className="eyebrow">09 · Direct Developer Contact</p>
-              <h2 className="section-title">
-                Arrange Your Personal Site Tour
-              </h2>
+              <h2 className="section-title">Arrange Your Personal Site Tour</h2>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Connect directly with the management team. Submit your requirement below to receive verified layout sheets, schedule a personalized site visit, or discuss custom plot boundaries.
+                Connect directly with the management team. Submit your requirement below to receive
+                verified layout sheets, schedule a personalized site visit, or discuss custom plot
+                boundaries.
               </p>
 
               <div className="p-6 rounded-lg bg-card border border-primary/40 shadow-glow space-y-4">
@@ -1116,7 +1193,7 @@ function Index() {
                 >
                   <a
                     href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
-                      "Hello Vishal Singh, I would like to schedule a discussion regarding Galaxy Green Sai Suraksha Nagar."
+                      "Hello Vishal Singh, I would like to schedule a discussion regarding Galaxy Green Sai Suraksha Nagar.",
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -1209,7 +1286,10 @@ function Index() {
                 </div>
 
                 {formError && (
-                  <p role="alert" className="text-xs text-destructive bg-destructive/10 p-2.5 rounded">
+                  <p
+                    role="alert"
+                    className="text-xs text-destructive bg-destructive/10 p-2.5 rounded"
+                  >
                     {formError}
                   </p>
                 )}
@@ -1219,12 +1299,15 @@ function Index() {
                   disabled={formSubmitting}
                   className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
                 >
-                  {formSubmitting ? "Submitting Inquiry..." : "Submit Inquiry & Connect On WhatsApp"}
+                  {formSubmitting
+                    ? "Submitting Inquiry..."
+                    : "Submit Inquiry & Connect On WhatsApp"}
                   <ArrowRight className="size-4 ml-2" />
                 </Button>
 
                 <p className="text-center text-[11px] text-muted-foreground font-mono">
-                  Your inquiry is recorded in real time and opens directly with project MD Vishal Singh.
+                  Your inquiry is recorded in real time and opens directly with project MD Vishal
+                  Singh.
                 </p>
               </form>
             </div>
@@ -1238,7 +1321,8 @@ function Index() {
           <div>
             <Logo />
             <p className="mt-4 max-w-md text-xs leading-relaxed text-muted-foreground">
-              Galaxy Green Sai Suraksha Nagar, QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008. Freehold residential plotted development.
+              Galaxy Green Sai Suraksha Nagar, QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008.
+              Freehold residential plotted development.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground">
@@ -1313,7 +1397,7 @@ function Index() {
             >
               <a
                 href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
-                  "Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar plots."
+                  "Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar plots.",
                 )}`}
                 target="_blank"
                 rel="noreferrer"

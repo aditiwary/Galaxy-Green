@@ -71,11 +71,11 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
             <p className="eyebrow">02 · Township Master Plan</p>
-            <h2 className="section-title">
-              Interactive Plot Matrix & Layout
-            </h2>
+            <h2 className="section-title">Interactive Plot Matrix & Layout</h2>
             <p className="mt-4 max-w-2xl text-base text-muted-foreground leading-relaxed">
-              Explore demarcated freehold residential plots in Phase 1. Each parcel features direct wide-road access, underground electrification conduits, and instant registry eligibility.
+              Explore demarcated freehold residential plots in Phase 1. Each parcel features direct
+              wide-road access, underground electrification conduits, and instant registry
+              eligibility.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -130,8 +130,8 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                   plot.status === "Reserved"
                     ? "opacity-75"
                     : plot.status === "Fast Selling"
-                    ? "border-accent/60 bg-gradient-to-b from-accent/5 to-card"
-                    : ""
+                      ? "border-accent/60 bg-gradient-to-b from-accent/5 to-card"
+                      : ""
                 }`}
               >
                 {/* Top badges */}
@@ -145,8 +145,8 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                       plot.status === "Available"
                         ? "border-primary/50 text-primary bg-primary/10"
                         : plot.status === "Fast Selling"
-                        ? "border-accent text-accent bg-accent/15"
-                        : "border-muted text-muted-foreground bg-muted/20"
+                          ? "border-accent text-accent bg-accent/15"
+                          : "border-muted text-muted-foreground bg-muted/20"
                     }`}
                   >
                     {plot.status}
@@ -159,9 +159,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                     <strong className="text-3xl font-display font-semibold text-foreground tracking-tight">
                       {plot.sizeSqFt.toLocaleString()}
                     </strong>
-                    <span className="text-xs uppercase text-muted-foreground font-mono">
-                      Sq Ft
-                    </span>
+                    <span className="text-xs uppercase text-muted-foreground font-mono">Sq Ft</span>
                   </div>
                   <p className="text-xs text-muted-foreground font-mono mt-0.5">
                     Dim: {plot.dimensions}
@@ -318,7 +316,8 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                 Township Aerial Layout & Master Plan
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Architectural layout visual showcasing demarcated plots, wide 40-ft boulevard, and central amenity park.
+                Architectural layout visual showcasing demarcated plots, wide 40-ft boulevard, and
+                central amenity park.
               </DialogDescription>
             </DialogHeader>
             <div className="mt-4 overflow-hidden rounded border border-border relative bg-surface">

@@ -2,9 +2,7 @@ import { z } from "zod";
 
 export const inquirySchema = z.object({
   name: z.string().min(2, "Please provide your full name").max(80),
-  phone: z
-    .string()
-    .regex(/^[6-9]\d{9}$/, "Please provide a valid 10-digit Indian mobile number"),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "Please provide a valid 10-digit Indian mobile number"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   plotPreference: z.string().default("1000 sq ft"),
   visitDate: z.string().optional(),
