@@ -75,10 +75,20 @@ export async function recordNewInquiry(input: InquiryInput): Promise<Inquiry> {
   let created: Inquiry | null = null;
   try {
     const res = await submitInquiryFn({ data: input });
+    if (res && typeof res === "object" && "success" in res && !res.success && res.error) {
+      throw new Error(res.error);
+    }
     if (res?.inquiry) {
       created = res.inquiry;
     }
   } catch (err) {
+    if (
+      err instanceof Error &&
+      !err.message.includes("fetch") &&
+      !err.message.includes("Failed to execute")
+    ) {
+      throw err;
+    }
     console.warn("Server submission fallback:", err);
   }
 

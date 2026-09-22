@@ -163,6 +163,7 @@ function Index() {
   const [contactPhone, setContactPhone] = useState("");
   const [contactPlot, setContactPlot] = useState("600 sq ft");
   const [customPlotArea, setCustomPlotArea] = useState<number>(2000);
+  const [contactVisitDate, setContactVisitDate] = useState("");
   const [contactCustomTime, setContactCustomTime] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [contactHoneypot, setContactHoneypot] = useState("");
@@ -201,6 +202,13 @@ function Index() {
       setFormError("Please enter a valid 10-digit Indian mobile number.");
       return;
     }
+    if (contactVisitDate) {
+      const todayStr = new Date().toLocaleDateString("en-CA");
+      if (contactVisitDate < todayStr) {
+        setFormError("Preferred visit date cannot be in the past.");
+        return;
+      }
+    }
     setFormError("");
     setFormSubmitting(true);
 
@@ -217,6 +225,7 @@ function Index() {
         name: contactName.trim(),
         phone: cleanPhone,
         plotPreference: finalPlot,
+        visitDate: contactVisitDate || undefined,
         message: contactMessage.trim(),
         slot: finalSlot,
         cabPickup: false,
@@ -1341,34 +1350,58 @@ function Index() {
                   </div>
                 )}
 
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="form-label mb-0">Preferred Visit Timing (Optional)</label>
-                    <span className="text-[10px] font-mono text-muted-foreground">
-                      Open 7 AM - 7 PM
-                    </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="form-label mb-0">Preferred Visit Date (Optional)</label>
+                    </div>
+                    <Input
+                      type="date"
+                      min={new Date().toLocaleDateString("en-CA")}
+                      value={contactVisitDate}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const minDate = new Date().toLocaleDateString("en-CA");
+                        if (val && val < minDate) {
+                          setFormError("Preferred visit date cannot be in the past.");
+                          return;
+                        }
+                        setFormError("");
+                        setContactVisitDate(val);
+                      }}
+                      className="form-control"
+                    />
                   </div>
-                  <Input
-                    placeholder="e.g. 11:30 AM or 05:00 PM (or choose chip below)"
-                    value={contactCustomTime}
-                    onChange={(e) => setContactCustomTime(e.target.value)}
-                    className="form-control"
-                  />
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "05:30 PM"].map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setContactCustomTime(t)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                          contactCustomTime === t
-                            ? "bg-primary text-primary-foreground border-primary font-semibold"
-                            : "bg-background/80 border-border text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="form-label mb-0">Preferred Visit Timing (Optional)</label>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        7 AM - 7 PM
+                      </span>
+                    </div>
+                    <Input
+                      placeholder="e.g. 11:30 AM or 05:00 PM"
+                      value={contactCustomTime}
+                      onChange={(e) => setContactCustomTime(e.target.value)}
+                      className="form-control"
+                    />
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "05:30 PM"].map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setContactCustomTime(t)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                            contactCustomTime === t
+                              ? "bg-primary text-primary-foreground border-primary font-semibold"
+                              : "bg-background/80 border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

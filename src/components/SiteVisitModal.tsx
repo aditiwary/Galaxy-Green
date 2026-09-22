@@ -19,6 +19,9 @@ import {
   Sliders,
   Maximize2,
   Compass,
+  Calendar,
+  AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { recordNewInquiry } from "@/lib/leads-client";
 import type { Inquiry } from "@/lib/inquiry-types";
@@ -41,6 +44,14 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+import {
+  getLocalDateString,
+  parseTimeHoursMinutes,
+  isTimePassedForDate,
+  PRESET_SLOTS,
+  SUGGESTED_CUSTOM_TIMES,
+} from "@/lib/visit-helpers";
+
 export function SiteVisitModal({
   open,
   onOpenChange,
@@ -50,13 +61,32 @@ export function SiteVisitModal({
   const [submitting, setSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<Inquiry | null>(null);
 
+  // Computed Date Boundaries
+  const todayStr = getLocalDateString();
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowStr = getLocalDateString(tomorrowDate);
+
+  // Ground tours operate 7:00 AM – 7:00 PM daily.
+  // After 18:30 (6:30 PM), same-day tours cannot be scheduled.
+  const currentHour = new Date().getHours();
+  const currentMinute = new Date().getMinutes();
+  const isPastOperatingHours = currentHour > 18 || (currentHour === 18 && currentMinute >= 30);
+  const minSelectableDate = isPastOperatingHours ? tomorrowStr : todayStr;
+
   // Form State
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [visitDate, setVisitDate] = useState(() => {
+    // If today's visiting hours have passed, default to tomorrow
+    if (new Date().getHours() >= 17) {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return getLocalDateString(d);
+    }
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().slice(0, 10);
+    return getLocalDateString(d);
   });
 
   // Time Slot State (Preset vs Custom)
@@ -95,7 +125,19 @@ export function SiteVisitModal({
     }
   }, [open, defaultPlotPreference]);
 
+  // Ensure selected slot is valid whenever modal opens or date changes
+  useEffect(() => {
+    if (!open) return;
+    if (visitDate < minSelectableDate) {
+      setVisitDate(minSelectableDate);
+    }
+  }, [open, visitDate, minSelectableDate]);
+
   // Derived Values
+  const isToday = visitDate === todayStr;
+  const allPresetsPassedToday =
+    isToday && PRESET_SLOTS.every((slot) => isTimePassedForDate(slot.id, visitDate));
+
   const effectiveSlot =
     slotType === "custom" ? `Custom Time: ${customTime.trim() || "Client Flexible"}` : presetSlot;
 
@@ -106,23 +148,100 @@ export function SiteVisitModal({
       ? `Custom ${customSqFt} Sq Ft (${formatCurrency(customAllotmentCost)} · ${customPlotType}${customPlotNotes ? ` · ${customPlotNotes}` : ""})`
       : presetPlot;
 
+  const handleDateChange = (newDate: string) => {
+    if (newDate && newDate < minSelectableDate) {
+      setError("Visit date cannot be in the past. Please select today or an upcoming date.");
+      setVisitDate(minSelectableDate);
+      return;
+    }
+    setError("");
+    setVisitDate(newDate);
+
+    // If new date is today, check if currently selected preset slot is in the past
+    if (newDate === todayStr && slotType === "preset") {
+      if (isTimePassedForDate(presetSlot, newDate)) {
+        const nextAvailable = PRESET_SLOTS.find((s) => !isTimePassedForDate(s.id, newDate));
+        if (nextAvailable) {
+          setSlotPreset(nextAvailable.id);
+        } else {
+          // All presets passed today -> auto-switch to custom timing
+          setSlotType("custom");
+          setCustomTime("05:30 PM");
+        }
+      }
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    // 1. Full name validation
     if (name.trim().length < 2) {
       setError("Please enter your full name.");
       return;
     }
+
+    // 2. Phone validation
     const cleanPhone = phone.replace(/\D/g, "");
     if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
       setError("Please enter a valid 10-digit Indian mobile number.");
       return;
     }
-    if (plotMode === "custom" && (!customSqFt || customSqFt < 600)) {
-      setError("Minimum plot allotment size starts from 600 Sq Ft.");
+
+    // 3. Visit date validation
+    if (!visitDate) {
+      setError("Please select your preferred visit date.");
       return;
     }
-    if (slotType === "custom" && !customTime.trim()) {
-      setError("Please enter your preferred custom visit timing.");
+    if (visitDate < minSelectableDate) {
+      setError("Visit date cannot be in the past. Please select today or a future date.");
+      return;
+    }
+
+    // 4. Time slot validation (Strictly block passed dates & times)
+    if (visitDate === todayStr) {
+      if (isPastOperatingHours) {
+        setError(
+          "Ground visits for today have ended (operating hours: 7:00 AM – 7:00 PM). Please select tomorrow or an upcoming date.",
+        );
+        return;
+      }
+
+      if (slotType === "preset") {
+        if (isTimePassedForDate(presetSlot, visitDate)) {
+          setError(
+            `The selected slot (${presetSlot}) has already passed for today. Please choose an upcoming slot or switch to tomorrow.`,
+          );
+          return;
+        }
+      } else {
+        if (!customTime.trim()) {
+          setError("Please specify your preferred custom visit timing.");
+          return;
+        }
+        const parsed = parseTimeHoursMinutes(customTime);
+        if (!parsed) {
+          setError("Please enter a valid visit timing (e.g. 11:30 AM or 05:00 PM).");
+          return;
+        }
+        if (parsed.hours < 7 || parsed.hours >= 19) {
+          setError(
+            "Visits are conducted between 7:00 AM and 7:00 PM. Please enter a time within operational hours.",
+          );
+          return;
+        }
+        if (isTimePassedForDate(customTime, visitDate)) {
+          setError(
+            `The custom timing "${customTime}" has already passed for today. Please pick an upcoming time slot.`,
+          );
+          return;
+        }
+      }
+    }
+
+    // 5. Plot size validation
+    if (plotMode === "custom" && (!customSqFt || customSqFt < 600)) {
+      setError("Minimum plot allotment size starts from 600 Sq Ft.");
       return;
     }
 
@@ -145,9 +264,12 @@ export function SiteVisitModal({
       setConfirmedBooking(created);
       setStep("confirmed");
       toast.success("Site Visit Reserved! Reference: " + created.id);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to submit. Please try again.");
+    } catch (err: unknown) {
+      console.error("Site visit reservation error:", err);
+      const errMsg =
+        err instanceof Error ? err.message : "Failed to submit booking. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -241,52 +363,131 @@ export function SiteVisitModal({
               <div className="space-y-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-[11px] uppercase font-mono text-muted-foreground">
-                      Preferred Date
+                    <Label className="text-[11px] uppercase font-mono text-muted-foreground flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="size-3 text-primary" /> Preferred Date *
+                      </span>
+                      {isToday && (
+                        <span className="text-[10px] text-primary font-semibold">Today</span>
+                      )}
                     </Label>
                     <Input
                       type="date"
+                      min={minSelectableDate}
                       value={visitDate}
-                      onChange={(e) => setVisitDate(e.target.value)}
-                      className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border font-mono font-medium"
                     />
                   </div>
 
                   <div>
-                    <Label className="text-[11px] uppercase font-mono text-muted-foreground">
-                      Time Slot
+                    <Label className="text-[11px] uppercase font-mono text-muted-foreground flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Clock className="size-3 text-primary" /> Time Slot *
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">7 AM – 7 PM</span>
                     </Label>
                     <div className="grid grid-cols-2 gap-1.5 mt-1">
-                      {[
-                        { id: "Morning (10:00 AM)", label: "10:00 AM (Morning)" },
-                        { id: "Afternoon (2:00 PM)", label: "02:00 PM (Afternoon)" },
-                        { id: "Evening Sunset (4:30 PM)", label: "04:30 PM (Evening)" },
-                        { id: "custom", label: "⚡ Custom Timing" },
-                      ].map((slotOption) => (
-                        <button
-                          key={slotOption.id}
-                          type="button"
-                          onClick={() => {
-                            if (slotOption.id === "custom") {
-                              setSlotType("custom");
-                            } else {
+                      {PRESET_SLOTS.map((slotOption) => {
+                        const isPassed = isTimePassedForDate(slotOption.id, visitDate);
+                        const isSelected = slotType === "preset" && presetSlot === slotOption.id;
+
+                        return (
+                          <button
+                            key={slotOption.id}
+                            type="button"
+                            disabled={isPassed}
+                            onClick={() => {
+                              if (isPassed) return;
                               setSlotType("preset");
                               setSlotPreset(slotOption.id);
-                            }
-                          }}
-                          className={`px-2 py-1.5 rounded-md text-[11px] font-mono border transition-all text-center ${
-                            (slotOption.id === "custom" && slotType === "custom") ||
-                            (slotType === "preset" && presetSlot === slotOption.id)
-                              ? "bg-primary text-primary-foreground border-primary font-semibold shadow-glow"
-                              : "bg-surface border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-                          }`}
-                        >
-                          {slotOption.label}
-                        </button>
-                      ))}
+                              setError("");
+                            }}
+                            className={`px-2 py-2 rounded-md text-[11px] font-mono border transition-all text-center relative ${
+                              isPassed
+                                ? "opacity-35 cursor-not-allowed bg-surface/30 line-through text-muted-foreground border-border/40 hover:bg-surface/30"
+                                : isSelected
+                                  ? "bg-primary text-primary-foreground border-primary font-semibold shadow-glow ring-1 ring-primary/40"
+                                  : "bg-surface border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-primary/40"
+                            }`}
+                          >
+                            <span className="block leading-tight">{slotOption.label}</span>
+                            {isPassed && (
+                              <span className="block text-[9px] text-destructive/90 font-mono no-underline uppercase tracking-wider font-semibold">
+                                Passed
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+
+                      {/* Custom Timing Option Button */}
+                      <button
+                        type="button"
+                        disabled={isToday && isPastOperatingHours}
+                        onClick={() => {
+                          if (isToday && isPastOperatingHours) return;
+                          setSlotType("custom");
+                          setError("");
+                        }}
+                        className={`px-2 py-2 rounded-md text-[11px] font-mono border transition-all text-center ${
+                          isToday && isPastOperatingHours
+                            ? "opacity-35 cursor-not-allowed bg-surface/30 text-muted-foreground line-through"
+                            : slotType === "custom"
+                              ? "bg-primary text-primary-foreground border-primary font-semibold shadow-glow ring-1 ring-primary/40"
+                              : "bg-surface border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-primary/40"
+                        }`}
+                      >
+                        <span className="block leading-tight">⚡ Custom Timing</span>
+                        {isToday && isPastOperatingHours && (
+                          <span className="block text-[9px] text-destructive/90 font-mono no-underline uppercase tracking-wider font-semibold">
+                            Closed
+                          </span>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
+
+                {/* Notice when Today is selected and all preset slots have passed */}
+                {isToday && allPresetsPassedToday && !isPastOperatingHours && (
+                  <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-center justify-between gap-2 animate-in fade-in">
+                    <div className="flex items-center gap-1.5">
+                      <AlertTriangle className="size-4 shrink-0 text-amber-400" />
+                      <span>
+                        Standard daytime slots for today have passed. Select custom timing or switch
+                        to tomorrow.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDateChange(tomorrowStr)}
+                      className="px-2 py-1 bg-primary text-primary-foreground text-[10px] rounded font-semibold whitespace-nowrap hover:bg-primary/90"
+                    >
+                      Tomorrow →
+                    </button>
+                  </div>
+                )}
+
+                {/* Notice when Today is selected and ground tour hours have ended */}
+                {isToday && isPastOperatingHours && (
+                  <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-xs font-mono flex items-center justify-between gap-2 animate-in fade-in">
+                    <div className="flex items-center gap-1.5">
+                      <AlertCircle className="size-4 shrink-0" />
+                      <span>
+                        Today's visiting hours have ended (7:00 AM – 7:00 PM). Please schedule for
+                        tomorrow.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDateChange(tomorrowStr)}
+                      className="px-2 py-1 bg-primary text-primary-foreground text-[10px] rounded font-semibold whitespace-nowrap hover:bg-primary/90"
+                    >
+                      Book for Tomorrow →
+                    </button>
+                  </div>
+                )}
 
                 {/* Custom Timing Panel (Revealed when Custom Timing is active) */}
                 {slotType === "custom" && (
@@ -302,7 +503,10 @@ export function SiteVisitModal({
                       <Input
                         placeholder="e.g. 11:30 AM or 05:15 PM"
                         value={customTime}
-                        onChange={(e) => setCustomTime(e.target.value)}
+                        onChange={(e) => {
+                          setCustomTime(e.target.value);
+                          setError("");
+                        }}
                         className="h-9 text-xs bg-background border-primary/60 text-foreground font-mono font-medium"
                       />
                     </div>
@@ -312,28 +516,33 @@ export function SiteVisitModal({
                       <span className="text-[10px] font-mono text-muted-foreground mr-1">
                         Suggestions:
                       </span>
-                      {[
-                        "08:30 AM",
-                        "11:00 AM",
-                        "11:30 AM",
-                        "01:30 PM",
-                        "03:30 PM",
-                        "05:30 PM",
-                        "06:30 PM",
-                      ].map((time) => (
-                        <button
-                          key={time}
-                          type="button"
-                          onClick={() => setCustomTime(time)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                            customTime === time
-                              ? "bg-primary text-primary-foreground border-primary font-semibold"
-                              : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-                          }`}
-                        >
-                          {time}
-                        </button>
-                      ))}
+                      {SUGGESTED_CUSTOM_TIMES.map((time) => {
+                        const isPassed = isTimePassedForDate(time, visitDate);
+                        const isSelected = customTime === time;
+
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            disabled={isPassed}
+                            onClick={() => {
+                              if (isPassed) return;
+                              setCustomTime(time);
+                              setError("");
+                            }}
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                              isPassed
+                                ? "opacity-30 cursor-not-allowed bg-surface/20 line-through text-muted-foreground border-border/30"
+                                : isSelected
+                                  ? "bg-primary text-primary-foreground border-primary font-semibold shadow-glow"
+                                  : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                            }`}
+                          >
+                            {time}
+                            {isPassed && <span className="ml-1 text-[8px] no-underline">✕</span>}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -560,7 +769,13 @@ export function SiteVisitModal({
               />
 
               {error && (
-                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{error}</p>
+                <div
+                  role="alert"
+                  className="flex items-start gap-2.5 text-xs text-destructive bg-destructive/10 border border-destructive/30 p-2.5 rounded-lg animate-in fade-in"
+                >
+                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                  <span className="font-medium leading-relaxed">{error}</span>
+                </div>
               )}
 
               <Button

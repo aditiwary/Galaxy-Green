@@ -491,7 +491,25 @@ export const submitInquiryFn = createServerFn({ method: "POST" })
     }
     globalSubmissionTimestamps.push(now);
 
-    // 3. XSS Sanitization & Record Generation
+    // 3. Visit Date & Slot Defensive Validation
+    if (data.visitDate && data.visitDate.trim().length > 0) {
+      const cleanDate = data.visitDate.trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) {
+        return {
+          success: false,
+          error: "Invalid date format. Please choose a valid date in YYYY-MM-DD format.",
+        };
+      }
+      const todayStr = new Date().toLocaleDateString("en-CA");
+      if (cleanDate < todayStr) {
+        return {
+          success: false,
+          error: "Visit date cannot be in the past. Please select today or a future date.",
+        };
+      }
+    }
+
+    // 4. XSS Sanitization & Record Generation
     const sanitizedName = sanitizeText(data.name) || "Guest";
     const sanitizedEmail = sanitizeText(data.email) || null;
     const sanitizedPlot = sanitizeText(data.plotPreference) || "1000 sq ft";

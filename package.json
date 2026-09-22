@@ -11,7 +11,7 @@
     "db:seed": "node scripts/seed-mysql.js",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "node scripts/test-deployment-suite.mjs"
+    "test": "node scripts/test-deployment-suite.mjs && node scripts/test-visit-booking.mjs && node scripts/test-persistence.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
