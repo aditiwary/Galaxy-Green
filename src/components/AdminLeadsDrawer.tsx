@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Sheet,
   SheetContent,
@@ -74,10 +74,16 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   // Security Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState<string>("");
+  const authTokenRef = useRef<string>("");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
   const [verifyingPin, setVerifyingPin] = useState(false);
   const [showPin, setShowPin] = useState(false);
+
+  // Keep ref synchronized with current authToken
+  useEffect(() => {
+    authTokenRef.current = authToken;
+  }, [authToken]);
 
   // CRM State
   const [leads, setLeads] = useState<Inquiry[]>([]);
@@ -109,38 +115,36 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     message: string;
   } | null>(null);
 
-  const loadData = useCallback(
-    async (tokenToUse?: string) => {
-      const activeToken = tokenToUse || authToken;
-      setLoadingPlots(true);
-      try {
-        const [plotsData, , health] = await Promise.all([
-          fetchLivePlots(),
-          getAdminConfigFn(),
-          checkDbHealthFn().catch(() => ({ connected: false, message: "Offline" })),
-        ]);
-        setPlots(plotsData);
-        setDbHealth(health);
-        if (activeToken) {
-          setLoadingLeads(true);
-          const leadsData = await fetchAllLeads(activeToken);
-          setLeads(leadsData);
-          setLoadingLeads(false);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingPlots(false);
+  const loadData = useCallback(async (tokenToUse?: string) => {
+    const activeToken = tokenToUse || authTokenRef.current;
+    setLoadingPlots(true);
+    try {
+      const [plotsData, , health] = await Promise.all([
+        fetchLivePlots(),
+        getAdminConfigFn(),
+        checkDbHealthFn().catch(() => ({ connected: false, message: "Offline" })),
+      ]);
+      setPlots(plotsData);
+      setDbHealth(health);
+      if (activeToken) {
+        setLoadingLeads(true);
+        const leadsData = await fetchAllLeads(activeToken);
+        setLeads(leadsData);
         setLoadingLeads(false);
       }
-    },
-    [authToken],
-  );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingPlots(false);
+      setLoadingLeads(false);
+    }
+  }, []);
 
   // Explicitly locks and logs out the CRM portal across all local session stores
   const handleLogout = useCallback(() => {
     setIsAuthenticated(false);
     setAuthToken("");
+    authTokenRef.current = "";
     setPinInput("");
     setPinError(false);
     if (typeof window !== "undefined") {
@@ -150,11 +154,13 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   }, []);
 
-  // CRM Portal is LOCKED / LOGGED OUT by default on every open or reload
+  // Auto-lock whenever closed or on initial website visit; load public data when opened
   useEffect(() => {
-    handleLogout();
     if (open) {
       loadData();
+    } else {
+      // Auto-lock when closed so subsequent visits require the password
+      handleLogout();
     }
   }, [open, loadData, handleLogout]);
 
@@ -173,6 +179,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     try {
       const res = await verifyDealerPin(clean);
       if (res?.success && res.token) {
+        authTokenRef.current = res.token;
         setAuthToken(res.token);
         setIsAuthenticated(true);
         setPinError(false);
@@ -357,7 +364,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                 Dealer Management Portal
               </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                Enter your secure database password to manage customer leads, live plot inventory, and settings.
+                Enter your secure database password to manage customer leads, live plot inventory,
+                and settings.
               </p>
 
               <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
@@ -391,7 +399,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   {verifyingPin ? "Verifying with Database..." : "Unlock Portal"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground font-mono flex items-center justify-center gap-1.5">
-                  <Lock className="size-3 text-emerald-400" /> Locked by default • End-to-end encrypted
+                  <Lock className="size-3 text-emerald-400" /> Locked by default • End-to-end
+                  encrypted
                 </p>
               </form>
             </div>
@@ -980,12 +989,16 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           Change Dealer Security Password / PIN
                         </h5>
                         <p className="text-[11px] text-muted-foreground font-mono">
-                          Bcrypt hashed authentication stored directly in MySQL (<code className="text-primary">admin_config.dealer_pin</code>)
+                          Bcrypt hashed authentication stored directly in MySQL (
+                          <code className="text-primary">admin_config.dealer_pin</code>)
                         </p>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Set a new private security password or PIN (4-32 characters). Changing your password will immediately update the database, invalidate all active sessions, and log out all devices across your network. In the future, you must log in using the new password only.
+                      Set a new private security password or PIN (4-32 characters). Changing your
+                      password will immediately update the database, invalidate all active sessions,
+                      and log out all devices across your network. In the future, you must log in
+                      using the new password only.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md pt-1">
                       <div>

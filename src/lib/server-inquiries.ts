@@ -350,7 +350,10 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     }
 
     if (!isAuthorized) {
-      return { success: false, error: "Unauthorized. Please unlock the portal with your password." };
+      return {
+        success: false,
+        error: "Unauthorized. Please unlock the portal with your password.",
+      };
     }
 
     // If updating PIN, validate format (supports 4 to 32 characters)
@@ -399,7 +402,8 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       return {
         success: true,
         signedPinToken,
-        message: "Security Password updated in MySQL database! All sessions logged out across all devices.",
+        message:
+          "Security Password updated in MySQL database! All sessions logged out across all devices.",
       };
     }
     return {
