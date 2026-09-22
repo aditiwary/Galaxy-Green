@@ -102,4 +102,32 @@ CREATE TABLE `admin_config` (
 INSERT INTO `admin_config` (`id`, `dealer_pin`, `base_rate_per_sq_ft`) VALUES
 (1, '$2b$10$EDJuIBTBSj1fpGP9CQBE4ewBlX8N95MFtGN10ohshcSodU66onhri', 1199.00);
 
+-- --------------------------------------------------------------------
+-- Table structure for table `gallery_photos`
+-- --------------------------------------------------------------------
+DROP TABLE IF EXISTS `gallery_photos`;
+CREATE TABLE `gallery_photos` (
+  `id` VARCHAR(64) NOT NULL,
+  `src` LONGTEXT NOT NULL,
+  `title` VARCHAR(150) NOT NULL,
+  `category` VARCHAR(50) NOT NULL DEFAULT 'demarcation',
+  `category_label` VARCHAR(100) NOT NULL DEFAULT 'Actual Site',
+  `tag` VARCHAR(100) NOT NULL DEFAULT 'Live Photo',
+  `description` TEXT,
+  `dimensions_label` VARCHAR(100) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_photo_category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------------------
+-- Dumping data for table `gallery_photos`
+-- --------------------------------------------------------------------
+INSERT INTO `gallery_photos` (`id`, `src`, `title`, `category`, `category_label`, `tag`, `description`, `dimensions_label`) VALUES
+('site-photo-1', '/site-photos/galaxy-green-actual-site-1.jpg', 'Ground Demarcation & Boundary Pillars', 'demarcation', 'Demarcation & Registry Ready', 'Phase 1 Demarcation', 'Clear on-ground plot boundaries with reinforced stone pillars and concrete edging. Plots start from compact 600 sq ft up to large custom footprints.', 'Min 600 sq ft to Custom Requirements'),
+('site-photo-2', '/site-photos/galaxy-green-actual-site-2.jpg', 'Wide 30-Ft Internal Road & Sunset Streetlighting', 'roads', 'Internal Roads & Lighting', '30-Ft Road Infrastructure', 'Wide, leveled internal township road network illuminated by active street lighting poles with utility pathways.', '30-Ft Wide Internal Avenue'),
+('site-photo-3', '/site-photos/galaxy-green-actual-site-3.jpg', 'Elevated Township Panorama & Surrounding Greenery', 'panorama', 'Township Horizon', 'Open Green Environs', 'Panoramic elevated perspective of Sai Suraksha Nagar showing peaceful residential surroundings and overhead water infrastructure.', 'Pollution-Free Eco Zone'),
+('site-photo-4', '/site-photos/galaxy-green-actual-site-4.jpg', 'Main Access Boulevard & Plot Inventory Grid', 'roads', 'Boulevard & Demarcations', 'Central Layout View', 'Central access road traversing the plotted layout with clearly lined plot parcels ready for boundary walling.', 'Allotment Starting ₹7.19 Lakh'),
+('site-photo-5', '/site-photos/galaxy-green-actual-site-5.jpg', 'Underground Utility Lines & Soil Leveling Progress', 'construction', 'Civil Engineering', 'Ground Work Active', 'Active compaction and leveling machinery preparing future residential sectors with pre-laid drainage conduits.', 'Phase 1 Fast-Track Delivery');
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -34,6 +34,10 @@ import {
   Database,
   ShieldCheck,
   AlertCircle,
+  Pencil,
+  Camera,
+  UploadCloud,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   fetchAllLeads,
@@ -44,7 +48,19 @@ import {
   setClientPinToken,
   getClientPinToken,
 } from "@/lib/leads-client";
-import { fetchLivePlots, setPlotStatus, addLivePlot, removePlot } from "@/lib/plots-client";
+import {
+  fetchLivePlots,
+  setPlotStatus,
+  addLivePlot,
+  removePlot,
+  updateLivePlot,
+} from "@/lib/plots-client";
+import {
+  fetchLiveGalleryPhotos,
+  uploadLivePhoto,
+  removeLivePhoto,
+  type GalleryPhoto,
+} from "@/lib/photos-client";
 import { getAdminConfigFn, updateAdminConfigFn } from "@/lib/server-inquiries";
 import type { Inquiry } from "@/lib/inquiry-types";
 import type { Plot, PlotInput } from "@/lib/plot-types";
@@ -105,6 +121,29 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     "Freehold residential plot with clear title",
   );
 
+  // Plot Editing State
+  const [editingPlot, setEditingPlot] = useState<Plot | null>(null);
+  const [editPlotNumber, setEditPlotNumber] = useState("");
+  const [editPlotSize, setEditPlotSize] = useState("1000");
+  const [editPlotDims, setEditPlotDims] = useState("25 × 40 ft");
+  const [editPlotFacing, setEditPlotFacing] = useState<Plot["facing"]>("East");
+  const [editPlotRoad, setEditPlotRoad] = useState("30 ft Internal");
+  const [editPlotRate, setEditPlotRate] = useState("1199");
+  const [editPlotStatus, setEditPlotStatus] = useState<Plot["status"]>("Available");
+  const [editPlotFeature, setEditPlotFeature] = useState("");
+  const [savingPlotEdit, setSavingPlotEdit] = useState(false);
+
+  // Gallery Photos State
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
+  const [loadingGallery, setLoadingGallery] = useState(false);
+  const [showAddPhotoForm, setShowAddPhotoForm] = useState(false);
+  const [photoTitle, setPhotoTitle] = useState("");
+  const [photoCategory, setPhotoCategory] = useState<GalleryPhoto["category"]>("demarcation");
+  const [photoSrc, setPhotoSrc] = useState("");
+  const [photoDescription, setPhotoDescription] = useState("");
+  const [photoDimensionsLabel, setPhotoDimensionsLabel] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
   // Settings State
   const [newPinInput, setNewPinInput] = useState("");
   const [confirmPinInput, setConfirmPinInput] = useState("");
@@ -118,13 +157,16 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const loadData = useCallback(async (tokenToUse?: string) => {
     const activeToken = tokenToUse || authTokenRef.current;
     setLoadingPlots(true);
+    setLoadingGallery(true);
     try {
-      const [plotsData, , health] = await Promise.all([
+      const [plotsData, photosData, , health] = await Promise.all([
         fetchLivePlots(),
+        fetchLiveGalleryPhotos(),
         getAdminConfigFn(),
         checkDbHealthFn().catch(() => ({ connected: false, message: "Offline" })),
       ]);
       setPlots(plotsData);
+      setGalleryPhotos(photosData);
       setDbHealth(health);
       if (activeToken) {
         setLoadingLeads(true);
@@ -136,6 +178,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       console.error(err);
     } finally {
       setLoadingPlots(false);
+      setLoadingGallery(false);
       setLoadingLeads(false);
     }
   }, []);
@@ -271,6 +314,136 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   };
 
+  const handleOpenEditPlot = (plot: Plot) => {
+    setEditingPlot(plot);
+    setEditPlotNumber(plot.number);
+    setEditPlotSize(String(plot.sizeSqFt));
+    setEditPlotDims(plot.dimensions);
+    setEditPlotFacing(plot.facing);
+    setEditPlotRoad(plot.roadWidth);
+    setEditPlotRate(String(plot.ratePerSqFt));
+    setEditPlotStatus(plot.status);
+    setEditPlotFeature(plot.feature);
+  };
+
+  const handleSavePlotEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPlot) return;
+    if (!editPlotNumber.trim()) {
+      toast.error("Plot number cannot be empty.");
+      return;
+    }
+    setSavingPlotEdit(true);
+    try {
+      const updates: Partial<PlotInput> = {
+        number: editPlotNumber.trim().toUpperCase(),
+        sizeSqFt: parseInt(editPlotSize, 10) || editingPlot.sizeSqFt,
+        dimensions: editPlotDims.trim(),
+        facing: editPlotFacing,
+        roadWidth: editPlotRoad.trim(),
+        ratePerSqFt: parseInt(editPlotRate, 10) || editingPlot.ratePerSqFt,
+        status: editPlotStatus,
+        feature: editPlotFeature.trim(),
+      };
+      const res = await updateLivePlot(editingPlot.id, updates, authToken);
+      if (res) {
+        setPlots((prev) => prev.map((p) => (p.id === editingPlot.id ? { ...p, ...res } : p)));
+        window.dispatchEvent(new CustomEvent("plots-updated"));
+        setEditingPlot(null);
+        toast.success(`Plot ${res.number} updated in database & live website!`);
+      } else {
+        toast.error("Failed to update plot. Please check authentication.");
+      }
+    } catch {
+      toast.error("Failed to save plot updates");
+    } finally {
+      setSavingPlotEdit(false);
+    }
+  };
+
+  // Photo Upload Handler (Supports both Device File Picker and Image URLs)
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file is too large. Please select a photo under 5MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setPhotoSrc(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadPhoto = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!photoSrc.trim()) {
+      toast.error("Please upload an image file or provide an image URL.");
+      return;
+    }
+    if (!photoTitle.trim()) {
+      toast.error("Please enter a title for the photo.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const categoryLabelMap: Record<GalleryPhoto["category"], string> = {
+        demarcation: "Demarcation & Registry Ready",
+        roads: "Internal Roads & Lighting",
+        panorama: "Township Horizon",
+        construction: "Civil Engineering",
+      };
+
+      const created = await uploadLivePhoto(
+        {
+          src: photoSrc,
+          title: photoTitle.trim(),
+          category: photoCategory,
+          categoryLabel: categoryLabelMap[photoCategory] || "Actual Site",
+          tag: photoCategory === "demarcation" ? "Boundary Pillars" : "Live Update",
+          description: photoDescription.trim() || "Uploaded directly via Dealer Portal.",
+          dimensionsLabel: photoDimensionsLabel.trim() || "Actual Site Progress",
+        },
+        authToken,
+      );
+
+      if (created) {
+        setGalleryPhotos((prev) => [created, ...prev]);
+        setShowAddPhotoForm(false);
+        setPhotoSrc("");
+        setPhotoTitle("");
+        setPhotoDescription("");
+        setPhotoDimensionsLabel("");
+        toast.success("Site photo published to live website!");
+      } else {
+        toast.error("Failed to upload photo. Please check authorization.");
+      }
+    } catch {
+      toast.error("Error uploading photo. Please try again.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleDeletePhoto = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to remove "${title}" from the live site gallery?`)) return;
+    setGalleryPhotos((prev) => prev.filter((p) => p.id !== id));
+    try {
+      const success = await removeLivePhoto(id, authToken);
+      if (success) {
+        toast.success("Photo removed from live gallery.");
+      } else {
+        toast.error("Unauthorized. Please unlock again.");
+        handleLogout();
+      }
+    } catch {
+      toast.error("Failed to remove photo");
+    }
+  };
+
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanNewPin = newPinInput.trim();
@@ -300,6 +473,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         | { success?: boolean; signedPinToken?: string; message?: string; error?: string }
         | undefined;
       if (typedRes?.success) {
+        if (typedRes.signedPinToken) {
+          setClientPinToken(typedRes.signedPinToken);
+        }
         // Log out immediately across all devices & clear state
         handleLogout();
         setNewPinInput("");
@@ -456,7 +632,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               className="flex-1 flex flex-col overflow-hidden bg-[#0a1410]"
             >
               <div className="px-6 py-3 border-b border-border/80 bg-[#0c1612] shrink-0">
-                <TabsList className="bg-[#080f0c] border border-border/80 p-1 rounded-lg h-auto flex gap-1">
+                <TabsList className="bg-[#080f0c] border border-border/80 p-1 rounded-lg h-auto flex flex-wrap sm:flex-nowrap gap-1">
                   <TabsTrigger
                     value="leads"
                     className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
@@ -468,6 +644,12 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
                   >
                     <Layers className="size-3.5 mr-1.5" /> Plot Inventory ({plots.length})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="gallery"
+                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                  >
+                    <Camera className="size-3.5 mr-1.5" /> Site Photos ({galleryPhotos.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"
@@ -801,6 +983,153 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   </form>
                 )}
 
+                {/* Edit Plot Form Panel */}
+                {editingPlot && (
+                  <form
+                    onSubmit={handleSavePlotEdit}
+                    className="p-6 border-b-2 border-primary/50 bg-[#0c2219] space-y-4 shrink-0 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200"
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-primary/20">
+                      <div className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-primary animate-pulse" />
+                        <h5 className="font-display uppercase text-sm font-semibold text-primary">
+                          Modifying Plot {editingPlot.number}
+                        </h5>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingPlot(null)}
+                        className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Plot Number *
+                        </Label>
+                        <Input
+                          value={editPlotNumber}
+                          onChange={(e) => setEditPlotNumber(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Size (Sq Ft) *
+                        </Label>
+                        <Input
+                          type="number"
+                          value={editPlotSize}
+                          onChange={(e) => setEditPlotSize(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Dimensions *
+                        </Label>
+                        <Input
+                          value={editPlotDims}
+                          onChange={(e) => setEditPlotDims(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Facing Direction
+                        </Label>
+                        <select
+                          value={editPlotFacing}
+                          onChange={(e) => setEditPlotFacing(e.target.value)}
+                          className="mt-1 w-full h-9 px-3 text-xs bg-[#080f0c] border border-border/80 rounded-lg text-foreground"
+                        >
+                          <option value="East">East</option>
+                          <option value="West">West</option>
+                          <option value="North">North</option>
+                          <option value="South">South</option>
+                          <option value="North-East">North-East</option>
+                          <option value="South-East">South-East</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Road Width *
+                        </Label>
+                        <Input
+                          value={editPlotRoad}
+                          onChange={(e) => setEditPlotRoad(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Rate (₹ / Sq Ft) *
+                        </Label>
+                        <Input
+                          type="number"
+                          value={editPlotRate}
+                          onChange={(e) => setEditPlotRate(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Status
+                        </Label>
+                        <select
+                          value={editPlotStatus}
+                          onChange={(e) => setEditPlotStatus(e.target.value as Plot["status"])}
+                          className="mt-1 w-full h-9 px-3 text-xs bg-[#080f0c] border border-border/80 rounded-lg text-foreground"
+                        >
+                          <option value="Available">Available</option>
+                          <option value="Fast Selling">Fast Selling</option>
+                          <option value="Reserved">Reserved</option>
+                          <option value="Sold Out">Sold Out</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                          Plot Highlights
+                        </Label>
+                        <Input
+                          value={editPlotFeature}
+                          onChange={(e) => setEditPlotFeature(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={savingPlotEdit}
+                        className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg"
+                      >
+                        {savingPlotEdit ? "Saving..." : "Save Plot Changes to Database"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingPlot(null)}
+                        className="h-10 px-4 text-xs rounded-lg"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
                 {/* Plot Inventory Table */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-[#0a1410]">
                   {plots.map((plot) => (
@@ -844,6 +1173,16 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         <Button
                           size="icon"
                           variant="ghost"
+                          onClick={() => handleOpenEditPlot(plot)}
+                          className="size-8 text-primary hover:bg-primary/10 rounded-lg"
+                          title={`Edit Plot ${plot.number}`}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           onClick={() => handleDeletePlot(plot.id, plot.number)}
                           className="size-8 text-destructive hover:bg-destructive/10 rounded-lg"
                         >
@@ -855,7 +1194,262 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                 </div>
               </TabsContent>
 
-              {/* TAB 3: Integrations & Settings */}
+              {/* TAB 3: Site Gallery & Photo Manager */}
+              <TabsContent
+                value="gallery"
+                className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]"
+              >
+                <div className="p-6 border-b border-border/80 bg-[#0c1612] flex items-center justify-between shrink-0">
+                  <div>
+                    <h4 className="font-display uppercase text-lg text-foreground">
+                      Site Development Gallery
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Upload actual ground photos or remove any photo. Live-syncs directly to the
+                      public site gallery.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddPhotoForm((prev) => !prev)}
+                    className="h-10 px-4 bg-primary text-primary-foreground text-xs uppercase font-semibold btn-shimmer rounded-lg"
+                  >
+                    <PlusCircle className="size-3.5 mr-1.5" />
+                    {showAddPhotoForm ? "Close Form" : "+ Upload Photo"}
+                  </Button>
+                </div>
+
+                {/* Upload Photo Form */}
+                {showAddPhotoForm && (
+                  <form
+                    onSubmit={handleUploadPhoto}
+                    className="p-6 border-b border-border/80 bg-[#0e1c16] space-y-4 shrink-0 shadow-inner"
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                      <h5 className="font-display uppercase text-xs font-semibold text-primary flex items-center gap-1.5">
+                        <UploadCloud className="size-4" /> Add Site Progress Photo
+                      </h5>
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        Direct upload or web image URL
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left: File input or URL input */}
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                            Upload From Device (Phone / Laptop)
+                          </Label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoFileChange}
+                            className="mt-1 block w-full text-xs text-muted-foreground file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer bg-[#080f0c] p-2 border border-border/80 rounded-lg"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                            Or Paste Direct Image URL
+                          </Label>
+                          <Input
+                            placeholder="https://images.unsplash.com/... or data:image/..."
+                            value={photoSrc}
+                            onChange={(e) => setPhotoSrc(e.target.value)}
+                            className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg font-mono text-[11px]"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                            Photo Title *
+                          </Label>
+                          <Input
+                            placeholder="e.g. 40 Ft Blacktop Avenue & Storm Water Line"
+                            value={photoTitle}
+                            onChange={(e) => setPhotoTitle(e.target.value)}
+                            className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      {/* Right: Category, Tag, Caption & Preview */}
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                              Category
+                            </Label>
+                            <select
+                              value={photoCategory}
+                              onChange={(e) =>
+                                setPhotoCategory(e.target.value as GalleryPhoto["category"])
+                              }
+                              className="mt-1 w-full h-9 px-2 text-xs bg-[#080f0c] border border-border/80 rounded-lg text-foreground"
+                            >
+                              <option value="demarcation">Demarcation & Registry</option>
+                              <option value="roads">Internal Roads & Lighting</option>
+                              <option value="panorama">Township Horizon</option>
+                              <option value="construction">Civil Engineering</option>
+                            </select>
+                          </div>
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                              Progress / Metric Tag
+                            </Label>
+                            <Input
+                              placeholder="e.g. 40 Ft Road Completion"
+                              value={photoDimensionsLabel}
+                              onChange={(e) => setPhotoDimensionsLabel(e.target.value)}
+                              className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase font-mono">
+                            Description / Caption
+                          </Label>
+                          <Input
+                            placeholder="e.g. Concrete curb installation completed with LED illumination conduits."
+                            value={photoDescription}
+                            onChange={(e) => setPhotoDescription(e.target.value)}
+                            className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
+                          />
+                        </div>
+
+                        {photoSrc && (
+                          <div className="flex items-center gap-3 p-2 bg-[#080f0c] border border-border/80 rounded-lg">
+                            <img
+                              src={photoSrc}
+                              alt="Preview"
+                              className="size-12 rounded object-cover border border-border/60"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-foreground truncate">
+                                Image ready to publish
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono">
+                                Will save to persistent database
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setPhotoSrc("")}
+                              className="text-xs h-7 text-destructive hover:bg-destructive/10"
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <Button
+                        type="submit"
+                        disabled={uploadingPhoto || !photoSrc.trim() || !photoTitle.trim()}
+                        size="sm"
+                        className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg"
+                      >
+                        {uploadingPhoto ? "Publishing Photo..." : "Publish Photo to Live Site"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAddPhotoForm(false)}
+                        className="h-10 px-4 text-xs rounded-lg"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Gallery Photos Grid */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#0a1410]">
+                  {galleryPhotos.length === 0 ? (
+                    <div className="text-center py-16 px-4 bg-[#0e1c16] rounded-xl border border-dashed border-border/80 space-y-3">
+                      <div className="icon-monogram size-12 mx-auto">
+                        <ImageIcon className="size-6 text-muted-foreground" />
+                      </div>
+                      <h5 className="font-display uppercase text-sm text-foreground">
+                        No Site Photos Uploaded Yet
+                      </h5>
+                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                        Click "+ Upload Photo" above to upload actual development photos from your
+                        device or via direct image link.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {galleryPhotos.map((photo) => (
+                        <div
+                          key={photo.id}
+                          className="bg-[#0e1c16] border border-border/80 rounded-xl overflow-hidden shadow-sm card-architectural flex flex-col justify-between"
+                        >
+                          <div className="relative aspect-[16/10] bg-[#080f0c] overflow-hidden group">
+                            <img
+                              src={photo.src}
+                              alt={photo.title}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                            <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-black/70 backdrop-blur-md text-emerald-400 border border-emerald-500/30">
+                                {photo.categoryLabel || photo.category}
+                              </span>
+                              {photo.tag && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-primary/80 backdrop-blur-md text-primary-foreground">
+                                  {photo.tag}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                            <div className="space-y-1">
+                              <h5 className="font-display font-semibold text-sm text-foreground leading-snug line-clamp-1">
+                                {photo.title}
+                              </h5>
+                              {photo.dimensionsLabel && (
+                                <p className="text-[11px] font-mono text-primary font-medium">
+                                  {photo.dimensionsLabel}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                {photo.description}
+                              </p>
+                            </div>
+
+                            <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+                              <span className="text-[10px] font-mono text-muted-foreground truncate">
+                                ID: {photo.id}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeletePhoto(photo.id, photo.title)}
+                                className="h-8 px-2.5 text-xs text-destructive hover:bg-destructive/10 rounded-lg flex items-center gap-1.5"
+                                title="Remove this photo from live website"
+                              >
+                                <Trash2 className="size-3.5" />
+                                <span>Delete Photo</span>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* TAB 4: Integrations & Settings */}
               <TabsContent
                 value="settings"
                 className="flex-1 overflow-y-auto p-6 space-y-6 m-0 bg-[#0a1410]"

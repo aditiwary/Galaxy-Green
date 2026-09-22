@@ -134,3 +134,71 @@ export const deletePlotFn = createServerFn({ method: "POST" })
     }
     return { success: true, message: "Plot deleted and synchronized." };
   });
+
+export const updatePlotFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string; plot: Partial<PlotInput>; token?: string }) => data)
+  .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized: Valid dealer authentication required." };
+    }
+
+    const current = memoryPlots.find((p) => p.id === data.id);
+    if (!current) {
+      return { success: false, error: "Plot not found." };
+    }
+
+    const updated: Plot = {
+      ...current,
+      ...data.plot,
+      number: data.plot.number ? data.plot.number.toUpperCase().trim() : current.number,
+      sizeSqFt: data.plot.sizeSqFt !== undefined ? Number(data.plot.sizeSqFt) : current.sizeSqFt,
+      ratePerSqFt:
+        data.plot.ratePerSqFt !== undefined ? Number(data.plot.ratePerSqFt) : current.ratePerSqFt,
+    };
+
+    memoryPlots = memoryPlots.map((p) => (p.id === data.id ? updated : p));
+    trySavePlotsDisk(memoryPlots);
+
+    const updates: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (data.plot.number !== undefined) {
+      updates.push("number = ?");
+      params.push(updated.number);
+    }
+    if (data.plot.sizeSqFt !== undefined) {
+      updates.push("size_sq_ft = ?");
+      params.push(updated.sizeSqFt);
+    }
+    if (data.plot.dimensions !== undefined) {
+      updates.push("dimensions = ?");
+      params.push(data.plot.dimensions);
+    }
+    if (data.plot.facing !== undefined) {
+      updates.push("facing = ?");
+      params.push(data.plot.facing);
+    }
+    if (data.plot.roadWidth !== undefined) {
+      updates.push("road_width = ?");
+      params.push(data.plot.roadWidth);
+    }
+    if (data.plot.ratePerSqFt !== undefined) {
+      updates.push("rate_per_sq_ft = ?");
+      params.push(updated.ratePerSqFt);
+    }
+    if (data.plot.status !== undefined) {
+      updates.push("status = ?");
+      params.push(data.plot.status);
+    }
+    if (data.plot.feature !== undefined) {
+      updates.push("feature = ?");
+      params.push(data.plot.feature);
+    }
+
+    if (updates.length > 0) {
+      params.push(data.id);
+      await executeQuery(`UPDATE plots SET ${updates.join(", ")} WHERE id = ?`, params);
+    }
+
+    return { success: true, plot: updated, message: "Plot details updated and synchronized." };
+  });

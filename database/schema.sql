@@ -68,3 +68,21 @@ CREATE TABLE IF NOT EXISTS `admin_config` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------
+-- Table: gallery_photos
+-- Stores live project site photos, captions, and categories
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gallery_photos` (
+  `id` VARCHAR(64) NOT NULL,
+  `src` LONGTEXT NOT NULL,
+  `title` VARCHAR(150) NOT NULL,
+  `category` VARCHAR(50) NOT NULL DEFAULT 'demarcation',
+  `category_label` VARCHAR(100) NOT NULL DEFAULT 'Actual Site',
+  `tag` VARCHAR(100) NOT NULL DEFAULT 'Live Photo',
+  `description` TEXT,
+  `dimensions_label` VARCHAR(100) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_photo_category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

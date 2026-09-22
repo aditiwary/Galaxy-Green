@@ -1,5 +1,11 @@
 import { DEFAULT_PLOTS, type Plot, type PlotInput } from "./plot-types";
-import { getPlotsFn, createPlotFn, updatePlotStatusFn, deletePlotFn } from "./server-plots";
+import {
+  getPlotsFn,
+  createPlotFn,
+  updatePlotStatusFn,
+  deletePlotFn,
+  updatePlotFn,
+} from "./server-plots";
 
 const PLOTS_STORAGE_KEY = "galaxy_green_plots_v1";
 
@@ -99,4 +105,51 @@ export async function removePlot(id: string, token?: string): Promise<boolean> {
   }
 
   return true;
+}
+
+export async function updateLivePlot(
+  id: string,
+  plotUpdates: Partial<PlotInput>,
+  token?: string,
+): Promise<Plot | null> {
+  let updatedPlot: Plot | null = null;
+  try {
+    const res = await updatePlotFn({
+      data: { id, plot: plotUpdates, ...(token ? { token } : {}) },
+    });
+    if (res?.plot) {
+      updatedPlot = res.plot;
+    }
+  } catch (err) {
+    console.warn("Server plot update fallback:", err);
+  }
+
+  if (typeof window !== "undefined") {
+    try {
+      const current = await fetchLivePlots();
+      const updatedList = current.map((p) => {
+        if (p.id === id) {
+          const merged: Plot = {
+            ...p,
+            ...plotUpdates,
+            number: plotUpdates.number ? plotUpdates.number.toUpperCase().trim() : p.number,
+            sizeSqFt:
+              plotUpdates.sizeSqFt !== undefined ? Number(plotUpdates.sizeSqFt) : p.sizeSqFt,
+            ratePerSqFt:
+              plotUpdates.ratePerSqFt !== undefined
+                ? Number(plotUpdates.ratePerSqFt)
+                : p.ratePerSqFt,
+          };
+          if (!updatedPlot) updatedPlot = merged;
+          return merged;
+        }
+        return p;
+      });
+      localStorage.setItem(PLOTS_STORAGE_KEY, JSON.stringify(updatedList));
+    } catch {
+      // ignore
+    }
+  }
+
+  return updatedPlot;
 }

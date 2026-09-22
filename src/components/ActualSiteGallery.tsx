@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { fetchLiveGalleryPhotos } from "@/lib/photos-client";
 
 export interface SitePhoto {
   id: string;
@@ -27,7 +28,7 @@ export interface SitePhoto {
   categoryLabel: string;
   tag: string;
   description: string;
-  highlights: string[];
+  highlights?: string[];
   dimensionsLabel?: string;
 }
 
@@ -126,9 +127,36 @@ interface ActualSiteGalleryProps {
 export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [photos, setPhotos] = useState<SitePhoto[]>(SITE_PHOTOS);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadPhotos = async () => {
+      try {
+        const live = await fetchLiveGalleryPhotos();
+        if (isMounted && live && live.length > 0) {
+          setPhotos(live as SitePhoto[]);
+        }
+      } catch (err) {
+        console.warn("Failed to load live gallery photos:", err);
+      }
+    };
+
+    loadPhotos();
+
+    const handleUpdate = () => {
+      loadPhotos();
+    };
+
+    window.addEventListener("gallery-updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("gallery-updated", handleUpdate);
+    };
+  }, []);
 
   const filteredPhotos =
-    activeTab === "all" ? SITE_PHOTOS : SITE_PHOTOS.filter((photo) => photo.category === activeTab);
+    activeTab === "all" ? photos : photos.filter((photo) => photo.category === activeTab);
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);

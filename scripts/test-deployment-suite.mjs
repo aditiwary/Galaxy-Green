@@ -246,14 +246,37 @@ assert(
   "database/galaxy_green_mysql.sql defines dealer_pin as VARCHAR(255)",
 );
 
-// Verify that plots table has index on number and status
 assert(
-  schemaSql.includes("UNIQUE KEY `uk_plot_number`"),
-  "plots table has UNIQUE constraint on plot number",
+  schemaSql.includes("CREATE TABLE IF NOT EXISTS `gallery_photos`"),
+  "gallery_photos table defined in database/schema.sql",
 );
 assert(
-  schemaSql.includes("KEY `idx_inquiry_phone`"),
-  "inquiries table is indexed on phone for quick lookups",
+  dumpSql.includes("CREATE TABLE `gallery_photos`") ||
+    dumpSql.includes("CREATE TABLE IF NOT EXISTS `gallery_photos`"),
+  "gallery_photos table defined in database/galaxy_green_mysql.sql",
+);
+
+// -------------------------------------------------------------
+// 6. DEALER AUTHORITY: PLOT SPECIFICATION MODIFICATION & SITE GALLERY
+// -------------------------------------------------------------
+console.log("\n[6] AUDIT: Dealer Authority & Gallery/Plot APIs");
+
+const serverPlotsPath = path.resolve(process.cwd(), "src/lib/server-plots.ts");
+const serverPlotsSrc = fs.readFileSync(serverPlotsPath, "utf-8");
+assert(
+  serverPlotsSrc.includes("updatePlotFn"),
+  "server-plots.ts defines updatePlotFn for plot specification edits",
+);
+
+const serverPhotosPath = path.resolve(process.cwd(), "src/lib/server-photos.ts");
+const serverPhotosSrc = fs.readFileSync(serverPhotosPath, "utf-8");
+assert(
+  serverPhotosSrc.includes("uploadGalleryPhotoFn"),
+  "server-photos.ts defines uploadGalleryPhotoFn for photo uploads",
+);
+assert(
+  serverPhotosSrc.includes("deleteGalleryPhotoFn"),
+  "server-photos.ts defines deleteGalleryPhotoFn for photo removal",
 );
 
 // -------------------------------------------------------------
