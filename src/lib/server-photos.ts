@@ -102,6 +102,23 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
       "5 km from CCS International Airport & Amausi Metro Station",
     ],
   },
+  {
+    id: "site-photo-6",
+    src: "/site-photos/galaxy-green-airport-connectivity.jpg",
+    title: "Chaudhary Charan Singh International Airport & Amausi Plots",
+    category: "panorama",
+    categoryLabel: "Airport & Metro Connectivity",
+    tag: "Prime Airport Vicinity",
+    dimensionsLabel: "5 Km from CCS International Airport",
+    description:
+      "Strategic aerial master photograph showing Chaudhary Charan Singh International Airport (Terminal 1 & 2, Runway 09/27), Kanpur Road (NH27), Amausi Metro Station, and the immediate proximity of Amausi available plots at Galaxy Green Sai Suraksha Nagar.",
+    highlights: [
+      "Direct proximity to CCS International Airport (LKO) & Terminals 1 & 2",
+      "Immediate access to Kanpur Road (NH27) & Amausi Metro Station",
+      "Rapidly appreciating high-capital growth growth corridor",
+      "Direct expressway arterial connectivity across Lucknow & NCR",
+    ],
+  },
 ];
 
 let memoryPhotos: GalleryPhoto[] = [...DEFAULT_GALLERY_PHOTOS];
