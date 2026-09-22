@@ -87,7 +87,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
               <Eye className="size-4 mr-2" /> View Aerial Master Plan
             </Button>
             <div className="flex items-center gap-2 bg-primary/10 border border-primary/30 px-3.5 py-2 rounded text-xs text-primary font-mono">
-              <span className="size-2 rounded-full bg-primary animate-ping" />
+              <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
               <span>Phase 1: 72% Sold Out</span>
             </div>
           </div>
@@ -97,7 +97,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
         <div className="mt-10 flex flex-wrap gap-2 pb-2 border-b border-border/50">
           {[
             { id: "all", label: "All Available Plots" },
-            { id: "1000", label: "1,000 Sq Ft (₹14.00 Lakh)" },
+            { id: "1000", label: "1,000 Sq Ft (₹11.99 Lakh)" },
             { id: "1500", label: "1,200 - 1,500 Sq Ft" },
             { id: "2000+", label: "2,000+ Sq Ft (Grand Villa)" },
             { id: "corner", label: "Boulevard & Corner Plots" },
@@ -126,12 +126,12 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
               <article
                 key={plot.id}
                 onClick={() => setActivePlot(plot)}
-                className={`group relative rounded-md border p-6 bg-card transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-glow ${
+                className={`card-architectural group p-6 rounded-xl relative overflow-hidden cursor-pointer ${
                   plot.status === "Reserved"
-                    ? "border-border/50 opacity-75"
+                    ? "opacity-75"
                     : plot.status === "Fast Selling"
                     ? "border-accent/60 bg-gradient-to-b from-accent/5 to-card"
-                    : "border-border hover:border-primary"
+                    : ""
                 }`}
               >
                 {/* Top badges */}
@@ -288,7 +288,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
 
               <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 pt-2">
                 <Button
-                  className="w-full sm:flex-1 h-12 uppercase tracking-wider text-xs bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+                  className="w-full sm:flex-1 h-12 uppercase tracking-wider text-xs bg-primary text-primary-foreground font-semibold hover:bg-primary/90 btn-shimmer"
                   onClick={() => {
                     const num = activePlot.number;
                     const sz = `${activePlot.sizeSqFt} sq ft`;

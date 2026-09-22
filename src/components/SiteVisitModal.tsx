@@ -53,6 +53,7 @@ export function SiteVisitModal({
   });
   const [slot, setSlot] = useState("Morning (10:00 AM)");
   const [message, setMessage] = useState("");
+  const [websiteHoneypot, setWebsiteHoneypot] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
@@ -79,6 +80,7 @@ export function SiteVisitModal({
         cabPickup: false,
         pickupLocation: "On Site",
         message: message.trim(),
+        website: websiteHoneypot,
       });
 
       setConfirmedBooking(created);
@@ -221,6 +223,19 @@ export function SiteVisitModal({
                 </select>
               </div>
 
+              {/* Anti-Bot Invisible Honeypot */}
+              <input
+                type="text"
+                name="website"
+                value={websiteHoneypot}
+                onChange={(e) => setWebsiteHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="hidden"
+                style={{ display: "none" }}
+              />
+
               {error && (
                 <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
                   {error}
@@ -230,7 +245,7 @@ export function SiteVisitModal({
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
               >
                 {submitting ? "Confirming Visit..." : "Schedule Site Tour"} <ArrowRight className="size-3.5 ml-2" />
               </Button>
@@ -239,8 +254,8 @@ export function SiteVisitModal({
         ) : (
           /* Confirmation State */
           <div className="text-center py-4 space-y-4">
-            <div className="size-16 rounded-full bg-primary/10 border border-primary/40 text-primary mx-auto grid place-items-center shadow-glow">
-              <CheckCircle2 className="size-8" />
+            <div className="icon-monogram-gold size-16 mx-auto grid place-items-center shadow-glow">
+              <CheckCircle2 className="size-8 text-accent" />
             </div>
 
             <div>
@@ -269,7 +284,7 @@ export function SiteVisitModal({
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <Button
                 onClick={openWhatsAppConfirmation}
-                className="w-full sm:flex-1 h-11 uppercase tracking-wider text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+                className="w-full sm:flex-1 h-11 uppercase tracking-wider text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white btn-shimmer"
               >
                 <MessageCircle className="size-4 mr-2" /> Open In WhatsApp
               </Button>

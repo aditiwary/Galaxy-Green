@@ -12,6 +12,8 @@ export const inquirySchema = z.object({
   cabPickup: z.boolean().default(false),
   pickupLocation: z.string().default("On Site"),
   message: z.string().max(500).optional(),
+  // Anti-bot honeypot field (must be empty for human users)
+  website: z.string().max(100).optional(),
 });
 
 export type InquiryInput = z.infer<typeof inquirySchema>;

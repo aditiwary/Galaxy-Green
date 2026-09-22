@@ -39,21 +39,23 @@ Location: QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008
 Proximity: 5 Mins from Chaudhary Charan Singh International Airport (Amausi)
 Metro Access: 4 Mins from Amausi Metro Station
 
-CURRENT RATE: Rs. 1,400 per sq. ft. (Limited Phase 1 Allotment)
+CURRENT RATE: Rs. 1,199 per sq. ft. (Fixed Phase 1 Allotment)
 
 1. PROJECT OVERVIEW
 -----------------------------------------------------
 Galaxy Green Sai Suraksha Nagar is a planned eco-luxury gated
-residential township spread across a green landscape near Lucknow's
+residential township spread across a lush green landscape near Lucknow's
 primary growth node at Amausi. 
 
-2. PLOT SPECIFICATIONS & PRICING
+2. PLOT SPECIFICATIONS & PRICING (Rs. 1,199 / Sq Ft)
 -----------------------------------------------------
-- 1,000 Sq Ft (25 ft x 40 ft) : Rs. 14,00,000
-- 1,200 Sq Ft (30 ft x 40 ft) : Rs. 16,80,000
-- 1,500 Sq Ft (30 ft x 50 ft) : Rs. 21,00,000
-- 2,000 Sq Ft (40 ft x 50 ft) : Rs. 28,00,000
-- 3,000 Sq Ft Corner Mansion   : Rs. 43,50,000
+- 600 Sq Ft (20 ft x 30 ft)   : Rs. 7,19,400 (Starting Compact Duplex)
+- 800 Sq Ft (20 ft x 40 ft)   : Rs. 9,59,200
+- 1,000 Sq Ft (25 ft x 40 ft) : Rs. 11,99,000 (Most Popular Layout)
+- 1,200 Sq Ft (30 ft x 40 ft) : Rs. 14,38,800
+- 1,500 Sq Ft (30 ft x 50 ft) : Rs. 17,98,500 (Executive Villa)
+- 2,000 Sq Ft (40 ft x 50 ft) : Rs. 23,98,000 (Grand Villa)
+- Custom Plots                : Calculated at Rs. 1,199 per sq. ft.
 
 3. INFRASTRUCTURE & AMENITIES
 -----------------------------------------------------
@@ -115,29 +117,37 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
 
         {/* Brochure Highlights Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4">
-          <div className="bg-surface p-3.5 rounded border border-border/80">
-            <Building2 className="size-4 text-primary mb-2" />
+          <div className="card-architectural p-3.5 rounded-lg border border-border/80">
+            <div className="icon-monogram size-8 mb-2">
+              <Building2 className="size-3.5 text-primary" />
+            </div>
             <h4 className="font-display text-sm uppercase text-foreground">Road Infrastructure</h4>
             <p className="text-xs text-muted-foreground mt-1">
               40-ft wide grand boulevard and 30-ft internal paver lanes with drainage.
             </p>
           </div>
-          <div className="bg-surface p-3.5 rounded border border-border/80">
-            <Trees className="size-4 text-primary mb-2" />
+          <div className="card-architectural p-3.5 rounded-lg border border-border/80">
+            <div className="icon-monogram size-8 mb-2">
+              <Trees className="size-3.5 text-primary" />
+            </div>
             <h4 className="font-display text-sm uppercase text-foreground">Green Environment</h4>
             <p className="text-xs text-muted-foreground mt-1">
               Manicured central park, flower gardens, tree-lined walking avenues.
             </p>
           </div>
-          <div className="bg-surface p-3.5 rounded border border-border/80">
-            <ShieldCheck className="size-4 text-accent mb-2" />
+          <div className="card-architectural p-3.5 rounded-lg border border-border/80">
+            <div className="icon-monogram-gold size-8 mb-2">
+              <ShieldCheck className="size-3.5 text-accent" />
+            </div>
             <h4 className="font-display text-sm uppercase text-foreground">Immediate Registry</h4>
             <p className="text-xs text-muted-foreground mt-1">
               100% freehold land with instant Dakhil Kharij (mutation) assurance.
             </p>
           </div>
-          <div className="bg-surface p-3.5 rounded border border-border/80">
-            <MapPin className="size-4 text-accent mb-2" />
+          <div className="card-architectural p-3.5 rounded-lg border border-border/80">
+            <div className="icon-monogram-gold size-8 mb-2">
+              <MapPin className="size-3.5 text-accent" />
+            </div>
             <h4 className="font-display text-sm uppercase text-foreground">Prime Proximity</h4>
             <p className="text-xs text-muted-foreground mt-1">
               5 mins from Chaudhary Charan Singh International Airport (Amausi).
@@ -147,25 +157,34 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
 
         {/* Pricing Matrix Table */}
         <div className="border border-border rounded overflow-hidden text-xs">
-          <div className="bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-primary font-semibold border-b border-border">
-            Phase 1 Pricing & Dimension Matrix
+          <div className="bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-primary font-semibold border-b border-border flex justify-between">
+            <span>Phase 1 Dimension & Pricing Matrix</span>
+            <span className="text-muted-foreground font-normal">₹1,199 / Sq Ft</span>
           </div>
           <div className="divide-y divide-border/60 font-mono">
             <div className="flex justify-between p-3 bg-background/50">
-              <span>1,000 Sq Ft (25 × 40)</span>
-              <strong className="text-foreground">₹14,00,000</strong>
+              <span>600 Sq Ft (20 × 30 ft · Compact)</span>
+              <strong className="text-primary font-semibold">₹7,19,400</strong>
+            </div>
+            <div className="flex justify-between p-3">
+              <span>800 Sq Ft (20 × 40 ft · Standard)</span>
+              <strong className="text-foreground">₹9,59,200</strong>
             </div>
             <div className="flex justify-between p-3 bg-background/50">
-              <span>1,200 Sq Ft (30 × 40)</span>
-              <strong className="text-foreground">₹16,80,000</strong>
+              <span>1,000 Sq Ft (25 × 40 ft · Popular)</span>
+              <strong className="text-primary font-semibold">₹11,99,000</strong>
+            </div>
+            <div className="flex justify-between p-3">
+              <span>1,200 Sq Ft (30 × 40 ft · Villa)</span>
+              <strong className="text-foreground">₹14,38,800</strong>
             </div>
             <div className="flex justify-between p-3 bg-background/50">
-              <span>1,500 Sq Ft (30 × 50)</span>
-              <strong className="text-foreground">₹21,00,000</strong>
+              <span>1,500 Sq Ft (30 × 50 ft · Executive)</span>
+              <strong className="text-foreground">₹17,98,500</strong>
             </div>
-            <div className="flex justify-between p-3 bg-background/50">
-              <span>2,000 Sq Ft (40 × 50)</span>
-              <strong className="text-foreground">₹28,00,000</strong>
+            <div className="flex justify-between p-3">
+              <span>2,000 Sq Ft (40 × 50 ft · Grand Villa)</span>
+              <strong className="text-foreground">₹23,98,000</strong>
             </div>
           </div>
         </div>
@@ -174,7 +193,7 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
           <Button
             onClick={handleDownload}
             disabled={downloading}
-            className="w-full sm:flex-1 h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+            className="w-full sm:flex-1 h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
           >
             <Download className="size-4 mr-2" />
             {downloading ? "Preparing Document..." : "Download Full PDF Brochure"}

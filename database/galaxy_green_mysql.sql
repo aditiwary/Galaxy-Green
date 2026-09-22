@@ -37,16 +37,19 @@ CREATE TABLE `plots` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------------------
+-- --------------------------------------------------------------------
 -- Dumping data for table `plots`
 -- --------------------------------------------------------------------
 INSERT INTO `plots` (`id`, `number`, `size_sq_ft`, `dimensions`, `facing`, `road_width`, `rate_per_sq_ft`, `status`, `feature`) VALUES
+('plot-a0', 'A-100', 600, '20 × 30 ft', 'East', '30 ft Internal', 1199.00, 'Available', 'Compact boutique plot ideal for modern single-floor studio villa.'),
 ('plot-a1', 'A-101', 1000, '25 × 40 ft', 'East', '30 ft Internal', 1199.00, 'Available', 'Ideal for 3BHK compact luxury independent duplex.'),
 ('plot-a2', 'A-102', 1000, '25 × 40 ft', 'North', '30 ft Internal', 1199.00, 'Fast Selling', 'Vastu-compliant entrance with clear morning sunlight.'),
+('plot-a3', 'A-103', 800, '20 × 40 ft', 'North', '30 ft Internal', 1199.00, 'Fast Selling', 'Prime compact layout near serene landscaped park.'),
 ('plot-b1', 'B-201', 1200, '30 × 40 ft', 'Park Facing', '30 ft Internal', 1199.00, 'Fast Selling', 'Direct unobstructed view of central green park & jogging trail.'),
 ('plot-b2', 'B-205', 1500, '30 × 50 ft', 'East', '30 ft Internal', 1199.00, 'Available', 'Generous frontage for double-car porch and front garden.'),
 ('plot-c1', 'C-301', 2000, '40 × 50 ft', 'Park Facing', '40 ft Boulevard', 1199.00, 'Available', 'Premium estate plot overlooking clubhouse & landscaped water body.'),
-('plot-c2', 'C-308', 2000, '40 × 50 ft', 'Boulevard Corner', '40 ft × 30 ft Dual Road', 1450.00, 'Fast Selling', 'Two-side open corner plot with grand boulevard visibility.'),
-('plot-d1', 'D-401', 3000, '50 × 60 ft', 'Boulevard Corner', '40 ft Main Avenue', 1450.00, 'Reserved', 'Ultra-luxury mansion plot with private swimming pool clearance.'),
+('plot-c2', 'C-308', 2000, '40 × 50 ft', 'Boulevard Corner', '40 ft × 30 ft Dual Road', 1199.00, 'Fast Selling', 'Two-side open corner plot with grand boulevard visibility.'),
+('plot-d1', 'D-401', 3000, '50 × 60 ft', 'Boulevard Corner', '40 ft Main Avenue', 1199.00, 'Reserved', 'Ultra-luxury mansion plot with private swimming pool clearance.'),
 ('plot-d2', 'D-405', 1000, '25 × 40 ft', 'North', '30 ft Internal', 1199.00, 'Available', 'Prime location near security entrance and visitor parking.');
 
 -- --------------------------------------------------------------------
@@ -87,8 +90,7 @@ INSERT INTO `inquiries` (`id`, `name`, `phone`, `email`, `plot_preference`, `vis
 DROP TABLE IF EXISTS `admin_config`;
 CREATE TABLE `admin_config` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `google_sheets_webhook_url` VARCHAR(255) DEFAULT '',
-  `dealer_pin` VARCHAR(32) NOT NULL DEFAULT '0000',
+  `dealer_pin` VARCHAR(255) NOT NULL DEFAULT '$2b$10$EDJuIBTBSj1fpGP9CQBE4ewBlX8N95MFtGN10ohshcSodU66onhri',
   `base_rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1199.00,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -97,7 +99,7 @@ CREATE TABLE `admin_config` (
 -- --------------------------------------------------------------------
 -- Dumping data for table `admin_config`
 -- --------------------------------------------------------------------
-INSERT INTO `admin_config` (`id`, `google_sheets_webhook_url`, `dealer_pin`, `base_rate_per_sq_ft`) VALUES
-(1, '', '0000', 1199.00);
+INSERT INTO `admin_config` (`id`, `dealer_pin`, `base_rate_per_sq_ft`) VALUES
+(1, '$2b$10$EDJuIBTBSj1fpGP9CQBE4ewBlX8N95MFtGN10ohshcSodU66onhri', 1199.00);
 
 SET FOREIGN_KEY_CHECKS = 1;

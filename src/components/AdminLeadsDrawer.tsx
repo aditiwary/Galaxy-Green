@@ -27,10 +27,12 @@ import {
   Settings,
   Layers,
   KeyRound,
-  FileSpreadsheet,
   Check,
   Eye,
   EyeOff,
+  X,
+  Database,
+  ShieldCheck,
 } from "lucide-react";
 import { fetchAllLeads, updateLeadStatus, exportLeadsToCsv, verifyDealerPinFn } from "@/lib/leads-client";
 import { fetchLivePlots, setPlotStatus, addLivePlot, removePlot } from "@/lib/plots-client";
@@ -83,11 +85,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [newPlotDims, setNewPlotDims] = useState("25 × 40 ft");
   const [newPlotFacing, setNewPlotFacing] = useState<Plot["facing"]>("East");
   const [newPlotRoad, setNewPlotRoad] = useState("30 ft Internal");
-  const [newPlotRate, setNewPlotRate] = useState("1400");
+  const [newPlotRate, setNewPlotRate] = useState("1199");
   const [newPlotFeature, setNewPlotFeature] = useState("Freehold residential plot with clear title");
 
   // Settings State
-  const [googleSheetsUrl, setGoogleSheetsUrl] = useState("");
   const [newPinInput, setNewPinInput] = useState("");
   const [confirmPinInput, setConfirmPinInput] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
@@ -96,14 +97,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     const activeToken = tokenToUse || authToken;
     setLoadingPlots(true);
     try {
-      const [plotsData, configData] = await Promise.all([
+      const [plotsData] = await Promise.all([
         fetchLivePlots(),
         getAdminConfigFn(),
       ]);
       setPlots(plotsData);
-      if (configData) {
-        setGoogleSheetsUrl(configData.googleSheetsWebhookUrl || "");
-      }
       if (activeToken) {
         setLoadingLeads(true);
         const leadsData = await fetchAllLeads(activeToken);
@@ -181,20 +179,21 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   };
 
   const handlePlotStatusChange = async (id: string, newStatus: Plot["status"]) => {
-    await setPlotStatus(id, newStatus);
-    setPlots((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
-    );
+    setPlots((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+    await setPlotStatus(id, newStatus, authToken);
     window.dispatchEvent(new CustomEvent("plots-updated"));
-    toast.success(`Plot status updated to "${newStatus}"`);
+    toast.success("Plot status updated");
   };
 
-  const handleDeletePlot = async (id: string, plotNum: string) => {
-    if (confirm(`Are you sure you want to delete Plot ${plotNum}?`)) {
-      await removePlot(id);
-      setPlots((prev) => prev.filter((p) => p.id !== id));
+  const handleDeletePlot = async (id: string, number: string) => {
+    if (!confirm(`Are you sure you want to remove Plot ${number} from the live site?`)) return;
+    setPlots((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await removePlot(id, authToken);
       window.dispatchEvent(new CustomEvent("plots-updated"));
-      toast.success(`Plot ${plotNum} removed from inventory`);
+      toast.success(`Plot ${number} deleted.`);
+    } catch {
+      toast.error("Failed to delete plot");
     }
   };
 
@@ -205,7 +204,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       return;
     }
     const sizeNum = parseInt(newPlotSize, 10) || 1000;
-    const rateNum = parseInt(newPlotRate, 10) || 1400;
+    const rateNum = parseInt(newPlotRate, 10) || 1199;
 
     const input: PlotInput = {
       number: newPlotNumber.trim().toUpperCase(),
@@ -218,7 +217,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       feature: newPlotFeature.trim(),
     };
 
-    const created = await addLivePlot(input);
+    const created = await addLivePlot(input, authToken);
     setPlots((prev) => [...prev, created]);
     window.dispatchEvent(new CustomEvent("plots-updated"));
     setShowAddPlotForm(false);
@@ -228,11 +227,15 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPinInput && newPinInput !== confirmPinInput) {
+    if (!newPinInput) {
+      toast.info("No changes to save.");
+      return;
+    }
+    if (newPinInput !== confirmPinInput) {
       toast.error("New PIN and Confirm PIN do not match.");
       return;
     }
-    if (newPinInput && !/^\d{4,8}$/.test(newPinInput)) {
+    if (!/^\d{4,8}$/.test(newPinInput)) {
       toast.error("PIN must be 4 to 8 numeric digits.");
       return;
     }
@@ -248,8 +251,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       const res = await updateAdminConfigFn({
         data: {
           token: activeToken,
-          googleSheetsWebhookUrl: googleSheetsUrl.trim(),
-          newPin: newPinInput ? newPinInput.trim() : undefined,
+          newPin: newPinInput.trim(),
         },
       });
       if (res?.success) {
@@ -289,63 +291,85 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-3xl bg-card border-l border-border p-0 flex flex-col h-full text-foreground overflow-hidden"
+        hideCloseButton={true}
+        className="w-full sm:max-w-3xl bg-[#0a1410] border-l border-border/80 p-0 flex flex-col h-full text-foreground overflow-hidden shadow-2xl"
       >
         {/* PIN Security Check Screen */}
         {!isAuthenticated ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-surface">
-            <div className="size-16 rounded-full bg-primary/10 border border-primary/40 text-primary grid place-items-center shadow-glow mb-4">
-              <Lock className="size-8" />
-            </div>
-            <h3 className="text-2xl font-display uppercase tracking-tight text-foreground">
-              Dealer Management Portal
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-              Enter your secure dealer PIN to manage customer leads, plot inventory, and integration settings.
-            </p>
-
-            <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
-              <div className="relative">
-                <Input
-                  type={showPin ? "text" : "password"}
-                  maxLength={8}
-                  autoFocus
-                  placeholder="Enter Security PIN"
-                  value={pinInput}
-                  onChange={(e) => setPinInput(e.target.value)}
-                  className={`h-12 text-center text-lg tracking-widest font-mono bg-background border pr-10 ${
-                    pinError ? "border-destructive text-destructive" : "border-border"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                  aria-label={showPin ? "Hide PIN" : "Show PIN"}
-                >
-                  {showPin ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
+          <div className="flex-1 flex flex-col h-full bg-[#0a1410]">
+            {/* PIN Top Bar with Close Button */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="size-2 rounded-full bg-primary" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-mono">
+                  Dealer Security Access
+                </span>
               </div>
-              <Button
-                type="submit"
-                disabled={verifyingPin}
-                className="w-full h-11 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95"
+                title="Close"
+                aria-label="Close"
               >
-                <KeyRound className="size-4 mr-2" /> {verifyingPin ? "Verifying..." : "Unlock Portal"}
-              </Button>
-              <p className="text-[11px] text-muted-foreground font-mono flex items-center justify-center gap-1.5">
-                <Lock className="size-3 text-emerald-400" /> End-to-end encrypted session
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#0a1410]">
+              <div className="icon-monogram-gold size-16 grid place-items-center shadow-glow mb-4">
+                <Lock className="size-7 text-accent" />
+              </div>
+              <h3 className="text-2xl font-display uppercase tracking-tight text-foreground">
+                Dealer Management Portal
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+                Enter your secure dealer PIN to manage customer leads, plot inventory, and integration settings.
               </p>
-            </form>
+
+              <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
+                <div className="relative">
+                  <Input
+                    type={showPin ? "text" : "password"}
+                    maxLength={8}
+                    autoFocus
+                    placeholder="Enter Security PIN"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    className={`h-12 text-center text-lg tracking-widest font-mono bg-[#080f0c] border pr-10 ${
+                      pinError ? "border-destructive text-destructive" : "border-border"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                    aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                  >
+                    {showPin ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={verifyingPin}
+                  className="w-full h-11 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg"
+                >
+                  <KeyRound className="size-4 mr-2" /> {verifyingPin ? "Verifying..." : "Unlock Portal"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground font-mono flex items-center justify-center gap-1.5">
+                  <Lock className="size-3 text-emerald-400" /> End-to-end encrypted session
+                </p>
+              </form>
+            </div>
           </div>
         ) : (
           /* Authenticated Admin Hub with Tabs */
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <SheetHeader className="p-6 border-b border-border bg-background/50 shrink-0">
+          <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0a1410]">
+            <SheetHeader className="px-6 py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-primary animate-pulse" />
+                    <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
                     <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
                       Dealer Operations Portal
                     </span>
@@ -354,54 +378,76 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     Galaxy Green Control Hub
                   </SheetTitle>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAuthenticated(false)}
-                  className="h-8 text-xs border-border hover:bg-surface font-mono"
-                >
-                  <Lock className="size-3 mr-1" /> Lock
-                </Button>
+
+                {/* Control Actions: Lock & Close Buttons on Same Horizontal Alignment */}
+                <div className="flex items-center gap-2.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAuthenticated(false)}
+                    className="h-9 px-3.5 text-xs border-border/80 hover:bg-surface font-mono text-muted-foreground hover:text-foreground rounded-lg transition-all"
+                  >
+                    <Lock className="size-3.5 mr-1.5 text-accent" /> Lock
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenChange(false)}
+                    className="size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95"
+                    title="Close CRM Portal"
+                    aria-label="Close CRM Portal"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
               </div>
             </SheetHeader>
 
-            <Tabs defaultValue="leads" className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-6 pt-3 border-b border-border bg-surface/50 shrink-0">
-                <TabsList className="bg-background/80 border border-border">
-                  <TabsTrigger value="leads" className="text-xs uppercase font-medium">
+            <Tabs defaultValue="leads" className="flex-1 flex flex-col overflow-hidden bg-[#0a1410]">
+              <div className="px-6 py-3 border-b border-border/80 bg-[#0c1612] shrink-0">
+                <TabsList className="bg-[#080f0c] border border-border/80 p-1 rounded-lg h-auto flex gap-1">
+                  <TabsTrigger
+                    value="leads"
+                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                  >
                     <User className="size-3.5 mr-1.5" /> Buyer Inquiries ({leads.length})
                   </TabsTrigger>
-                  <TabsTrigger value="plots" className="text-xs uppercase font-medium">
+                  <TabsTrigger
+                    value="plots"
+                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                  >
                     <Layers className="size-3.5 mr-1.5" /> Plot Inventory ({plots.length})
                   </TabsTrigger>
-                  <TabsTrigger value="settings" className="text-xs uppercase font-medium">
-                    <Settings className="size-3.5 mr-1.5" /> Integrations
+                  <TabsTrigger
+                    value="settings"
+                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                  >
+                    <ShieldCheck className="size-3.5 mr-1.5" /> Security & PIN
                   </TabsTrigger>
                 </TabsList>
               </div>
 
               {/* TAB 1: Buyer Inquiries */}
-              <TabsContent value="leads" className="flex-1 flex flex-col overflow-hidden p-0 m-0">
-                <div className="p-6 border-b border-border/60 bg-surface/30 space-y-4 shrink-0">
+              <TabsContent value="leads" className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]">
+                <div className="p-6 border-b border-border/80 bg-[#0c1612] space-y-4 shrink-0">
                   {/* Quick Metrics Bar */}
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    <div className="bg-surface p-2 rounded border border-border/60">
+                  <div className="grid grid-cols-4 gap-2.5 text-center">
+                    <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
                       <span className="text-[10px] uppercase text-muted-foreground block font-mono">Total</span>
                       <strong className="text-lg font-display text-primary">{leads.length}</strong>
                     </div>
-                    <div className="bg-surface p-2 rounded border border-border/60">
+                    <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
                       <span className="text-[10px] uppercase text-muted-foreground block font-mono">New</span>
                       <strong className="text-lg font-display text-amber-400">
                         {leads.filter((l) => l.status === "New").length}
                       </strong>
                     </div>
-                    <div className="bg-surface p-2 rounded border border-border/60">
+                    <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
                       <span className="text-[10px] uppercase text-muted-foreground block font-mono">Visits</span>
                       <strong className="text-lg font-display text-cyan-400">
                         {leads.filter((l) => l.status === "Visit Scheduled").length}
                       </strong>
                     </div>
-                    <div className="bg-surface p-2 rounded border border-border/60">
+                    <div className="bg-[#0e1c16] p-2.5 rounded-lg border border-border/80 shadow-sm">
                       <span className="text-[10px] uppercase text-muted-foreground block font-mono">Booked</span>
                       <strong className="text-lg font-display text-emerald-400">
                         {leads.filter((l) => l.status === "Booked").length}
@@ -410,7 +456,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   </div>
 
                   {/* Search & CSV Bar */}
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2.5">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                       <input
@@ -418,14 +464,14 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         placeholder="Search buyer name, mobile, plot..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-9 pl-9 pr-3 text-xs rounded bg-surface border border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                        className="w-full h-10 pl-9 pr-3 text-xs rounded-lg bg-[#080f0c] border border-border/80 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                       />
                     </div>
                     <div className="flex items-center gap-2">
                       <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="h-9 px-2 text-xs rounded bg-surface border border-border text-foreground focus:border-primary focus:outline-none"
+                        className="h-10 px-3 text-xs rounded-lg bg-[#080f0c] border border-border/80 text-foreground focus:border-primary focus:outline-none"
                       >
                         <option value="all">All Statuses</option>
                         <option value="New">New</option>
@@ -437,16 +483,16 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       <Button
                         size="sm"
                         onClick={() => exportLeadsToCsv(leads)}
-                        className="h-9 px-3 bg-primary text-primary-foreground text-xs uppercase"
+                        className="h-10 px-4 bg-primary text-primary-foreground text-xs uppercase font-semibold btn-shimmer rounded-lg"
                       >
-                        <Download className="size-3.5 mr-1" /> Export CSV
+                        <Download className="size-3.5 mr-1.5" /> Export CSV
                       </Button>
                     </div>
                   </div>
                 </div>
 
                 {/* Leads List */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-[#0a1410]">
                   {filteredLeads.length === 0 ? (
                     <div className="text-center py-16 text-muted-foreground">
                       <p className="text-sm">No inquiries match your criteria.</p>
@@ -455,7 +501,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     filteredLeads.map((lead) => (
                       <article
                         key={lead.id}
-                        className="bg-surface/80 border border-border hover:border-primary/50 transition-all rounded p-4 space-y-3"
+                        className="bg-[#0e1c16] border border-border/80 hover:border-primary/50 transition-all rounded-xl p-4 space-y-3 shadow-sm card-architectural"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
@@ -542,8 +588,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               </TabsContent>
 
               {/* TAB 2: Live Plot Inventory Manager */}
-              <TabsContent value="plots" className="flex-1 flex flex-col overflow-hidden p-0 m-0">
-                <div className="p-6 border-b border-border/60 bg-surface/30 flex items-center justify-between shrink-0">
+              <TabsContent value="plots" className="flex-1 flex flex-col overflow-hidden p-0 m-0 bg-[#0a1410]">
+                <div className="p-6 border-b border-border/80 bg-[#0c1612] flex items-center justify-between shrink-0">
                   <div>
                     <h4 className="font-display uppercase text-lg text-foreground">
                       Live Township Inventory
@@ -555,7 +601,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   <Button
                     size="sm"
                     onClick={() => setShowAddPlotForm((prev) => !prev)}
-                    className="h-9 px-3 bg-primary text-primary-foreground text-xs uppercase"
+                    className="h-10 px-4 bg-primary text-primary-foreground text-xs uppercase font-semibold btn-shimmer rounded-lg"
                   >
                     <PlusCircle className="size-3.5 mr-1.5" />
                     {showAddPlotForm ? "Close Form" : "+ Add Real Plot"}
@@ -564,7 +610,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
                 {/* Add Plot Form Drawer/Panel */}
                 {showAddPlotForm && (
-                  <form onSubmit={handleAddNewPlot} className="p-6 bg-surface border-b border-border space-y-4 shrink-0">
+                  <form onSubmit={handleAddNewPlot} className="p-6 bg-[#0c1612] border-b border-border/80 space-y-4 shrink-0">
                     <h5 className="text-xs uppercase font-mono tracking-wider text-primary font-semibold">
                       Add New Plot to Website
                     </h5>
@@ -575,7 +621,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="e.g. E-501"
                           value={newPlotNumber}
                           onChange={(e) => setNewPlotNumber(e.target.value)}
-                          className="mt-1 h-9 text-xs bg-background"
+                          className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
                       <div>
@@ -585,7 +631,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="1000"
                           value={newPlotSize}
                           onChange={(e) => setNewPlotSize(e.target.value)}
-                          className="mt-1 h-9 text-xs bg-background"
+                          className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
                       <div>
@@ -594,17 +640,17 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="25 × 40 ft"
                           value={newPlotDims}
                           onChange={(e) => setNewPlotDims(e.target.value)}
-                          className="mt-1 h-9 text-xs bg-background"
+                          className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
                       <div>
                         <Label className="text-[10px] uppercase font-mono text-muted-foreground">Rate / Sq Ft (₹)</Label>
                         <Input
                           type="number"
-                          placeholder="1400"
+                          placeholder="1199"
                           value={newPlotRate}
                           onChange={(e) => setNewPlotRate(e.target.value)}
-                          className="mt-1 h-9 text-xs bg-background"
+                          className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
                       <div>
@@ -612,7 +658,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         <select
                           value={newPlotFacing}
                           onChange={(e) => setNewPlotFacing(e.target.value as Plot["facing"])}
-                          className="mt-1 h-9 w-full px-2 text-xs bg-background border border-border rounded text-foreground"
+                          className="mt-1 h-10 w-full px-2 text-xs bg-[#080f0c] border border-border/80 rounded-lg text-foreground"
                         >
                           <option value="East">East</option>
                           <option value="North">North</option>
@@ -628,7 +674,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="30 ft Internal"
                           value={newPlotRoad}
                           onChange={(e) => setNewPlotRoad(e.target.value)}
-                          className="mt-1 h-9 text-xs bg-background"
+                          className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
                       <div className="col-span-2">
@@ -637,22 +683,22 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="e.g. Park facing with direct morning sun"
                           value={newPlotFeature}
                           onChange={(e) => setNewPlotFeature(e.target.value)}
-                          className="mt-1 h-9 text-xs bg-background"
+                          className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
                     </div>
-                    <Button type="submit" size="sm" className="h-9 px-4 bg-primary text-primary-foreground uppercase text-xs">
+                    <Button type="submit" size="sm" className="h-10 px-5 bg-primary text-primary-foreground uppercase text-xs font-semibold btn-shimmer rounded-lg">
                       Publish Plot to Website
                     </Button>
                   </form>
                 )}
 
                 {/* Plot Inventory Table */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-[#0a1410]">
                   {plots.map((plot) => (
                     <div
                       key={plot.id}
-                      className="bg-surface/80 border border-border rounded p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      className="bg-[#0e1c16] border border-border/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm card-architectural"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -673,7 +719,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         <select
                           value={plot.status}
                           onChange={(e) => handlePlotStatusChange(plot.id, e.target.value as Plot["status"])}
-                          className={`h-8 px-2 text-xs font-semibold rounded border ${PLOT_STATUS_BADGES[plot.status] || ""}`}
+                          className={`h-8 px-2 text-xs font-semibold rounded-lg border ${PLOT_STATUS_BADGES[plot.status] || ""}`}
                         >
                           <option value="Available">Available</option>
                           <option value="Fast Selling">Fast Selling</option>
@@ -685,7 +731,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDeletePlot(plot.id, plot.number)}
-                          className="size-8 text-destructive hover:bg-destructive/10"
+                          className="size-8 text-destructive hover:bg-destructive/10 rounded-lg"
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
@@ -696,39 +742,82 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               </TabsContent>
 
               {/* TAB 3: Integrations & Settings */}
-              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 m-0">
+              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 m-0 bg-[#0a1410]">
                 <form onSubmit={handleSaveSettings} className="space-y-6 max-w-xl">
-                  {/* Google Sheets Integration Box */}
-                  <div className="p-5 bg-surface border border-border rounded-lg space-y-3">
-                    <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="size-5 text-emerald-400" />
-                      <h5 className="font-display uppercase text-sm text-foreground">
-                        Google Sheets Auto-Sync (100% Free)
-                      </h5>
+                  {/* MySQL Database & 1-Click CSV Export Box */}
+                  <div className="p-6 bg-[#0e1c16] border border-border/80 rounded-xl space-y-4 shadow-sm card-architectural">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="icon-monogram size-9">
+                          <Database className="size-4 text-emerald-400" />
+                        </div>
+                        <div>
+                          <h5 className="font-display uppercase text-sm font-semibold text-foreground">
+                            MySQL Database Engine
+                          </h5>
+                          <p className="text-[11px] text-muted-foreground font-mono">
+                            Local relational storage · Zero third-party cloud dependence
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-mono border border-emerald-500/40 text-emerald-400 bg-emerald-950/40 flex items-center gap-1.5 shrink-0">
+                        <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Online & Active
+                      </span>
                     </div>
+
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Paste your Google Apps Script Webhook URL here. Every time a buyer sends an inquiry or books a visit, it automatically adds a new row to your Google Sheet!
+                      Every customer inquiry and booked site visit is directly written to your dedicated MySQL database (<code className="text-primary font-mono text-[11px]">galaxy_green.inquiries</code>). You have 100% data ownership with no recurring fees, API quotas, or third-party locking.
                     </p>
-                    <div>
-                      <Label className="text-[10px] uppercase font-mono text-muted-foreground">
-                        Google Apps Script Webhook URL
-                      </Label>
-                      <Input
-                        placeholder="https://script.google.com/macros/s/.../exec"
-                        value={googleSheetsUrl}
-                        onChange={(e) => setGoogleSheetsUrl(e.target.value)}
-                        className="mt-1 h-10 text-xs bg-background font-mono"
-                      />
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                      <div className="bg-[#080f0c] p-3 rounded-lg border border-border/60">
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Stored Inquiries</span>
+                        <strong className="text-base font-display text-primary">{leads.length} Records</strong>
+                      </div>
+                      <div className="bg-[#080f0c] p-3 rounded-lg border border-border/60">
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Active Plots</span>
+                        <strong className="text-base font-display text-emerald-400">{plots.length} Units</strong>
+                      </div>
+                      <div className="bg-[#080f0c] p-3 rounded-lg border border-border/60 col-span-2 sm:col-span-1">
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Session Security</span>
+                        <strong className="text-xs font-mono text-foreground flex items-center gap-1 mt-0.5">
+                          <ShieldCheck className="size-3 text-emerald-400" /> HMAC-SHA256
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-border/60">
+                      <div className="text-xs text-muted-foreground">
+                        <span>Need a spreadsheet for Excel, Numbers, or offline records?</span>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => exportLeadsToCsv(leads)}
+                        disabled={leads.length === 0}
+                        className="h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold uppercase btn-shimmer rounded-lg shrink-0"
+                      >
+                        <Download className="size-3.5 mr-1.5" /> Download Full CSV ({leads.length})
+                      </Button>
                     </div>
                   </div>
 
                   {/* Security PIN Change */}
-                  <div className="p-5 bg-surface border border-border rounded-lg space-y-3">
-                    <div className="flex items-center gap-2">
-                      <KeyRound className="size-5 text-accent" />
-                      <h5 className="font-display uppercase text-sm text-foreground">
-                        Change Dealer Security PIN
-                      </h5>
+                  <div className="p-6 bg-[#0e1c16] border border-border/80 rounded-xl space-y-3.5 shadow-sm card-architectural">
+                    <div className="flex items-center gap-3">
+                      <div className="icon-monogram-gold size-9">
+                        <KeyRound className="size-4 text-accent" />
+                      </div>
+                      <div>
+                        <h5 className="font-display uppercase text-sm font-semibold text-foreground">
+                          Change Dealer Security PIN
+                        </h5>
+                        <p className="text-[11px] text-muted-foreground font-mono">
+                          Bcrypt hashed authentication for CRM and plot inventory
+                        </p>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Set a new private numeric PIN (4-8 digits) to secure your dealer portal and CRM leads.
@@ -744,7 +833,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="••••"
                           value={newPinInput}
                           onChange={(e) => setNewPinInput(e.target.value)}
-                          className="mt-1 h-10 text-center font-mono text-base bg-background tracking-widest"
+                          className="mt-1.5 h-11 text-center font-mono text-base bg-[#080f0c] border-border/80 tracking-widest rounded-lg"
                         />
                       </div>
                       <div>
@@ -757,7 +846,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           placeholder="••••"
                           value={confirmPinInput}
                           onChange={(e) => setConfirmPinInput(e.target.value)}
-                          className="mt-1 h-10 text-center font-mono text-base bg-background tracking-widest"
+                          className="mt-1.5 h-11 text-center font-mono text-base bg-[#080f0c] border-border/80 tracking-widest rounded-lg"
                         />
                       </div>
                     </div>
@@ -769,7 +858,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   <Button
                     type="submit"
                     disabled={savingSettings}
-                    className="h-11 px-6 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="h-12 px-8 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg shadow-glow"
                   >
                     <Check className="size-4 mr-2" />
                     {savingSettings ? "Saving Changes..." : "Save Settings & Webhook"}

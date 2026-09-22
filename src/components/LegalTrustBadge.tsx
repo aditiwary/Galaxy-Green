@@ -55,11 +55,11 @@ export function LegalTrustBadge() {
         {trustItems.map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.title} className="space-y-2">
-              <div className="size-9 rounded bg-primary/10 border border-primary/30 text-primary grid place-items-center">
-                <Icon className="size-4" />
+            <div key={item.title} className="group space-y-2.5">
+              <div className="icon-monogram size-10">
+                <Icon className="size-4.5 transition-transform duration-300 group-hover:scale-110" />
               </div>
-              <h4 className="font-display text-sm uppercase text-foreground font-semibold">
+              <h4 className="font-display text-sm uppercase text-foreground font-semibold tracking-tight group-hover:text-primary transition-colors">
                 {item.title}
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">

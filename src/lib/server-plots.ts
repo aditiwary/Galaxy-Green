@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { plotSchema, type Plot } from "./plot-types";
+import { plotSchema, type Plot, type PlotInput } from "./plot-types";
 import { executeQuery } from "./db";
+import { verifyAdminToken } from "./auth-token";
 
 function mapRowToPlot(row: any): Plot {
   return {
@@ -25,10 +26,15 @@ export const getPlotsFn = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const createPlotFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => plotSchema.parse(data))
+  .validator((data: { plot: PlotInput; token?: string }) => data)
   .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized: Valid dealer authentication required." };
+    }
+
+    const validated = plotSchema.parse(data.plot);
     const newPlot: Plot = {
-      ...data,
+      ...validated,
       id: `plot-${Date.now()}`,
     };
 
@@ -55,8 +61,12 @@ export const createPlotFn = createServerFn({ method: "POST" })
   });
 
 export const updatePlotStatusFn = createServerFn({ method: "POST" })
-  .validator((data: { id: string; status: Plot["status"] }) => data)
+  .validator((data: { id: string; status: Plot["status"]; token?: string }) => data)
   .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized: Valid dealer authentication required." };
+    }
+
     const res = await executeQuery("UPDATE plots SET status = ? WHERE id = ?", [data.status, data.id]);
     if (res !== null) {
       return { success: true };
@@ -65,8 +75,12 @@ export const updatePlotStatusFn = createServerFn({ method: "POST" })
   });
 
 export const deletePlotFn = createServerFn({ method: "POST" })
-  .validator((data: { id: string }) => data)
+  .validator((data: { id: string; token?: string }) => data)
   .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized: Valid dealer authentication required." };
+    }
+
     const res = await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
     if (res !== null) {
       return { success: true };

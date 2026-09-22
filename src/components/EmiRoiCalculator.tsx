@@ -4,14 +4,10 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import {
   TrendingUp,
-  Calculator,
   ShieldCheck,
-  Zap,
   ArrowRight,
-  PiggyBank,
   BadgePercent,
-  CheckCircle2,
-  Sparkles,
+  FileText,
 } from "lucide-react";
 
 interface EmiRoiCalculatorProps {
@@ -23,25 +19,33 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
   const [customAreaInput, setCustomAreaInput] = useState<string>("600");
   const [downPaymentPercent, setDownPaymentPercent] = useState<number>(20);
   const [tenureYears, setTenureYears] = useState<number>(10);
-  const [annualInterestRate] = useState<number>(8.65); // Indicative bank plot loan rate
+  const [annualInterestRate] = useState<number>(8.65); // Indicative bank plot loan interest rate
 
-  const BASE_RATE = 1199; // Rs 1,199 per sq ft
-  const totalCost = plotArea * BASE_RATE;
+  const BASE_RATE = 1199; // Rs 1,199 per sq ft fixed base rate
+  const effectiveArea = Math.max(100, plotArea);
+  const totalCost = effectiveArea * BASE_RATE;
   const downPaymentAmount = Math.round(totalCost * (downPaymentPercent / 100));
-  const loanAmount = totalCost - downPaymentAmount;
+  const loanAmount = Math.max(0, totalCost - downPaymentAmount);
 
-  // Monthly EMI calculation: [P * r * (1+r)^n] / [(1+r)^n - 1]
+  // Standard Reducing Balance Monthly EMI: [P * r * (1+r)^n] / [(1+r)^n - 1]
   const monthlyRate = annualInterestRate / 12 / 100;
-  const totalMonths = tenureYears * 12;
+  const totalMonths = Math.max(12, tenureYears * 12);
   const emi =
-    loanAmount > 0
+    loanAmount > 0 && monthlyRate > 0
       ? Math.round(
           (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) /
             (Math.pow(1 + monthlyRate, totalMonths) - 1)
         )
+      : loanAmount > 0
+      ? Math.round(loanAmount / totalMonths)
       : 0;
 
-  // 5-Year Capital Appreciation: 18% CAGR driven by Lucknow Airport & Metro corridor
+  // Estimated UP Statutory Registration & Stamp Duty Breakdown
+  const estimatedStampDuty = Math.round(totalCost * 0.07); // ~7% Stamp Duty (UP)
+  const estimatedRegistration = Math.round(totalCost * 0.01); // ~1% Registration Fee
+  const totalStatutoryFees = estimatedStampDuty + estimatedRegistration;
+
+  // 5-Year Capital Appreciation: 18% CAGR conservative estimate for Amausi Airport Growth Corridor
   const appreciationRate = 0.18;
   const estimatedFutureValue5Years = Math.round(
     totalCost * Math.pow(1 + appreciationRate, 5)
@@ -58,8 +62,19 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
   const handleCustomAreaChange = (valStr: string) => {
     setCustomAreaInput(valStr);
     const num = parseInt(valStr, 10);
-    if (!isNaN(num) && num >= 600) {
+    if (!isNaN(num) && num > 0) {
       setPlotArea(num);
+    }
+  };
+
+  const handleCustomAreaBlur = () => {
+    const num = parseInt(customAreaInput, 10);
+    if (isNaN(num) || num < 600) {
+      setPlotArea(600);
+      setCustomAreaInput("600");
+    } else if (num > 15000) {
+      setPlotArea(15000);
+      setCustomAreaInput("15000");
     }
   };
 
@@ -75,19 +90,19 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="eyebrow">06 · Financial Intelligence</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/30">
-                Rate: ₹1,199 / Sq Ft
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-primary/10 text-primary border border-primary/30">
+                Official Rate: ₹1,199 / Sq Ft
               </span>
             </div>
             <h2 className="section-title">
               Investment ROI & EMI Calculator
             </h2>
             <p className="mt-3 max-w-2xl text-sm md:text-base text-muted-foreground leading-relaxed">
-              Minimum plot size starts from <strong className="text-foreground">600 sq. ft. (just {formatINR(600 * 1199)})</strong>, 
-              and maximum can be customized entirely to your personal requirement and architectural vision.
+              Minimum allotment starts from <strong className="text-foreground font-medium">600 sq. ft. ({formatINR(600 * 1199)})</strong>, 
+              with flexible dimensions scalable up to commercial parcels and luxury multi-plot estates.
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-accent/15 border border-accent/30 px-4 py-2 rounded text-xs text-accent font-mono">
+          <div className="flex items-center gap-2.5 bg-accent/10 border border-accent/30 px-4 py-2.5 rounded text-xs text-accent font-mono">
             <TrendingUp className="size-4 shrink-0" />
             <span>Amausi Corridor 5-Yr Growth Trend: +128%</span>
           </div>
@@ -106,17 +121,19 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                   <Input
                     type="number"
                     min={600}
+                    max={15000}
                     step={50}
                     value={customAreaInput}
                     onChange={(e) => handleCustomAreaChange(e.target.value)}
-                    className="w-28 h-9 text-right font-display font-semibold text-primary text-base"
+                    onBlur={handleCustomAreaBlur}
+                    className="w-28 h-9 text-right font-display font-semibold text-primary text-base bg-background/80"
                   />
                   <span className="text-xs font-mono text-muted-foreground">Sq Ft</span>
                 </div>
               </div>
 
               <Slider
-                value={[plotArea > 4000 ? 4000 : plotArea]}
+                value={[plotArea > 4000 ? 4000 : Math.max(600, plotArea)]}
                 min={600}
                 max={4000}
                 step={50}
@@ -131,21 +148,21 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
               {/* Quick Area Preset Buttons */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 {[
-                  { area: 600, label: "600 Sq Ft (Starting ₹7.19L)" },
-                  { area: 800, label: "800 Sq Ft" },
-                  { area: 1000, label: "1,000 Sq Ft" },
-                  { area: 1200, label: "1,200 Sq Ft" },
-                  { area: 1500, label: "1,500 Sq Ft" },
+                  { area: 600, label: "600 Sq Ft (₹7.19L)" },
+                  { area: 800, label: "800 Sq Ft (₹9.59L)" },
+                  { area: 1000, label: "1,000 Sq Ft (₹11.99L)" },
+                  { area: 1200, label: "1,200 Sq Ft (₹14.39L)" },
+                  { area: 1500, label: "1,500 Sq Ft (₹17.99L)" },
                   { area: 2000, label: "2,000+ Sq Ft" },
                 ].map((preset) => (
                   <button
                     key={preset.area}
                     type="button"
                     onClick={() => handlePresetSelect(preset.area)}
-                    className={`px-2.5 py-1 rounded text-[11px] font-mono transition-all ${
+                    className={`px-3 py-1.5 rounded text-[11px] font-mono transition-all cursor-pointer ${
                       plotArea === preset.area
                         ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                        : "bg-surface hover:bg-surface-hover text-muted-foreground hover:text-foreground border border-border/80"
+                        : "bg-surface hover:bg-surface-hover text-muted-foreground hover:text-foreground border border-border"
                     }`}
                   >
                     {preset.label}
@@ -167,7 +184,7 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
               <Slider
                 value={[downPaymentPercent]}
                 min={10}
-                max={60}
+                max={70}
                 step={5}
                 onValueChange={(val) => setDownPaymentPercent(val[0] ?? 20)}
                 className="py-2"
@@ -199,24 +216,41 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
               />
               <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1">
                 <span>3 Years</span>
-                <span>10 Years (Popular)</span>
+                <span>10 Years (Recommended)</span>
                 <span>15 Years</span>
               </div>
             </div>
 
+            {/* UP Stamp Duty & Statutory Registration Breakdown */}
+            <div className="pt-4 border-t border-border/70 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <FileText className="size-3.5 text-primary" />
+                  Estimated Registry & Stamp Duty (UP Standard ~8%)
+                </span>
+                <strong className="text-foreground font-mono text-xs">
+                  {formatINR(totalStatutoryFees)}
+                </strong>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-muted-foreground bg-background/50 p-2.5 rounded border border-border/50">
+                <div>Stamp Duty (~7%): <span className="text-foreground">{formatINR(estimatedStampDuty)}</span></div>
+                <div>Registration (~1%): <span className="text-foreground">{formatINR(estimatedRegistration)}</span></div>
+              </div>
+            </div>
+
             {/* Assumptions Note */}
-            <div className="pt-4 border-t border-border/60 flex items-start gap-2.5 text-xs text-muted-foreground">
+            <div className="pt-2 flex items-start gap-2.5 text-xs text-muted-foreground">
               <BadgePercent className="size-4 text-primary shrink-0 mt-0.5" />
               <span>
-                Computed strictly at transparent base rate <strong className="text-foreground">₹1,199 / sq ft</strong>. 
-                Bank loan assistance with leading nationalized banks (SBI, HDFC, PNB) available up to 80% financing with instant legal verification.
+                Computed at transparent fixed base rate <strong className="text-foreground">₹1,199 / sq ft</strong>. 
+                Pre-approved plot loans available with nationalized lenders (SBI, HDFC, PNB) up to 80% financing with immediate legal title clearance.
               </span>
             </div>
           </div>
 
           {/* Real-time Results Card */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-card border border-primary/40 rounded-lg p-6 sm:p-8 relative overflow-hidden shadow-glow">
+            <div className="bg-card border border-primary/30 rounded-lg p-6 sm:p-8 relative overflow-hidden shadow-luxury">
               <div className="absolute -top-12 -right-12 size-36 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
 
               <span className="text-[10px] uppercase tracking-widest text-primary font-mono font-semibold block">
@@ -237,11 +271,11 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Plot Size Selected</span>
                   <strong className="text-foreground font-mono text-sm">
-                    {plotArea.toLocaleString()} Sq Ft
+                    {effectiveArea.toLocaleString()} Sq Ft
                   </strong>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Total Plot Cost (₹1,199/sq ft)</span>
+                  <span className="text-muted-foreground">Total Consideration (₹1,199/sq ft)</span>
                   <strong className="text-primary font-medium text-sm">
                     {formatINR(totalCost)}
                   </strong>
@@ -277,14 +311,14 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
                   </span>
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Projected on Lucknow Airport expansion, Amausi Railway & Metro transit connectivity.
+                  Conservative projection anchored on Lucknow Airport expansion, Amausi Railway & Metro transit connectivity.
                 </p>
               </div>
 
               <Button
                 size="lg"
-                onClick={() => onLockPriceClick(`${plotArea} sq ft`)}
-                className="mt-6 w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                onClick={() => onLockPriceClick(`${effectiveArea} sq ft`)}
+                className="mt-6 w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
               >
                 Lock Current ₹1,199 Rate <ArrowRight className="size-3.5 ml-2" />
               </Button>

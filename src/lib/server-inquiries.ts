@@ -1,30 +1,32 @@
 import { createServerFn } from "@tanstack/react-start";
-import { inquirySchema, type Inquiry } from "./inquiry-types";
+import bcrypt from "bcryptjs";
+import { inquirySchema, type Inquiry, type InquiryInput } from "./inquiry-types";
 import { executeQuery } from "./db";
-import crypto from "node:crypto";
+import { generateAdminToken, verifyAdminToken } from "./auth-token";
 
-const SECRET = process.env["ADMIN_SESSION_SECRET"] || "gg_dealer_session_secret_2026_secured";
+export { generateAdminToken, verifyAdminToken };
 
-export function generateAdminToken(): string {
-  const timestamp = Date.now();
-  const hash = crypto.createHmac("sha256", SECRET).update(`admin_${timestamp}`).digest("hex");
-  return `${timestamp}_${hash}`;
+// Security State: In-Memory Sliding-Window Rate Limiters
+interface PinAttemptTracker {
+  count: number;
+  lockoutUntil: number;
 }
+const pinAttemptMap = new Map<string, PinAttemptTracker>();
 
-export function verifyAdminToken(token?: string): boolean {
-  if (!token || typeof token !== "string") return false;
-  const parts = token.split("_");
-  if (parts.length !== 2) return false;
-  const [timeStr, expectedHash] = parts;
-  const time = parseInt(timeStr, 10);
-  // Valid for 24 hours
-  if (isNaN(time) || Date.now() - time > 24 * 60 * 60 * 1000) return false;
-  const actualHash = crypto.createHmac("sha256", SECRET).update(`admin_${timeStr}`).digest("hex");
-  try {
-    return crypto.timingSafeEqual(Buffer.from(actualHash), Buffer.from(expectedHash));
-  } catch {
-    return false;
-  }
+// Inquiries rate limiter: records timestamps per phone number
+const phoneSubmissionHistory = new Map<string, number[]>();
+const globalSubmissionTimestamps: number[] = [];
+
+/**
+ * Strips HTML tags and script injections to protect against stored XSS.
+ */
+function sanitizeText(str?: string | null): string | null {
+  if (!str) return null;
+  return str
+    .replace(/<[^>]*>?/gm, "") // strip html tags
+    .replace(/javascript:/gi, "")
+    .replace(/on\w+=/gi, "")
+    .trim();
 }
 
 function mapRowToInquiry(row: any): Inquiry {
@@ -62,62 +64,97 @@ function mapRowToInquiry(row: any): Inquiry {
   };
 }
 
-async function forwardToGoogleSheets(inquiry: Inquiry): Promise<void> {
-  try {
-    let webhookUrl = process.env["GOOGLE_SHEETS_WEBHOOK_URL"];
-    if (!webhookUrl) {
-      const rows = await executeQuery<any[]>("SELECT google_sheets_webhook_url FROM admin_config WHERE id = 1 LIMIT 1");
-      if (rows && rows.length > 0) {
-        webhookUrl = rows[0].google_sheets_webhook_url;
-      }
-    }
-
-    if (webhookUrl && typeof webhookUrl === "string" && webhookUrl.startsWith("http")) {
-      await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inquiry),
-      });
-    }
-  } catch (err) {
-    console.error("Google Sheets forward error:", err);
-  }
-}
-
 // -------------------------------------------------------------
-// SECURE DEALER AUTHENTICATION
+// SECURE DEALER AUTHENTICATION WITH BCRYPT & BRUTE-FORCE DEFENSE
 // -------------------------------------------------------------
 
 export const verifyDealerPinFn = createServerFn({ method: "POST" })
   .validator((data: { pin: string }) => data)
   .handler(async ({ data }) => {
-    // Artificial delay to thwart automated brute-force attacks
+    const trackerKey = "dealer_portal_login";
+    const now = Date.now();
+    const tracker = pinAttemptMap.get(trackerKey) || { count: 0, lockoutUntil: 0 };
+
+    // Check if lockout is active
+    if (tracker.lockoutUntil > now) {
+      const remainingSecs = Math.ceil((tracker.lockoutUntil - now) / 1000);
+      return {
+        success: false,
+        error: `Security lockout: Too many incorrect attempts. Please wait ${remainingSecs} seconds.`,
+      };
+    }
+
+    // Artificial delay to thwart automated high-frequency timing attacks
     await new Promise((r) => setTimeout(r, 250));
 
     const rows = await executeQuery<any[]>("SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1");
-    const currentPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "0000";
+    const storedPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "";
 
     const cleanInput = String(data.pin || "").trim();
-    if (cleanInput === currentPin) {
+
+    let isPinMatch = false;
+    if (storedPin.startsWith("$2b$") || storedPin.startsWith("$2a$")) {
+      isPinMatch = await bcrypt.compare(cleanInput, storedPin);
+    } else if (storedPin.length > 0) {
+      // Legacy plaintext comparison with seamless on-the-fly bcrypt upgrade
+      isPinMatch = cleanInput === storedPin;
+      if (isPinMatch) {
+        try {
+          const upgradedHash = await bcrypt.hash(cleanInput, 10);
+          await executeQuery("UPDATE admin_config SET dealer_pin = ? WHERE id = 1", [upgradedHash]);
+        } catch (upgradeErr) {
+          console.error("Failed to upgrade plaintext PIN to bcrypt:", upgradeErr);
+        }
+      }
+    } else {
+      // Fallback default PIN "0000" if uninitialized
+      isPinMatch = cleanInput === "0000";
+      if (isPinMatch) {
+        try {
+          const defaultHash = await bcrypt.hash("0000", 10);
+          await executeQuery("UPDATE admin_config SET dealer_pin = ? WHERE id = 1", [defaultHash]);
+        } catch {}
+      }
+    }
+
+    if (isPinMatch) {
+      // Clear failed count on successful authentication
+      pinAttemptMap.delete(trackerKey);
       const token = generateAdminToken();
       return { success: true, token };
     }
 
-    return { success: false, error: "Access denied. Invalid credentials." };
+    // Increment failed attempts
+    tracker.count += 1;
+    if (tracker.count >= 5) {
+      // Lock out for 15 minutes
+      tracker.lockoutUntil = now + 15 * 60 * 1000;
+      pinAttemptMap.set(trackerKey, tracker);
+      return {
+        success: false,
+        error: "Security lockout: 5 failed attempts exceeded. Portal locked for 15 minutes.",
+      };
+    }
+
+    pinAttemptMap.set(trackerKey, tracker);
+    const remainingAttempts = 5 - tracker.count;
+    return {
+      success: false,
+      error: `Access denied. Invalid PIN. (${remainingAttempts} attempts remaining before lockout).`,
+    };
   });
 
 // Returns portal settings WITHOUT EVER EXPOSING the dealer password/PIN
 export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async () => {
-  const rows = await executeQuery<any[]>("SELECT google_sheets_webhook_url, base_rate_per_sq_ft FROM admin_config WHERE id = 1 LIMIT 1");
+  const rows = await executeQuery<any[]>("SELECT base_rate_per_sq_ft FROM admin_config WHERE id = 1 LIMIT 1");
   if (rows && rows.length > 0) {
     const r = rows[0];
     return {
-      googleSheetsWebhookUrl: r.google_sheets_webhook_url || "",
-      baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || 1400,
+      baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || 1199,
     };
   }
 
-  return { googleSheetsWebhookUrl: "", baseRatePerSqFt: 1400 };
+  return { baseRatePerSqFt: 1199 };
 });
 
 export const updateAdminConfigFn = createServerFn({ method: "POST" })
@@ -125,7 +162,6 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     (data: {
       token?: string;
       dealerPin?: string;
-      googleSheetsWebhookUrl?: string;
       newPin?: string;
       baseRatePerSqFt?: number;
     }) => data
@@ -135,12 +171,15 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     let isAuthorized = false;
     if (data.token && verifyAdminToken(data.token)) {
       isAuthorized = true;
-    } else {
+    } else if (data.dealerPin) {
       // Fallback check against DB PIN
       const rows = await executeQuery<any[]>("SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1");
-      const currentPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "0000";
-      if (data.dealerPin && String(data.dealerPin).trim() === currentPin) {
-        isAuthorized = true;
+      const storedPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "";
+      const clean = String(data.dealerPin).trim();
+      if (storedPin.startsWith("$2b$") || storedPin.startsWith("$2a$")) {
+        isAuthorized = await bcrypt.compare(clean, storedPin);
+      } else {
+        isAuthorized = clean === storedPin;
       }
     }
 
@@ -154,20 +193,19 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     }
 
     // Ensure row id = 1 exists in admin_config
+    const defaultHash = await bcrypt.hash("0000", 10);
     await executeQuery(
-      "INSERT IGNORE INTO admin_config (id, google_sheets_webhook_url, dealer_pin, base_rate_per_sq_ft) VALUES (1, '', '0000', 1400)"
+      "INSERT IGNORE INTO admin_config (id, dealer_pin, base_rate_per_sq_ft) VALUES (1, ?, 1199)",
+      [defaultHash]
     );
 
     const updates: string[] = [];
     const params: any[] = [];
 
-    if (data.googleSheetsWebhookUrl !== undefined) {
-      updates.push("google_sheets_webhook_url = ?");
-      params.push(data.googleSheetsWebhookUrl);
-    }
     if (data.newPin) {
+      const hashedPin = await bcrypt.hash(data.newPin, 10);
       updates.push("dealer_pin = ?");
-      params.push(data.newPin);
+      params.push(hashedPin);
     }
     if (data.baseRatePerSqFt !== undefined) {
       updates.push("base_rate_per_sq_ft = ?");
@@ -203,12 +241,75 @@ export const getInquiriesFn = createServerFn({ method: "POST" })
     return [];
   });
 
-// Public: Buyers submit inquiries
+// Public: Buyers submit inquiries with honeypot trap, sanitization, and sliding-window rate limit
 export const submitInquiryFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => inquirySchema.parse(data))
   .handler(async ({ data }) => {
+    // 1. Anti-Bot Honeypot Defense:
+    // If the invisible 'website' field was filled, a bot triggered the form.
+    // Silently return success to avoid tipping off the bot.
+    if (data.website && data.website.trim().length > 0) {
+      console.warn("[Bot Defense] Automated bot submission rejected via honeypot trap.");
+      return {
+        success: true,
+        inquiry: {
+          id: `GG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+          name: sanitizeText(data.name) || "Customer",
+          phone: data.phone,
+          plotPreference: data.plotPreference,
+          slot: data.slot,
+          cabPickup: false,
+          pickupLocation: "On Site",
+          status: "New" as const,
+          createdAt: new Date().toISOString(),
+        },
+      };
+    }
+
+    // 2. Sliding-Window Rate Limiting
+    const now = Date.now();
+    const tenMinsAgo = now - 10 * 60 * 1000;
+
+    // A. Phone-specific rate limit (max 3 submissions / 10 minutes)
+    const phoneHistory = (phoneSubmissionHistory.get(data.phone) || []).filter((t) => t > tenMinsAgo);
+    if (phoneHistory.length >= 3) {
+      return {
+        success: false,
+        error: "Too many submissions. Our team will contact you shortly on your provided number.",
+      };
+    }
+    phoneHistory.push(now);
+    phoneSubmissionHistory.set(data.phone, phoneHistory);
+
+    // B. Global submission throttle (max 40 submissions / 5 minutes)
+    const fiveMinsAgo = now - 5 * 60 * 1000;
+    while (globalSubmissionTimestamps.length > 0 && globalSubmissionTimestamps[0]! < fiveMinsAgo) {
+      globalSubmissionTimestamps.shift();
+    }
+    if (globalSubmissionTimestamps.length >= 40) {
+      return {
+        success: false,
+        error: "High server load. Please call us directly or retry in a few moments.",
+      };
+    }
+    globalSubmissionTimestamps.push(now);
+
+    // 3. XSS Sanitization & Record Generation
+    const sanitizedName = sanitizeText(data.name) || "Guest";
+    const sanitizedEmail = sanitizeText(data.email) || null;
+    const sanitizedPlot = sanitizeText(data.plotPreference) || "1000 sq ft";
+    const sanitizedMsg = sanitizeText(data.message) || null;
+
     const newInquiry: Inquiry = {
-      ...data,
+      name: sanitizedName,
+      phone: data.phone,
+      email: sanitizedEmail || undefined,
+      plotPreference: sanitizedPlot,
+      visitDate: data.visitDate || undefined,
+      slot: data.slot,
+      cabPickup: false,
+      pickupLocation: "On Site",
+      message: sanitizedMsg || undefined,
       id: `GG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       status: "New",
       createdAt: new Date().toISOString(),
@@ -231,8 +332,6 @@ export const submitInquiryFn = createServerFn({ method: "POST" })
         newInquiry.status,
       ]
     );
-
-    await forwardToGoogleSheets(newInquiry);
 
     if (res !== null) {
       return { success: true, inquiry: newInquiry };

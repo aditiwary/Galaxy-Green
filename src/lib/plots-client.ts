@@ -16,7 +16,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "25 × 40 ft",
     facing: "East",
     roadWidth: "30 ft Internal",
-    ratePerSqFt: 1400,
+    ratePerSqFt: 1199,
     status: "Available",
     feature: "Ideal for 3BHK compact luxury independent duplex.",
   },
@@ -27,7 +27,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "25 × 40 ft",
     facing: "North",
     roadWidth: "30 ft Internal",
-    ratePerSqFt: 1400,
+    ratePerSqFt: 1199,
     status: "Fast Selling",
     feature: "Vastu-compliant entrance with clear morning sunlight.",
   },
@@ -38,7 +38,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "30 × 40 ft",
     facing: "Park Facing",
     roadWidth: "30 ft Internal",
-    ratePerSqFt: 1400,
+    ratePerSqFt: 1199,
     status: "Fast Selling",
     feature: "Direct unobstructed view of central green park & jogging trail.",
   },
@@ -49,7 +49,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "30 × 50 ft",
     facing: "East",
     roadWidth: "30 ft Internal",
-    ratePerSqFt: 1400,
+    ratePerSqFt: 1199,
     status: "Available",
     feature: "Generous frontage for double-car porch and front garden.",
   },
@@ -60,7 +60,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "40 × 50 ft",
     facing: "Park Facing",
     roadWidth: "40 ft Boulevard",
-    ratePerSqFt: 1400,
+    ratePerSqFt: 1199,
     status: "Available",
     feature: "Premium estate plot overlooking clubhouse & landscaped water body.",
   },
@@ -71,7 +71,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "40 × 50 ft",
     facing: "Boulevard Corner",
     roadWidth: "40 ft × 30 ft Dual Road",
-    ratePerSqFt: 1450,
+    ratePerSqFt: 1299,
     status: "Fast Selling",
     feature: "Two-side open corner plot with grand boulevard visibility.",
   },
@@ -82,7 +82,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "50 × 60 ft",
     facing: "Boulevard Corner",
     roadWidth: "40 ft Main Avenue",
-    ratePerSqFt: 1450,
+    ratePerSqFt: 1299,
     status: "Reserved",
     feature: "Ultra-luxury mansion plot with private swimming pool clearance.",
   },
@@ -93,7 +93,7 @@ const DEFAULT_PLOTS: Plot[] = [
     dimensions: "25 × 40 ft",
     facing: "North",
     roadWidth: "30 ft Internal",
-    ratePerSqFt: 1400,
+    ratePerSqFt: 1199,
     status: "Available",
     feature: "Prime location near security entrance and visitor parking.",
   },
@@ -124,10 +124,10 @@ export async function fetchLivePlots(): Promise<Plot[]> {
   return DEFAULT_PLOTS;
 }
 
-export async function addLivePlot(input: PlotInput): Promise<Plot> {
+export async function addLivePlot(input: PlotInput, token?: string): Promise<Plot> {
   let created: Plot | null = null;
   try {
-    const res = await createPlotFn({ data: input });
+    const res = await createPlotFn({ data: { plot: input, ...(token ? { token } : {}) } });
     if (res?.plot) created = res.plot;
   } catch (err) {
     console.warn("Server add plot fallback:", err);
@@ -155,10 +155,11 @@ export async function addLivePlot(input: PlotInput): Promise<Plot> {
 
 export async function setPlotStatus(
   id: string,
-  status: Plot["status"]
+  status: Plot["status"],
+  token?: string
 ): Promise<boolean> {
   try {
-    await updatePlotStatusFn({ data: { id, status } });
+    await updatePlotStatusFn({ data: { id, status, ...(token ? { token } : {}) } });
   } catch (err) {
     console.warn("Server plot status update fallback:", err);
   }
@@ -176,9 +177,9 @@ export async function setPlotStatus(
   return true;
 }
 
-export async function removePlot(id: string): Promise<boolean> {
+export async function removePlot(id: string, token?: string): Promise<boolean> {
   try {
-    await deletePlotFn({ data: { id } });
+    await deletePlotFn({ data: { id, ...(token ? { token } : {}) } });
   } catch (err) {
     console.warn("Server plot deletion fallback:", err);
   }

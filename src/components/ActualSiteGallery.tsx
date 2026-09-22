@@ -242,89 +242,95 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
         {/* Bento / Dynamic Mosaic Grid */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
           {/* Main Hero Card (Photo 1 - Plot Demarcation) */}
-          {filteredPhotos.length > 0 && (
-            <div
-              className="md:col-span-8 group relative rounded-xl overflow-hidden border border-border bg-card shadow-glow cursor-pointer flex flex-col justify-end min-h-[380px] lg:min-h-[440px]"
-              onClick={() => openLightbox(0)}
-            >
-              <img
-                src={filteredPhotos[0].src}
-                alt={filteredPhotos[0].title}
-                className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          {filteredPhotos[0] && (() => {
+            const hero = filteredPhotos[0];
+            return (
+              <div
+                className="md:col-span-8 group relative rounded-xl overflow-hidden border border-border bg-card shadow-glow cursor-pointer flex flex-col justify-end min-h-[380px] lg:min-h-[440px]"
+                onClick={() => openLightbox(0)}
+              >
+                <img
+                  src={hero.src}
+                  alt={hero.title}
+                  className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-              <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                <span className="px-3 py-1 rounded-md text-[11px] font-mono font-semibold bg-background/80 backdrop-blur-md text-primary border border-primary/30 shadow">
-                  {filteredPhotos[0].tag}
-                </span>
-                <span className="size-9 rounded-full bg-background/80 backdrop-blur-md border border-border flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors shadow">
-                  <Maximize2 className="size-4" />
-                </span>
-              </div>
-
-              <div className="relative p-6 sm:p-8 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-mono text-primary">
-                  <Camera className="size-3.5" />
-                  <span>{filteredPhotos[0].categoryLabel}</span>
-                  <span>·</span>
-                  <span className="text-muted-foreground">{filteredPhotos[0].dimensionsLabel}</span>
-                </div>
-                <h3 className="font-display text-xl sm:text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {filteredPhotos[0].title}
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 max-w-2xl">
-                  {filteredPhotos[0].description}
-                </p>
-                <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-foreground/80">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5 text-emerald-400" />
-                    Boundary Curbs Laid
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                  <span className="px-3 py-1 rounded-md text-[11px] font-mono font-semibold bg-background/80 backdrop-blur-md text-primary border border-primary/30 shadow">
+                    {hero.tag}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5 text-emerald-400" />
-                    ₹1,199 / Sq Ft Fixed Rate
+                  <span className="size-9 rounded-full bg-background/80 backdrop-blur-md border border-border flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors shadow">
+                    <Maximize2 className="size-4" />
                   </span>
                 </div>
+
+                <div className="relative p-6 sm:p-8 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-mono text-primary">
+                    <Camera className="size-3.5" />
+                    <span>{hero.categoryLabel}</span>
+                    <span>·</span>
+                    <span className="text-muted-foreground">{hero.dimensionsLabel}</span>
+                  </div>
+                  <h3 className="font-display text-xl sm:text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {hero.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 max-w-2xl">
+                    {hero.description}
+                  </p>
+                  <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-foreground/80">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="size-3.5 text-emerald-400" />
+                      Boundary Curbs Laid
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="size-3.5 text-emerald-400" />
+                      ₹1,199 / Sq Ft Fixed Rate
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Secondary Hero Card (Photo 2 - Sunset Streetlights & 30-ft Road) */}
-          {filteredPhotos.length > 1 && (
-            <div
-              className="md:col-span-4 group relative rounded-xl overflow-hidden border border-border bg-card shadow-glow cursor-pointer flex flex-col justify-end min-h-[320px] md:min-h-auto"
-              onClick={() => openLightbox(1)}
-            >
-              <img
-                src={filteredPhotos[1].src}
-                alt={filteredPhotos[1].title}
-                className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          {filteredPhotos[1] && (() => {
+            const sec = filteredPhotos[1];
+            return (
+              <div
+                className="md:col-span-4 group relative rounded-xl overflow-hidden border border-border bg-card shadow-glow cursor-pointer flex flex-col justify-end min-h-[320px] md:min-h-auto"
+                onClick={() => openLightbox(1)}
+              >
+                <img
+                  src={sec.src}
+                  alt={sec.title}
+                  className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
 
-              <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-medium bg-background/80 backdrop-blur-md text-accent border border-accent/30">
-                  {filteredPhotos[1].tag}
-                </span>
-                <span className="size-8 rounded-full bg-background/80 backdrop-blur-md border border-border flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <Maximize2 className="size-3.5" />
-                </span>
-              </div>
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-medium bg-background/80 backdrop-blur-md text-accent border border-accent/30">
+                    {sec.tag}
+                  </span>
+                  <span className="size-8 rounded-full bg-background/80 backdrop-blur-md border border-border flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <Maximize2 className="size-3.5" />
+                  </span>
+                </div>
 
-              <div className="relative p-5 space-y-1.5">
-                <span className="text-[10px] font-mono text-primary uppercase block">
-                  {filteredPhotos[1].categoryLabel}
-                </span>
-                <h4 className="font-display text-base font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {filteredPhotos[1].title}
-                </h4>
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {filteredPhotos[1].description}
-                </p>
+                <div className="relative p-5 space-y-1.5">
+                  <span className="text-[10px] font-mono text-primary uppercase block">
+                    {sec.categoryLabel}
+                  </span>
+                  <h4 className="font-display text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {sec.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {sec.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Bottom 3 Cards */}
           {filteredPhotos.slice(2).map((photo, idx) => (
@@ -365,9 +371,9 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
         </div>
 
         {/* Action Bar Beneath Gallery */}
-        <div className="mt-8 p-5 sm:p-6 rounded-xl bg-surface border border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-8 p-5 sm:p-6 rounded-xl bg-surface border border-border flex flex-col sm:flex-row items-center justify-between gap-4 shadow-luxury">
           <div className="flex items-center gap-3.5">
-            <div className="size-11 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+            <div className="icon-monogram size-12 shrink-0">
               <Camera className="size-5" />
             </div>
             <div>
@@ -383,7 +389,7 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Button
               onClick={() => onScheduleVisit("On-Ground Demarcated Plot")}
-              className="w-full sm:w-auto h-11 px-6 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+              className="w-full sm:w-auto h-11 px-6 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
             >
               Book Personal Site Inspection <Calendar className="size-3.5 ml-2" />
             </Button>
@@ -414,8 +420,10 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
                 size="sm"
                 onClick={() => {
                   const p = filteredPhotos[lightboxIndex];
-                  closeLightbox();
-                  onScheduleVisit(`${p.title} (${p.dimensionsLabel || "On-Site"})`);
+                  if (p) {
+                    closeLightbox();
+                    onScheduleVisit(`${p.title} (${p.dimensionsLabel || "On-Site"})`);
+                  }
                 }}
                 className="h-8 px-3 uppercase text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
               >

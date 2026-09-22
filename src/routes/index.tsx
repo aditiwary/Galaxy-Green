@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -158,13 +158,28 @@ function Index() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [selectedPlotForVisit, setSelectedPlotForVisit] = useState("600 sq ft");
 
+  // Floating dock visibility & minimization state
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [dockMinimized, setDockMinimized] = useState(false);
+
   // Lead Form State
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactPlot, setContactPlot] = useState("600 sq ft");
   const [contactMessage, setContactMessage] = useState("");
+  const [contactHoneypot, setContactHoneypot] = useState("");
   const [formError, setFormError] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Concierge dock smoothly appears only after scrolling 400px past hero
+      setScrolledPastHero(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Trigger site visit modal with pre-filled plot
   const handlePlotSelectForBooking = (plotNumber: string, size: string) => {
@@ -200,6 +215,7 @@ function Index() {
         slot: "Morning (10:00 AM)",
         cabPickup: false,
         pickupLocation: "On Site",
+        website: contactHoneypot,
       });
 
       toast.success(`Inquiry Recorded! Reference ID: ${createdLead.id}`);
@@ -231,6 +247,9 @@ function Index() {
       setFormSubmitting(false);
     }
   }
+
+  const isFloatingDockVisible =
+    scrolledPastHero && !siteVisitOpen && !brochureOpen && !adminOpen;
 
   return (
     <main id="home" className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
@@ -370,10 +389,13 @@ function Index() {
         <div className="absolute inset-0 bg-grid opacity-25" />
 
         <div className="relative mx-auto w-full max-w-7xl px-5 pb-20 pt-36 lg:px-8 lg:pb-24">
-          <div className="max-w-4xl">
+          {/* Ambient architectural luminescence */}
+          <div className="hero-glow -top-10 -left-10 opacity-75" />
+
+          <div className="max-w-4xl relative z-10">
             {/* Live Availability Tag */}
-            <div className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-primary/40 bg-background/80 px-4 py-1.5 backdrop-blur-md">
-              <span className="size-2 rounded-full bg-primary animate-ping" />
+            <div className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-primary/40 bg-background/80 px-4 py-1.5 backdrop-blur-md shadow-sm">
+              <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
               <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
                 Phase 1 Open · Amausi Airport Growth Corridor
               </span>
@@ -398,7 +420,7 @@ function Index() {
                   setSelectedPlotForVisit("1000 sq ft");
                   setSiteVisitOpen(true);
                 }}
-                className="h-13 px-8 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                className="h-13 px-8 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
               >
                 Schedule Site Visit <ArrowRight className="size-4 ml-2" />
               </Button>
@@ -424,14 +446,14 @@ function Index() {
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="mt-14 grid max-w-4xl grid-cols-2 border border-border/80 bg-background/60 backdrop-blur-xl rounded-md divide-y sm:divide-y-0 sm:divide-x divide-border/60 sm:grid-cols-4 shadow-glow">
+          <div className="mt-14 grid max-w-4xl grid-cols-2 border border-border/80 bg-background/60 backdrop-blur-xl rounded-md divide-y sm:divide-y-0 sm:divide-x divide-border/60 sm:grid-cols-4 shadow-luxury relative z-10">
             {[
               ["₹1,199", "Per Sq Ft Rate", "Phase 1 fixed pricing"],
               ["600+", "Sq Ft Min Size", "Up to custom requirement"],
               ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
               ["100%", "Freehold & Mutation", "Dakhil Kharij ready"],
             ].map(([value, label, sub]) => (
-              <div key={label} className="p-5">
+              <div key={label} className="p-5 transition-colors hover:bg-white/[0.02]">
                 <strong className="font-display text-2xl text-primary block tracking-tight sm:text-3xl">
                   {value}
                 </strong>
@@ -461,18 +483,22 @@ function Index() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2 pt-2">
-                <div className="bg-card border border-border p-5 rounded">
-                  <Plane className="size-6 text-primary mb-3" />
-                  <h3 className="font-display text-base uppercase text-foreground font-semibold">
+                <div className="card-architectural group p-5 rounded-lg">
+                  <div className="icon-monogram size-11 mb-3.5">
+                    <Plane className="size-5 transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+                  <h3 className="font-display text-base uppercase text-foreground font-semibold tracking-tight">
                     Airport Growth Hub
                   </h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                     Just 5 minutes from Amausi Airport. Prime zone benefiting from Lucknow’s infrastructure surge.
                   </p>
                 </div>
-                <div className="bg-card border border-border p-5 rounded">
-                  <FileCheck className="size-6 text-primary mb-3" />
-                  <h3 className="font-display text-base uppercase text-foreground font-semibold">
+                <div className="card-architectural group p-5 rounded-lg">
+                  <div className="icon-monogram-gold size-11 mb-3.5">
+                    <FileCheck className="size-5 transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+                  <h3 className="font-display text-base uppercase text-foreground font-semibold tracking-tight">
                     Zero Legal Ambiguity
                   </h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
@@ -644,17 +670,17 @@ function Index() {
             ].map(({ icon: Icon, num, title, desc }) => (
               <article
                 key={title}
-                className="bg-card border border-border p-6 rounded-md transition-all hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-glow"
+                className="card-architectural group p-6 rounded-xl relative overflow-hidden"
               >
                 <div className="flex items-center justify-between">
-                  <span className="grid size-10 place-items-center rounded bg-primary/10 border border-primary/30 text-primary">
-                    <Icon className="size-5" />
-                  </span>
-                  <span className="font-mono text-xs text-muted-foreground font-semibold">
+                  <div className="icon-monogram size-12">
+                    <Icon className="size-5 transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+                  <span className="font-mono text-xs text-primary/60 font-semibold tracking-wider">
                     {num}
                   </span>
                 </div>
-                <h4 className="mt-6 font-display text-lg uppercase text-foreground">
+                <h4 className="mt-6 font-display text-lg uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">
                   {title}
                 </h4>
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
@@ -690,28 +716,34 @@ function Index() {
               {/* Transit & Key Nearby Facilities */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 {[
-                  { dist: "2.7 km", label: "Amausi Railway Station", sub: "~5 Mins · Express & Local Hub" },
-                  { dist: "3.0 km", label: "T.S. Misra Medical College", sub: "~6 Mins · Hospital & Trauma" },
-                  { dist: "5.0 km", label: "CCS International Airport", sub: "~8-10 Mins · Terminal 3" },
-                  { dist: "5.0 km", label: "Amausi Metro Station", sub: "~8-10 Mins · Red Line Link" },
-                  { dist: "3.0 km", label: "Kanpur-Lucknow Expressway", sub: "~5 Mins · High-Speed Link" },
-                  { dist: "2.5 km", label: "Main Market", sub: "~4 Mins · Daily Essentials" },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="p-3.5 rounded bg-surface border border-border/80 text-center hover:border-primary/50 transition-colors group"
-                  >
-                    <strong className="font-display text-2xl text-primary block group-hover:scale-105 transition-transform">
-                      {item.dist}
-                    </strong>
-                    <span className="text-xs font-semibold text-foreground uppercase block mt-1 line-clamp-1">
-                      {item.label}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground font-mono block mt-0.5">
-                      {item.sub}
-                    </span>
-                  </div>
-                ))}
+                  { icon: Train, dist: "2.7 km", label: "Amausi Railway Station", sub: "~5 Mins · Express & Local Hub" },
+                  { icon: HeartPulse, dist: "3.0 km", label: "T.S. Misra Medical College", sub: "~6 Mins · Hospital & Trauma" },
+                  { icon: Plane, dist: "5.0 km", label: "CCS International Airport", sub: "~8-10 Mins · Terminal 3" },
+                  { icon: RouteIcon, dist: "5.0 km", label: "Amausi Metro Station", sub: "~8-10 Mins · Red Line Link" },
+                  { icon: Car, dist: "3.0 km", label: "Kanpur-Lucknow Expressway", sub: "~5 Mins · High-Speed Link" },
+                  { icon: ShoppingBag, dist: "2.5 km", label: "Main Market", sub: "~4 Mins · Daily Essentials" },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.label}
+                      className="p-3.5 rounded-lg bg-surface border border-border/80 text-center hover:border-primary/50 transition-all duration-300 group hover:-translate-y-1 hover:shadow-luxury"
+                    >
+                      <div className="icon-monogram size-9 mx-auto mb-2">
+                        <Icon className="size-4 transition-transform duration-300 group-hover:scale-110" />
+                      </div>
+                      <strong className="font-display text-2xl text-primary block group-hover:scale-105 transition-transform">
+                        {item.dist}
+                      </strong>
+                      <span className="text-xs font-semibold text-foreground uppercase block mt-1 line-clamp-1">
+                        {item.label}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono block mt-0.5">
+                        {item.sub}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="flex flex-wrap gap-3 pt-2">
@@ -1153,6 +1185,18 @@ function Index() {
               </div>
 
               <form onSubmit={submitEnquiry} className="space-y-4" noValidate>
+                {/* Anti-spam honeypot */}
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={contactHoneypot}
+                  onChange={(e) => setContactHoneypot(e.target.value)}
+                  className="hidden"
+                  aria-hidden="true"
+                />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="form-label">Full Name *</label>
@@ -1219,7 +1263,7 @@ function Index() {
                 <Button
                   type="submit"
                   disabled={formSubmitting}
-                  className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                  className="w-full h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
                 >
                   {formSubmitting ? "Submitting Inquiry..." : "Submit Inquiry & Connect On WhatsApp"}
                   <ArrowRight className="size-4 ml-2" />
@@ -1235,7 +1279,7 @@ function Index() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-background px-5 py-12 lg:px-8">
+      <footer className="border-t border-border bg-background px-5 pt-12 pb-24 sm:pb-16 lg:px-8">
         <div className="mx-auto max-w-7xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
             <Logo />
@@ -1267,34 +1311,74 @@ function Index() {
         </div>
       </footer>
 
-      {/* Floating Action Concierge Dock */}
-      <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2.5">
-        <Button
-          onClick={() => {
-            setSelectedPlotForVisit("1000 sq ft");
-            setSiteVisitOpen(true);
-          }}
-          className="hidden sm:inline-flex h-12 px-4 rounded-full uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow border border-primary/50"
-        >
-          <Calendar className="size-4 mr-1.5" /> Book Visit
-        </Button>
-
-        <Button
-          asChild
-          size="icon"
-          className="size-13 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-glow"
-          aria-label="Chat directly on WhatsApp"
-        >
-          <a
-            href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
-              "Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar plots."
-            )}`}
-            target="_blank"
-            rel="noreferrer"
+      {/* Luxury Floating Concierge Capsule */}
+      <div
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 transition-all duration-300 ease-out ${
+          isFloatingDockVisible
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-6 pointer-events-none"
+        }`}
+      >
+        {dockMinimized ? (
+          <button
+            onClick={() => setDockMinimized(false)}
+            className="flex items-center gap-2 rounded-full border border-primary/50 bg-card/95 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-foreground shadow-luxury backdrop-blur-xl transition-all hover:border-primary hover:bg-card hover:scale-105 active:scale-95"
+            aria-label="Open Luxury Concierge Desk"
           >
-            <MessageCircle className="size-6" />
-          </a>
-        </Button>
+            <span className="size-2 rounded-full bg-emerald-400" />
+            <span className="font-display tracking-normal text-xs text-primary font-semibold">
+              Concierge
+            </span>
+            <MessageCircle className="size-3.5 text-emerald-500 ml-0.5" />
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 pl-3.5 pr-2 shadow-luxury backdrop-blur-xl ring-1 ring-white/5 transition-all">
+            <div className="hidden md:flex items-center gap-2 pr-2 border-r border-border/60">
+              <span className="size-2 rounded-full bg-emerald-400" />
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Direct Desk
+              </span>
+            </div>
+
+            <Button
+              onClick={() => {
+                setSelectedPlotForVisit("1000 sq ft");
+                setSiteVisitOpen(true);
+              }}
+              size="sm"
+              className="h-9 px-3.5 rounded-full uppercase tracking-wider text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border border-primary/50 btn-shimmer"
+            >
+              <Calendar className="size-3.5 mr-1.5" /> Book Visit
+            </Button>
+
+            <Button
+              asChild
+              size="icon"
+              className="size-9 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-transform hover:scale-105"
+              aria-label="Chat directly on WhatsApp"
+            >
+              <a
+                href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
+                  "Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar plots."
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle className="size-4" />
+              </a>
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => setDockMinimized(true)}
+              className="size-6 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface flex items-center justify-center text-xs transition-colors ml-0.5"
+              title="Minimize Concierge"
+              aria-label="Minimize Concierge"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Interactive Modals */}
