@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "db:seed": "node scripts/seed-mysql.js",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "node scripts/test-deployment-suite.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
