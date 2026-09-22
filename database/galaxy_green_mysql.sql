@@ -47,9 +47,9 @@ INSERT INTO `plots` (`id`, `number`, `size_sq_ft`, `dimensions`, `facing`, `road
 ('plot-a3', 'A-103', 800, '20 × 40 ft', 'North', '30 ft Internal', 1199.00, 'Fast Selling', 'Prime compact layout near serene landscaped park.'),
 ('plot-b1', 'B-201', 1200, '30 × 40 ft', 'Park Facing', '30 ft Internal', 1199.00, 'Fast Selling', 'Direct unobstructed view of central green park & jogging trail.'),
 ('plot-b2', 'B-205', 1500, '30 × 50 ft', 'East', '30 ft Internal', 1199.00, 'Available', 'Generous frontage for double-car porch and front garden.'),
-('plot-c1', 'C-301', 2000, '40 × 50 ft', 'Park Facing', '40 ft Boulevard', 1199.00, 'Available', 'Premium estate plot overlooking clubhouse & landscaped water body.'),
+('plot-c1', 'C-301', 2000, '40 × 50 ft', 'Park Facing', '40 ft Boulevard', 1199.00, 'Available', 'Premium estate plot overlooking central landscaped green park & avenue.'),
 ('plot-c2', 'C-308', 2000, '40 × 50 ft', 'Boulevard Corner', '40 ft × 30 ft Dual Road', 1199.00, 'Fast Selling', 'Two-side open corner plot with grand boulevard visibility.'),
-('plot-d1', 'D-401', 3000, '50 × 60 ft', 'Boulevard Corner', '40 ft Main Avenue', 1199.00, 'Reserved', 'Ultra-luxury mansion plot with private swimming pool clearance.'),
+('plot-d1', 'D-401', 3000, '50 × 60 ft', 'Boulevard Corner', '40 ft Main Avenue', 1199.00, 'Reserved', 'Ultra-luxury mansion plot with expansive private lawn and garden clearance.'),
 ('plot-d2', 'D-405', 1000, '25 × 40 ft', 'North', '30 ft Internal', 1199.00, 'Available', 'Prime location near security entrance and visitor parking.');
 
 -- --------------------------------------------------------------------

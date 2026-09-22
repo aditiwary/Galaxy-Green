@@ -62,7 +62,7 @@ const DEFAULT_PLOTS: Plot[] = [
     roadWidth: "40 ft Boulevard",
     ratePerSqFt: 1199,
     status: "Available",
-    feature: "Premium estate plot overlooking clubhouse & landscaped water body.",
+    feature: "Premium estate plot overlooking central landscaped green park & avenue.",
   },
   {
     id: "plot-c2",
@@ -84,7 +84,7 @@ const DEFAULT_PLOTS: Plot[] = [
     roadWidth: "40 ft Main Avenue",
     ratePerSqFt: 1299,
     status: "Reserved",
-    feature: "Ultra-luxury mansion plot with private swimming pool clearance.",
+    feature: "Ultra-luxury mansion plot with expansive private lawn and garden clearance.",
   },
   {
     id: "plot-d2",

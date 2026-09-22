@@ -63,8 +63,8 @@ primary growth node at Amausi.
 * 30-Feet Wide Internal Concrete Paver Lanes
 * Grand Gated Entrance with 24/7 RFID Security Checkpoint
 * Full Perimeter Boundary Wall & CCTV Surveillance
-* Modern Clubhouse with Resort Infinity Swimming Pool
 * Landscaped Green Parks with Jogging & Yoga Track
+* Dedicated Children's Play Zone & Senior Citizen Sit-outs
 * Underground Drainage & Pre-laid Water Supply Conduits
 * High-Lumen Solar Street Lighting on Every Lane
 

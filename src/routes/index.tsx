@@ -10,10 +10,10 @@ import {
   CheckCircle2,
   Compass,
   Download,
-  Dumbbell,
   ExternalLink,
   FileCheck,
   FileText,
+  Footprints,
   HeartPulse,
   Landmark,
   Layers,
@@ -43,7 +43,6 @@ import {
 // Asset imports
 import heroImage from "@/assets/township-entrance.jpg";
 import villaImage from "@/assets/luxury-villa-concept.jpg";
-import clubhouseImage from "@/assets/luxury-clubhouse.jpg";
 import connectivityImage from "@/assets/lucknow-connectivity.jpg";
 
 // UI Components
@@ -553,7 +552,7 @@ function Index() {
       {/* Interactive Master Plan & Plot Availability Grid */}
       <MasterPlanViewer onSelectPlotForBooking={handlePlotSelectForBooking} />
 
-      {/* Amenities Section with Photorealistic Clubhouse */}
+      {/* Amenities Section */}
       <section id="amenities" className="section-shell bg-surface border-y border-border">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -568,62 +567,14 @@ function Index() {
             </p>
           </div>
 
-          {/* Clubhouse Feature Banner */}
-          <div className="mt-12 relative overflow-hidden rounded-lg border border-border bg-card shadow-glow">
-            <div className="grid lg:grid-cols-12">
-              <div className="lg:col-span-7 relative min-h-[360px] lg:min-h-[440px]">
-                <img
-                  src={clubhouseImage}
-                  alt="Modern luxury clubhouse with illuminated infinity swimming pool at Galaxy Green"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-card hidden lg:block" />
-              </div>
-              <div className="lg:col-span-5 p-8 lg:p-10 flex flex-col justify-center space-y-6">
-                <div>
-                  <Badge variant="outline" className="border-accent text-accent bg-accent/15 text-[10px] uppercase font-mono">
-                    Lifestyle Hub
-                  </Badge>
-                  <h3 className="text-2xl sm:text-3xl font-display uppercase tracking-tight text-foreground mt-2">
-                    Resort Clubhouse & Infinity Pool
-                  </h3>
-                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                    Unwind at the state-of-the-art community clubhouse featuring a crystal-clear infinity pool, sunbathing wooden deck, air-conditioned wellness gym, and banquet hall for family celebrations.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-                  <div className="p-3 bg-surface rounded border border-border/80">
-                    <strong className="text-primary block text-sm">24/7</strong>
-                    <span className="text-muted-foreground text-[10px] uppercase">Gated Security</span>
-                  </div>
-                  <div className="p-3 bg-surface rounded border border-border/80">
-                    <strong className="text-primary block text-sm">40 Ft</strong>
-                    <span className="text-muted-foreground text-[10px] uppercase">Main Boulevard</span>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => {
-                    setSelectedPlotForVisit("Clubhouse Facing Plot");
-                    setSiteVisitOpen(true);
-                  }}
-                  className="w-full h-11 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Inspect Amenity Plots <ArrowRight className="size-3.5 ml-1.5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
           {/* Amenities Grid */}
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                icon: Dumbbell,
+                icon: Footprints,
                 num: "01",
-                title: "Fitness Center",
-                desc: "Equipped modern gym with cardio and weight-training equipment.",
+                title: "Jogging & Walking Track",
+                desc: "Dedicated paved perimeter pathways for morning fitness and peaceful evening strolls.",
               },
               {
                 icon: ShieldCheck,
@@ -826,7 +777,7 @@ function Index() {
                   { name: "40-Ft Main Boulevard", progress: "100% Asphalted", status: "Complete" },
                   { name: "Plot Demarcation Stones", progress: "100% Installed", status: "Complete" },
                   { name: "Internal 30-Ft Concrete Pavers", progress: "90% Laid", status: "In Progress" },
-                  { name: "Central Park & Club Deck", progress: "Phase 1 Landscaping", status: "Active" },
+                  { name: "Central Landscaped Park & Walkways", progress: "Phase 1 Landscaping", status: "Active" },
                 ].map((item) => (
                   <div
                     key={item.name}
@@ -1090,7 +1041,7 @@ function Index() {
                     <li>Underground drainage and sewage system</li>
                     <li>Solar-powered street illumination and dedicated transformer power supply</li>
                     <li>24/7 manned security checkpoint with automated RFID barrier &amp; CCTV</li>
-                    <li>Landscaped community park, children's play area, and clubhouse with pool</li>
+                    <li>Landscaped community park, children's play area, and open green recreational spaces</li>
                   </ul>
                 </AccordionContent>
               </AccordionItem>
