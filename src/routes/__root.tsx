@@ -224,13 +224,83 @@ const faqSchema = {
   ],
 };
 
+const siteNavigationSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: [
+    {
+      "@type": "SiteNavigationElement",
+      position: 1,
+      name: "About Township",
+      description: "Overview of Galaxy Green Sai Suraksha Nagar plotted development",
+      url: "https://galaxygreenlucknow.com/#about",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 2,
+      name: "Master Plan & Live Inventory",
+      description: "Interactive master layout and real-time plot status matrix",
+      url: "https://galaxygreenlucknow.com/#masterplan",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 3,
+      name: "Amenities & Infrastructure",
+      description: "30ft wide roads, underground electrification, streetlights, gated security",
+      url: "https://galaxygreenlucknow.com/#amenities",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 4,
+      name: "Live Site Photos",
+      description: "Real on-ground demarcation, boundary pillars, and road construction progress",
+      url: "https://galaxygreenlucknow.com/#site-gallery",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 5,
+      name: "Location & Connectivity",
+      description: "Direct proximity to Lucknow Airport, Amausi Station, and Kanpur Expressway",
+      url: "https://galaxygreenlucknow.com/#location",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 6,
+      name: "EMI & ROI Calculator",
+      description: "Calculate plot loan EMIs and conservative land value appreciation",
+      url: "https://galaxygreenlucknow.com/#calculator",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 7,
+      name: "Pricing & Registry",
+      description: "Transparent plot allotment rates from ₹1,199/sq ft with immediate mutation",
+      url: "https://galaxygreenlucknow.com/#pricing",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 8,
+      name: "FAQ & Legal Trust",
+      description: "Frequently asked questions regarding Dakhil Kharij, registry, and bank loans",
+      url: "https://galaxygreenlucknow.com/#faq",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 9,
+      name: "Schedule Site Visit",
+      description: "Book a complimentary guided on-ground site visit with our property experts",
+      url: "https://galaxygreenlucknow.com/#contact",
+    },
+  ],
+};
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       {
-        title: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
+        title: "Galaxy Green | Freehold Plots Near Lucknow Airport · Amausi",
       },
       {
         name: "description",
@@ -243,6 +313,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "plots in lucknow, residential plots amausi, plots near lucknow airport, galaxy green lucknow, sai suraksha nagar, freehold plots lucknow, immediate registry plots, dakhil kharij plots, buy plot kanpur road lucknow, investment plots lucknow, property near ccs airport",
       },
       { name: "author", content: "Galaxy Green Sai Suraksha Nagar" },
+      {
+        name: "theme-color",
+        content: "#060d09",
+      },
+      {
+        name: "msapplication-TileColor",
+        content: "#060d09",
+      },
+      {
+        name: "apple-mobile-web-app-title",
+        content: "Galaxy Green",
+      },
+      {
+        name: "application-name",
+        content: "Galaxy Green Plots Lucknow",
+      },
       {
         name: "robots",
         content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1",
@@ -331,6 +417,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         type: "application/ld+json",
         children: JSON.stringify(faqSchema),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(siteNavigationSchema),
       },
     ],
   }),

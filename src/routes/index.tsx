@@ -78,7 +78,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport (Amausi)",
+        title: "Galaxy Green | Freehold Plots Near Lucknow Airport · Amausi",
       },
       {
         name: "description",
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/")({
       { property: "og:site_name", content: "Galaxy Green Sai Suraksha Nagar" },
       {
         property: "og:title",
-        content: "Galaxy Green Sai Suraksha Nagar | Freehold Plots Near Lucknow Airport",
+        content: "Galaxy Green | Freehold Plots Near Lucknow Airport · Amausi",
       },
       {
         property: "og:description",
@@ -270,6 +270,8 @@ function Index() {
           <nav
             className="hidden items-center gap-1.5 xl:gap-3.5 2xl:gap-5 lg:flex"
             aria-label="Main navigation"
+            itemScope
+            itemType="https://schema.org/SiteNavigationElement"
           >
             {[
               ["About", "#about"],
@@ -285,9 +287,10 @@ function Index() {
               <a
                 key={href}
                 href={href}
+                itemProp="url"
                 className="px-2 xl:px-2.5 py-1 rounded text-[11px] xl:text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all font-medium whitespace-nowrap"
               >
-                {label}
+                <span itemProp="name">{label}</span>
               </a>
             ))}
           </nav>
@@ -342,6 +345,8 @@ function Index() {
           <nav
             className="border-t border-border bg-background px-5 py-6 lg:hidden animate-in fade-in slide-in-from-top-4 shadow-xl"
             aria-label="Mobile navigation"
+            itemScope
+            itemType="https://schema.org/SiteNavigationElement"
           >
             <div className="flex flex-col gap-2">
               {[
@@ -358,10 +363,11 @@ function Index() {
                 <a
                   key={label}
                   href={href}
+                  itemProp="url"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center justify-between py-2.5 px-2 rounded hover:bg-surface text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium border-b border-border/40 transition-colors"
                 >
-                  <span>{label}</span>
+                  <span itemProp="name">{label}</span>
                   <span className="font-mono text-[10px] text-muted-foreground/60">0{idx + 1}</span>
                 </a>
               ))}
