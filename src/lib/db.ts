@@ -212,14 +212,21 @@ export async function getDbPool(): Promise<Pool | null> {
     const connectionUri = process.env["DATABASE_URL"] || process.env["MYSQL_URL"];
 
     if (connectionUri) {
-      pool = mysql.createPool({
+      const isLocalhost =
+        connectionUri.includes("localhost") || connectionUri.includes("127.0.0.1");
+      const poolConfig: PoolOptions = {
         uri: connectionUri,
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
         enableKeepAlive: true,
         keepAliveInitialDelay: 0,
-      });
+      };
+      // If connecting to a remote cloud MySQL host and SSL isn't specified in URI, enable secure SSL
+      if (!isLocalhost && !connectionUri.includes("ssl=")) {
+        poolConfig.ssl = { rejectUnauthorized: false };
+      }
+      pool = mysql.createPool(poolConfig);
     } else {
       const config: PoolOptions = {
         host: process.env["MYSQL_HOST"] || "localhost",
