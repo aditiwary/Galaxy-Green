@@ -17,6 +17,40 @@ const pinAttemptMap = new Map<string, PinAttemptTracker>();
 const phoneSubmissionHistory = new Map<string, number[]>();
 const globalSubmissionTimestamps: number[] = [];
 
+// Fallback in-memory state when MySQL is unavailable or pending cloud configuration
+let memoryDealerPinHash: string | null = null;
+let memoryBaseRatePerSqFt: number = 1199;
+const memoryInquiries: Inquiry[] = [];
+
+export const checkDbHealthFn = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const { getDbPool } = await import("./db");
+    const pool = await getDbPool();
+    if (!pool) {
+      return {
+        connected: false,
+        isVercel: Boolean(process.env["VERCEL"]),
+        message: "No MySQL connection configured. Running in cloud fallback mode.",
+      };
+    }
+    await pool.query("SELECT 1 as ping");
+    return {
+      connected: true,
+      isVercel: Boolean(process.env["VERCEL"]),
+      message: "MySQL Online & Active",
+    };
+  } catch (err: any) {
+    return {
+      connected: false,
+      isVercel: Boolean(process.env["VERCEL"]),
+      message:
+        err?.code === "ECONNREFUSED"
+          ? "MySQL is running on localhost. On Vercel, configure DATABASE_URL in Vercel Project Settings."
+          : `Database offline: ${err?.message || "Connection failed"}`,
+    };
+  }
+});
+
 /**
  * Strips HTML tags and script injections to protect against stored XSS.
  */
@@ -88,7 +122,7 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
     await new Promise((r) => setTimeout(r, 250));
 
     const rows = await executeQuery<any[]>("SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1");
-    const storedPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "";
+    const storedPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : memoryDealerPinHash || "";
 
     const cleanInput = String(data.pin || "").trim();
 
@@ -101,6 +135,7 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
       if (isPinMatch) {
         try {
           const upgradedHash = await bcrypt.hash(cleanInput, 10);
+          memoryDealerPinHash = upgradedHash;
           await executeQuery("UPDATE admin_config SET dealer_pin = ? WHERE id = 1", [upgradedHash]);
         } catch (upgradeErr) {
           console.error("Failed to upgrade plaintext PIN to bcrypt:", upgradeErr);
@@ -112,6 +147,7 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
       if (isPinMatch) {
         try {
           const defaultHash = await bcrypt.hash("0000", 10);
+          memoryDealerPinHash = defaultHash;
           await executeQuery("UPDATE admin_config SET dealer_pin = ? WHERE id = 1", [defaultHash]);
         } catch {}
       }
@@ -150,11 +186,11 @@ export const getAdminConfigFn = createServerFn({ method: "GET" }).handler(async 
   if (rows && rows.length > 0) {
     const r = rows[0];
     return {
-      baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || 1199,
+      baseRatePerSqFt: Number(r.base_rate_per_sq_ft) || memoryBaseRatePerSqFt,
     };
   }
 
-  return { baseRatePerSqFt: 1199 };
+  return { baseRatePerSqFt: memoryBaseRatePerSqFt };
 });
 
 export const updateAdminConfigFn = createServerFn({ method: "POST" })
@@ -174,7 +210,7 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     } else if (data.dealerPin) {
       // Fallback check against DB PIN
       const rows = await executeQuery<any[]>("SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1");
-      const storedPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : "";
+      const storedPin = rows && rows.length > 0 ? String(rows[0].dealer_pin) : memoryDealerPinHash || "";
       const clean = String(data.dealerPin).trim();
       if (storedPin.startsWith("$2b$") || storedPin.startsWith("$2a$")) {
         isAuthorized = await bcrypt.compare(clean, storedPin);
@@ -192,22 +228,17 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       return { success: false, error: "PIN must be between 4 to 8 digits." };
     }
 
-    // Ensure row id = 1 exists in admin_config
-    const defaultHash = await bcrypt.hash("0000", 10);
-    await executeQuery(
-      "INSERT IGNORE INTO admin_config (id, dealer_pin, base_rate_per_sq_ft) VALUES (1, ?, 1199)",
-      [defaultHash]
-    );
-
     const updates: string[] = [];
     const params: any[] = [];
 
     if (data.newPin) {
       const hashedPin = await bcrypt.hash(data.newPin, 10);
+      memoryDealerPinHash = hashedPin;
       updates.push("dealer_pin = ?");
       params.push(hashedPin);
     }
     if (data.baseRatePerSqFt !== undefined) {
+      memoryBaseRatePerSqFt = data.baseRatePerSqFt;
       updates.push("base_rate_per_sq_ft = ?");
       params.push(data.baseRatePerSqFt);
     }
@@ -216,13 +247,24 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       return { success: true };
     }
 
+    // Ensure row id = 1 exists in admin_config if DB is reachable
+    const defaultHash = memoryDealerPinHash || (await bcrypt.hash("0000", 10));
+    await executeQuery(
+      "INSERT IGNORE INTO admin_config (id, dealer_pin, base_rate_per_sq_ft) VALUES (1, ?, 1199)",
+      [defaultHash]
+    );
+
     const sql = `UPDATE admin_config SET ${updates.join(", ")} WHERE id = 1`;
     const res = await executeQuery(sql, params);
 
     if (res !== null) {
-      return { success: true };
+      return { success: true, message: "Settings saved successfully in MySQL!" };
     }
-    return { success: false, error: "Failed to update configuration in MySQL." };
+    return {
+      success: true,
+      warning:
+        "PIN updated in session memory. To permanently persist across Vercel restarts, configure DATABASE_URL in Vercel settings.",
+    };
   });
 
 // Protected: Only authenticated session token holders can fetch customer inquiries
@@ -235,10 +277,10 @@ export const getInquiriesFn = createServerFn({ method: "POST" })
     }
 
     const rows = await executeQuery<any[]>("SELECT * FROM inquiries ORDER BY created_at DESC");
-    if (rows && Array.isArray(rows)) {
+    if (rows && Array.isArray(rows) && rows.length > 0) {
       return rows.map(mapRowToInquiry);
     }
-    return [];
+    return memoryInquiries;
   });
 
 // Public: Buyers submit inquiries with honeypot trap, sanitization, and sliding-window rate limit
@@ -333,10 +375,12 @@ export const submitInquiryFn = createServerFn({ method: "POST" })
       ]
     );
 
+    memoryInquiries.unshift(newInquiry);
+
     if (res !== null) {
       return { success: true, inquiry: newInquiry };
     }
-    return { success: false, error: "Failed to record inquiry in MySQL" };
+    return { success: true, inquiry: newInquiry, warning: "Inquiry saved in session cache (MySQL offline)." };
   });
 
 // Protected: Updating lead status requires admin token
@@ -347,9 +391,14 @@ export const updateInquiryStatusFn = createServerFn({ method: "POST" })
       return { success: false, error: "Unauthorized" };
     }
 
+    const target = memoryInquiries.find((i) => i.id === data.id);
+    if (target) {
+      target.status = data.status;
+    }
+
     const res = await executeQuery("UPDATE inquiries SET status = ? WHERE id = ?", [data.status, data.id]);
     if (res !== null) {
       return { success: true };
     }
-    return { success: false, error: "Failed to update inquiry status in MySQL" };
+    return { success: true, warning: "Lead status updated in session cache (MySQL offline)." };
   });

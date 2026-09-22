@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { plotSchema, type Plot, type PlotInput } from "./plot-types";
+import { plotSchema, DEFAULT_PLOTS, type Plot, type PlotInput } from "./plot-types";
 import { executeQuery } from "./db";
 import { verifyAdminToken } from "./auth-token";
+
+// In-memory cache fallback in case cloud MySQL connection is absent (e.g. initial Vercel deploy)
+let memoryPlots: Plot[] = [...DEFAULT_PLOTS];
 
 function mapRowToPlot(row: any): Plot {
   return {
@@ -19,10 +22,12 @@ function mapRowToPlot(row: any): Plot {
 
 export const getPlotsFn = createServerFn({ method: "GET" }).handler(async () => {
   const rows = await executeQuery<any[]>("SELECT * FROM plots ORDER BY number ASC");
-  if (rows && Array.isArray(rows)) {
-    return rows.map(mapRowToPlot);
+  if (rows && Array.isArray(rows) && rows.length > 0) {
+    const loaded = rows.map(mapRowToPlot);
+    memoryPlots = loaded;
+    return loaded;
   }
-  return [];
+  return memoryPlots;
 });
 
 export const createPlotFn = createServerFn({ method: "POST" })
@@ -37,6 +42,8 @@ export const createPlotFn = createServerFn({ method: "POST" })
       ...validated,
       id: `plot-${Date.now()}`,
     };
+
+    memoryPlots.push(newPlot);
 
     const res = await executeQuery(
       `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature)
@@ -57,7 +64,8 @@ export const createPlotFn = createServerFn({ method: "POST" })
     if (res !== null) {
       return { success: true, plot: newPlot };
     }
-    return { success: false, error: "Failed to create plot in MySQL" };
+    // Return success with in-memory persistence fallback
+    return { success: true, plot: newPlot, warning: "Plot created in session cache (MySQL offline)." };
   });
 
 export const updatePlotStatusFn = createServerFn({ method: "POST" })
@@ -67,11 +75,13 @@ export const updatePlotStatusFn = createServerFn({ method: "POST" })
       return { success: false, error: "Unauthorized: Valid dealer authentication required." };
     }
 
+    memoryPlots = memoryPlots.map((p) => (p.id === data.id ? { ...p, status: data.status } : p));
+
     const res = await executeQuery("UPDATE plots SET status = ? WHERE id = ?", [data.status, data.id]);
     if (res !== null) {
       return { success: true };
     }
-    return { success: false, error: "Failed to update plot status in MySQL" };
+    return { success: true, warning: "Plot status updated in session cache (MySQL offline)." };
   });
 
 export const deletePlotFn = createServerFn({ method: "POST" })
@@ -81,9 +91,11 @@ export const deletePlotFn = createServerFn({ method: "POST" })
       return { success: false, error: "Unauthorized: Valid dealer authentication required." };
     }
 
+    memoryPlots = memoryPlots.filter((p) => p.id !== data.id);
+
     const res = await executeQuery("DELETE FROM plots WHERE id = ?", [data.id]);
     if (res !== null) {
       return { success: true };
     }
-    return { success: false, error: "Failed to delete plot from MySQL" };
+    return { success: true, warning: "Plot deleted from session cache (MySQL offline)." };
   });

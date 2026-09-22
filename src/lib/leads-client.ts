@@ -4,43 +4,82 @@ import {
   submitInquiryFn,
   updateInquiryStatusFn,
   verifyDealerPinFn,
+  checkDbHealthFn,
 } from "./server-inquiries";
 
-export { verifyDealerPinFn };
+export { verifyDealerPinFn, checkDbHealthFn };
 
 const STORAGE_KEY = "galaxy_green_leads_v1";
 
 export async function fetchAllLeads(token?: string): Promise<Inquiry[]> {
   if (!token) return [];
 
+  let serverLeads: Inquiry[] = [];
   try {
-    const serverLeads = await getInquiriesFn({ data: { token } });
-    if (Array.isArray(serverLeads)) {
-      return serverLeads;
+    const res = await getInquiriesFn({ data: { token } });
+    if (Array.isArray(res)) {
+      serverLeads = res;
     }
   } catch (err) {
     console.warn("Error fetching leads from server:", err);
   }
 
-  return [];
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const localList: Inquiry[] = JSON.parse(saved);
+        const map = new Map<string, Inquiry>();
+        for (const item of serverLeads) {
+          map.set(item.id, item);
+        }
+        for (const item of localList) {
+          if (!map.has(item.id)) {
+            map.set(item.id, item);
+          }
+        }
+        return Array.from(map.values());
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return serverLeads;
 }
 
 export async function recordNewInquiry(input: InquiryInput): Promise<Inquiry> {
+  let created: Inquiry | null = null;
   try {
     const res = await submitInquiryFn({ data: input });
     if (res?.inquiry) {
-      return res.inquiry;
+      created = res.inquiry;
     }
   } catch (err) {
     console.warn("Server submission fallback:", err);
   }
 
-  return {
-    ...input,
-    id: `GG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-    status: "New",
-    createdAt: new Date().toISOString(),
-  };
+  if (!created) {
+    created = {
+      ...input,
+      id: `GG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: "New",
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const list: Inquiry[] = saved ? JSON.parse(saved) : [];
+      list.unshift(created);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+  }
+
+  return created;
 }
 
 export async function updateLeadStatus(
@@ -52,7 +91,19 @@ export async function updateLeadStatus(
 
   try {
     const res = await updateInquiryStatusFn({ data: { token, id, status } });
-    if (res?.success) return true;
+    if (res?.success) {
+      if (typeof window !== "undefined") {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const list: Inquiry[] = JSON.parse(saved);
+            const updated = list.map((item) => (item.id === id ? { ...item, status } : item));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          }
+        } catch {}
+      }
+      return true;
+    }
   } catch (err) {
     console.warn("Server status update error:", err);
   }

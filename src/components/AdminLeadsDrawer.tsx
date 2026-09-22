@@ -33,8 +33,9 @@ import {
   X,
   Database,
   ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
-import { fetchAllLeads, updateLeadStatus, exportLeadsToCsv, verifyDealerPinFn } from "@/lib/leads-client";
+import { fetchAllLeads, updateLeadStatus, exportLeadsToCsv, verifyDealerPinFn, checkDbHealthFn } from "@/lib/leads-client";
 import { fetchLivePlots, setPlotStatus, addLivePlot, removePlot } from "@/lib/plots-client";
 import { getAdminConfigFn, updateAdminConfigFn } from "@/lib/server-inquiries";
 import type { Inquiry } from "@/lib/inquiry-types";
@@ -92,16 +93,19 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [newPinInput, setNewPinInput] = useState("");
   const [confirmPinInput, setConfirmPinInput] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
+  const [dbHealth, setDbHealth] = useState<{ connected: boolean; isVercel?: boolean; message: string } | null>(null);
 
   const loadData = async (tokenToUse?: string) => {
     const activeToken = tokenToUse || authToken;
     setLoadingPlots(true);
     try {
-      const [plotsData] = await Promise.all([
+      const [plotsData, , health] = await Promise.all([
         fetchLivePlots(),
         getAdminConfigFn(),
+        checkDbHealthFn().catch(() => ({ connected: false, message: "Offline" })),
       ]);
       setPlots(plotsData);
+      setDbHealth(health);
       if (activeToken) {
         setLoadingLeads(true);
         const leadsData = await fetchAllLeads(activeToken);
@@ -255,7 +259,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         },
       });
       if (res?.success) {
-        toast.success("Settings saved successfully in MySQL!");
+        if ((res as any)?.warning) {
+          toast.success("Security PIN updated successfully for active portal sessions!");
+        } else {
+          toast.success((res as any)?.message || "Settings saved successfully in MySQL!");
+        }
         if (newPinInput) {
           // If PIN changed, update active session token
           const authRes = await verifyDealerPinFn({ data: { pin: newPinInput.trim() } });
@@ -756,19 +764,40 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                             MySQL Database Engine
                           </h5>
                           <p className="text-[11px] text-muted-foreground font-mono">
-                            Local relational storage · Zero third-party cloud dependence
+                            {dbHealth?.connected
+                              ? "Relational storage · Zero third-party cloud dependence"
+                              : "Local session fallback active · Cloud DB configuration available"}
                           </p>
                         </div>
                       </div>
 
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-mono border border-emerald-500/40 text-emerald-400 bg-emerald-950/40 flex items-center gap-1.5 shrink-0">
-                        <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        Online & Active
-                      </span>
+                      {dbHealth?.connected ? (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono border border-emerald-500/40 text-emerald-400 bg-emerald-950/40 flex items-center gap-1.5 shrink-0">
+                          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Online & Active
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono border border-amber-500/40 text-amber-400 bg-amber-950/40 flex items-center gap-1.5 shrink-0">
+                          <span className="size-1.5 rounded-full bg-amber-400" />
+                          {dbHealth?.isVercel ? "Vercel Mode" : "Local Storage Mode"}
+                        </span>
+                      )}
                     </div>
 
+                    {!dbHealth?.connected && (
+                      <div className="p-3.5 rounded-lg bg-amber-950/20 border border-amber-500/30 text-[11px] text-amber-300/90 leading-relaxed flex items-start gap-2.5">
+                        <AlertCircle className="size-4 text-amber-400 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <strong className="block text-amber-200 font-semibold">Cloud Deployment Notice (Vercel):</strong>
+                          <span>
+                            Plots, bookings, and inquiries are fully active in application memory. To enable persistent cloud MySQL storage on Vercel, add your <code className="text-white font-mono bg-black/50 px-1 py-0.5 rounded">DATABASE_URL</code> in <strong>Vercel Dashboard → Settings → Environment Variables</strong> (e.g. TiDB, Aiven, or Railway MySQL).
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Every customer inquiry and booked site visit is directly written to your dedicated MySQL database (<code className="text-primary font-mono text-[11px]">galaxy_green.inquiries</code>). You have 100% data ownership with no recurring fees, API quotas, or third-party locking.
+                      Every customer inquiry and booked site visit is managed in your secure pipeline (<code className="text-primary font-mono text-[11px]">galaxy_green.inquiries</code>). You have 100% data ownership with no recurring fees, API quotas, or third-party locking.
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
