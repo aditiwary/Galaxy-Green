@@ -48,10 +48,18 @@ async function main() {
       console.log(`Connecting via DATABASE_URL: ${safeUri}`);
 
       // If database doesn't exist yet, connect to server without db first to create it
+      const isLocalhost =
+        connectionUri.includes("localhost") || connectionUri.includes("127.0.0.1");
+      const ssl =
+        !isLocalhost && !connectionUri.includes("ssl=")
+          ? { rejectUnauthorized: false }
+          : undefined;
+
       try {
         connection = await mysql.createConnection({
           uri: connectionUri,
           multipleStatements: true,
+          ...(ssl ? { ssl } : {}),
         });
       } catch (connErr) {
         if (connErr.code === "ER_BAD_DB_ERROR") {
@@ -62,6 +70,7 @@ async function main() {
           console.log(`Database '${dbName}' not found yet. Creating database '${dbName}'...`);
           const adminConn = await mysql.createConnection({
             uri: parsed.toString(),
+            ...(ssl ? { ssl } : {}),
           });
           await adminConn.query(
             `CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
@@ -72,6 +81,7 @@ async function main() {
           connection = await mysql.createConnection({
             uri: connectionUri,
             multipleStatements: true,
+            ...(ssl ? { ssl } : {}),
           });
         } else {
           throw connErr;
