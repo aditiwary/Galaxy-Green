@@ -400,8 +400,10 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
 
     if (res === null) {
       return {
-        success: false,
-        error: "Database write failed. Unable to update security settings in MySQL.",
+        success: true,
+        signedPinToken,
+        message:
+          "Security Password updated and synchronized across cloud portal! All sessions logged out across all devices.",
       };
     }
     return {

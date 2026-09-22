@@ -4,6 +4,7 @@ const SECRET = process.env["ADMIN_SESSION_SECRET"] || "gg_dealer_session_secret_
 
 // Active in-memory hash fingerprint of the currently configured PIN
 let currentPinFingerprint: string = "";
+let sessionRevocationTimestamp: number = 0;
 
 export function getFingerprint(hashOrPin: string): string {
   return crypto.createHash("sha256").update(hashOrPin).digest("hex").slice(0, 16);
@@ -14,7 +15,8 @@ export function setActivePinHash(hash: string): void {
 }
 
 export function invalidateAllAdminSessions(): void {
-  // Rotate fingerprint to immediately invalidate all existing tokens across all devices
+  // Record revocation timestamp to immediately invalidate all active sessions across all devices
+  sessionRevocationTimestamp = Date.now();
   currentPinFingerprint = crypto.randomBytes(8).toString("hex");
 }
 
@@ -25,7 +27,7 @@ export function invalidateAllAdminSessions(): void {
  */
 export function generateAdminToken(pinHash?: string): string {
   const timestamp = Date.now();
-  const fp = pinHash ? getFingerprint(pinHash) : currentPinFingerprint || "init";
+  const fp = pinHash ? getFingerprint(pinHash) : currentPinFingerprint || "live";
   const payload = `admin_${timestamp}_${fp}`;
   const hmac = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
   return `${timestamp}_${fp}_${hmac}`;
@@ -48,6 +50,10 @@ export function verifyAdminToken(token?: string, expectedPinHash?: string): bool
     if (isNaN(time) || Date.now() - time > 24 * 60 * 60 * 1000 || time > Date.now() + 60000) {
       return false;
     }
+    // Check if session was revoked globally after token was created
+    if (sessionRevocationTimestamp > 0 && time < sessionRevocationTimestamp) {
+      return false;
+    }
     const payload = `admin_${timeStr}_${fp}`;
     const actualHmac = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
     let isValidHmac = false;
@@ -58,18 +64,19 @@ export function verifyAdminToken(token?: string, expectedPinHash?: string): bool
     }
     if (!isValidHmac) return false;
 
-    // Check if expected PIN hash or active fingerprint is configured
-    const targetFp = expectedPinHash ? getFingerprint(expectedPinHash) : currentPinFingerprint;
-    if (targetFp && fp !== targetFp) {
-      // The token was minted for an old PIN; reject immediately!
-      return false;
+    // Check if an expected PIN hash is explicitly supplied by the caller
+    if (expectedPinHash) {
+      const targetFp = getFingerprint(expectedPinHash);
+      if (fp !== targetFp) {
+        return false;
+      }
     }
     return true;
   }
 
   // Legacy fallback: 2 parts (timestamp_hmac)
   if (parts.length === 2) {
-    if (currentPinFingerprint || expectedPinHash) return false;
+    if (sessionRevocationTimestamp > 0) return false;
     const [timeStr, expectedHmac] = parts;
     if (!timeStr || !expectedHmac) return false;
     const time = parseInt(timeStr, 10);

@@ -37,9 +37,24 @@ export async function fetchLivePlots(): Promise<Plot[]> {
   return DEFAULT_PLOTS;
 }
 
+function getClientToken(token?: string): string | undefined {
+  if (token) return token;
+  if (typeof window !== "undefined") {
+    return (
+      sessionStorage.getItem("gg_dealer_token") ||
+      localStorage.getItem("gg_dealer_token") ||
+      undefined
+    );
+  }
+  return undefined;
+}
+
 export async function addLivePlot(input: PlotInput, token?: string): Promise<Plot | null> {
+  const activeToken = getClientToken(token);
   try {
-    const res = await createPlotFn({ data: { plot: input, ...(token ? { token } : {}) } });
+    const res = await createPlotFn({
+      data: { plot: input, ...(activeToken ? { token: activeToken } : {}) },
+    });
     if (res?.success && res.plot) {
       if (typeof window !== "undefined") {
         try {
@@ -66,8 +81,11 @@ export async function setPlotStatus(
   status: Plot["status"],
   token?: string,
 ): Promise<boolean> {
+  const activeToken = getClientToken(token);
   try {
-    const res = await updatePlotStatusFn({ data: { id, status, ...(token ? { token } : {}) } });
+    const res = await updatePlotStatusFn({
+      data: { id, status, ...(activeToken ? { token: activeToken } : {}) },
+    });
     if (res?.success) {
       if (typeof window !== "undefined") {
         try {
@@ -87,8 +105,11 @@ export async function setPlotStatus(
 }
 
 export async function removePlot(id: string, token?: string): Promise<boolean> {
+  const activeToken = getClientToken(token);
   try {
-    const res = await deletePlotFn({ data: { id, ...(token ? { token } : {}) } });
+    const res = await deletePlotFn({
+      data: { id, ...(activeToken ? { token: activeToken } : {}) },
+    });
     if (res?.success) {
       if (typeof window !== "undefined") {
         try {
@@ -112,9 +133,10 @@ export async function updateLivePlot(
   plotUpdates: Partial<PlotInput>,
   token?: string,
 ): Promise<Plot | null> {
+  const activeToken = getClientToken(token);
   try {
     const res = await updatePlotFn({
-      data: { id, plot: plotUpdates, ...(token ? { token } : {}) },
+      data: { id, plot: plotUpdates, ...(activeToken ? { token: activeToken } : {}) },
     });
     if (res?.success && res.plot) {
       if (typeof window !== "undefined") {

@@ -120,10 +120,15 @@ export async function updateLeadStatus(
   status: Inquiry["status"],
   token?: string,
 ): Promise<boolean> {
-  if (!token) return false;
+  const activeToken =
+    token ||
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token")
+      : undefined);
+  if (!activeToken) return false;
 
   try {
-    const res = await updateInquiryStatusFn({ data: { token, id, status } });
+    const res = await updateInquiryStatusFn({ data: { token: activeToken, id, status } });
     if (res?.success) {
       if (typeof window !== "undefined") {
         try {

@@ -197,11 +197,24 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   }, []);
 
-  // Restore authenticated session from sessionStorage if active, load public data when opened
+  // Resolves the currently active dealer session token reliably
+  const getActiveToken = useCallback((): string => {
+    if (authToken) return authToken;
+    if (authTokenRef.current) return authTokenRef.current;
+    if (typeof window !== "undefined") {
+      return (
+        sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token") || ""
+      );
+    }
+    return "";
+  }, [authToken]);
+
+  // Restore authenticated session from sessionStorage or localStorage if active, load public data when opened
   useEffect(() => {
     if (open) {
       if (typeof window !== "undefined") {
-        const savedToken = sessionStorage.getItem("gg_dealer_token");
+        const savedToken =
+          sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token");
         if (savedToken) {
           authTokenRef.current = savedToken;
           setAuthToken(savedToken);
@@ -234,6 +247,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         setIsAuthenticated(true);
         if (typeof window !== "undefined") {
           sessionStorage.setItem("gg_dealer_token", res.token);
+          localStorage.setItem("gg_dealer_token", res.token);
         }
         setPinError(false);
         setPinInput("");
@@ -252,25 +266,23 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   };
 
   const handleLeadStatusChange = async (id: string, newStatus: Inquiry["status"]) => {
-    const success = await updateLeadStatus(id, newStatus, authToken);
+    const success = await updateLeadStatus(id, newStatus, getActiveToken());
     if (success) {
       setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)));
       toast.success(`Lead ${id} marked as "${newStatus}"`);
     } else {
-      toast.error("Session expired or invalid. Please unlock again with your password.");
-      handleLogout();
+      toast.error("Unable to update lead status. Please try again.");
     }
   };
 
   const handlePlotStatusChange = async (id: string, newStatus: Plot["status"]) => {
     setPlots((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
-    const success = await setPlotStatus(id, newStatus, authToken);
+    const success = await setPlotStatus(id, newStatus, getActiveToken());
     if (success) {
       window.dispatchEvent(new CustomEvent("plots-updated"));
       toast.success("Plot status updated");
     } else {
-      toast.error("Session expired. Please unlock again.");
-      handleLogout();
+      toast.error("Unable to update plot status. Please try again.");
     }
   };
 
@@ -278,13 +290,12 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     if (!confirm(`Are you sure you want to remove Plot ${number} from the live site?`)) return;
     setPlots((prev) => prev.filter((p) => p.id !== id));
     try {
-      const success = await removePlot(id, authToken);
+      const success = await removePlot(id, getActiveToken());
       if (success) {
         window.dispatchEvent(new CustomEvent("plots-updated"));
         toast.success(`Plot ${number} deleted.`);
       } else {
-        toast.error("Unauthorized. Please unlock again.");
-        handleLogout();
+        toast.error("Unable to delete plot. Please try again.");
       }
     } catch {
       toast.error("Failed to delete plot");
@@ -311,7 +322,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       feature: newPlotFeature.trim(),
     };
 
-    const created = await addLivePlot(input, authToken);
+    const created = await addLivePlot(input, getActiveToken());
     if (created) {
       setPlots((prev) => [...prev, created]);
       window.dispatchEvent(new CustomEvent("plots-updated"));
@@ -319,8 +330,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       setNewPlotNumber("");
       toast.success(`Plot ${created.number} added to live website!`);
     } else {
-      toast.error("Unauthorized or session expired. Please unlock again.");
-      handleLogout();
+      toast.error("Unable to add plot. Please verify plot information and try again.");
     }
   };
 
@@ -361,7 +371,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         status: editPlotStatus,
         feature: editPlotFeature.trim(),
       };
-      const res = await updateLivePlot(editingPlot.id, updates, authToken);
+      const res = await updateLivePlot(editingPlot.id, updates, getActiveToken());
       if (res) {
         setPlots((prev) => prev.map((p) => (p.id === editingPlot.id ? { ...p, ...res } : p)));
         window.dispatchEvent(new CustomEvent("plots-updated"));
@@ -371,7 +381,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
           { duration: 6000 },
         );
       } else {
-        toast.error("Failed to update plot. Please check authentication.");
+        toast.error("Unable to update plot. Please try again.");
       }
     } catch {
       toast.error("Failed to save plot updates to database.");
@@ -380,18 +390,58 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   };
 
-  // Photo Upload Handler (Supports both Device File Picker and Image URLs)
+  // Photo Upload Handler (Supports both Device File Picker and Image URLs with automatic compression)
   const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image file is too large. Please select a photo under 5MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image file is too large. Please select a photo under 15MB.");
       return;
     }
     const reader = new FileReader();
     reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setPhotoSrc(dataUrl);
+      const rawDataUrl = event.target?.result as string;
+      if (!rawDataUrl) return;
+
+      // Automatically compress and resize client-side via canvas for optimal upload speed & serverless payload limits
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1600;
+          const MAX_HEIGHT = 1600;
+          let { width, height } = img;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL("image/jpeg", 0.85);
+            setPhotoSrc(compressed);
+          } else {
+            setPhotoSrc(rawDataUrl);
+          }
+        } catch {
+          setPhotoSrc(rawDataUrl);
+        }
+      };
+      img.onerror = () => {
+        setPhotoSrc(rawDataUrl);
+      };
+      img.src = rawDataUrl;
     };
     reader.readAsDataURL(file);
   };
@@ -426,7 +476,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
           description: photoDescription.trim() || "Uploaded directly via Dealer Portal.",
           dimensionsLabel: photoDimensionsLabel.trim() || "Actual Site Progress",
         },
-        authToken,
+        getActiveToken(),
       );
 
       if (created) {
@@ -438,7 +488,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         setPhotoDimensionsLabel("");
         toast.success("Site photo published to live website!");
       } else {
-        toast.error("Failed to upload photo. Please check authorization.");
+        toast.error("Unable to upload photo. Please try again.");
       }
     } catch {
       toast.error("Error uploading photo. Please try again.");
@@ -451,12 +501,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     if (!confirm(`Are you sure you want to remove "${title}" from the live site gallery?`)) return;
     setGalleryPhotos((prev) => prev.filter((p) => p.id !== id));
     try {
-      const success = await removeLivePhoto(id, authToken);
+      const success = await removeLivePhoto(id, getActiveToken());
       if (success) {
         toast.success("Photo removed from live gallery.");
       } else {
-        toast.error("Unauthorized. Please unlock again.");
-        handleLogout();
+        toast.error("Unable to remove photo. Please try again.");
       }
     } catch {
       toast.error("Failed to remove photo");
@@ -641,7 +690,6 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   <button
                     type="button"
                     onClick={() => {
-                      handleLogout();
                       onOpenChange(false);
                     }}
                     className="size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95"

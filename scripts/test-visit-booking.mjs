@@ -66,30 +66,78 @@ console.log("\n[4] Testing Same-Day Passing based on Visitor Clock");
 
 // At 09:30 AM:
 const at930AM = new Date(2026, 8, 22, 9, 30);
-assert.equal(isTimePassedForDate("Morning (10:00 AM)", mockToday, at930AM), false, "10:00 AM open at 9:30 AM");
-assert.equal(isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at930AM), false, "2:00 PM open at 9:30 AM");
-assert.equal(isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at930AM), false, "4:30 PM open at 9:30 AM");
+assert.equal(
+  isTimePassedForDate("Morning (10:00 AM)", mockToday, at930AM),
+  false,
+  "10:00 AM open at 9:30 AM",
+);
+assert.equal(
+  isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at930AM),
+  false,
+  "2:00 PM open at 9:30 AM",
+);
+assert.equal(
+  isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at930AM),
+  false,
+  "4:30 PM open at 9:30 AM",
+);
 console.log("  [PASS] At 9:30 AM: All slots open");
 
 // At 11:30 AM:
 const at1130AM = new Date(2026, 8, 22, 11, 30);
-assert.equal(isTimePassedForDate("Morning (10:00 AM)", mockToday, at1130AM), true, "10:00 AM blocked at 11:30 AM");
-assert.equal(isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at1130AM), false, "2:00 PM open at 11:30 AM");
-assert.equal(isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at1130AM), false, "4:30 PM open at 11:30 AM");
+assert.equal(
+  isTimePassedForDate("Morning (10:00 AM)", mockToday, at1130AM),
+  true,
+  "10:00 AM blocked at 11:30 AM",
+);
+assert.equal(
+  isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at1130AM),
+  false,
+  "2:00 PM open at 11:30 AM",
+);
+assert.equal(
+  isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at1130AM),
+  false,
+  "4:30 PM open at 11:30 AM",
+);
 console.log("  [PASS] At 11:30 AM: Morning blocked, Afternoon & Evening open");
 
 // At 03:00 PM (15:00):
 const at1500 = new Date(2026, 8, 22, 15, 0);
-assert.equal(isTimePassedForDate("Morning (10:00 AM)", mockToday, at1500), true, "10:00 AM blocked at 3:00 PM");
-assert.equal(isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at1500), true, "2:00 PM blocked at 3:00 PM");
-assert.equal(isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at1500), false, "4:30 PM open at 3:00 PM");
+assert.equal(
+  isTimePassedForDate("Morning (10:00 AM)", mockToday, at1500),
+  true,
+  "10:00 AM blocked at 3:00 PM",
+);
+assert.equal(
+  isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at1500),
+  true,
+  "2:00 PM blocked at 3:00 PM",
+);
+assert.equal(
+  isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at1500),
+  false,
+  "4:30 PM open at 3:00 PM",
+);
 console.log("  [PASS] At 3:00 PM: Morning & Afternoon blocked, Sunset open");
 
 // At 05:00 PM (17:00):
 const at1700 = new Date(2026, 8, 22, 17, 0);
-assert.equal(isTimePassedForDate("Morning (10:00 AM)", mockToday, at1700), true, "10:00 AM blocked at 5:00 PM");
-assert.equal(isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at1700), true, "2:00 PM blocked at 5:00 PM");
-assert.equal(isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at1700), true, "4:30 PM blocked at 5:00 PM");
+assert.equal(
+  isTimePassedForDate("Morning (10:00 AM)", mockToday, at1700),
+  true,
+  "10:00 AM blocked at 5:00 PM",
+);
+assert.equal(
+  isTimePassedForDate("Afternoon (2:00 PM)", mockToday, at1700),
+  true,
+  "2:00 PM blocked at 5:00 PM",
+);
+assert.equal(
+  isTimePassedForDate("Evening Sunset (4:30 PM)", mockToday, at1700),
+  true,
+  "4:30 PM blocked at 5:00 PM",
+);
 console.log("  [PASS] At 5:00 PM: All daytime preset slots blocked for today");
 
 // [5] Suggested Custom Times Filtering
@@ -102,7 +150,10 @@ assert.deepEqual(
   ["03:30 PM", "04:30 PM", "05:30 PM", "06:30 PM"],
   "Only future times available at 3:00 PM",
 );
-console.log("  [PASS] Suggestions at 3:00 PM accurately filter to upcoming chips:", availableChipsAt1500.join(", "));
+console.log(
+  "  [PASS] Suggestions at 3:00 PM accurately filter to upcoming chips:",
+  availableChipsAt1500.join(", "),
+);
 
 console.log("\n=================================================================");
 console.log("  RESULT: 15/15 VISIT SCHEDULING VALIDATION CHECKS PASSED!");

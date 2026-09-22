@@ -38,6 +38,18 @@ export async function fetchLiveGalleryPhotos(): Promise<GalleryPhoto[]> {
   return DEFAULT_GALLERY_PHOTOS;
 }
 
+function getClientToken(token?: string): string | undefined {
+  if (token) return token;
+  if (typeof window !== "undefined") {
+    return (
+      sessionStorage.getItem("gg_dealer_token") ||
+      localStorage.getItem("gg_dealer_token") ||
+      undefined
+    );
+  }
+  return undefined;
+}
+
 export async function uploadLivePhoto(
   photoInput: {
     src: string;
@@ -50,9 +62,10 @@ export async function uploadLivePhoto(
   },
   token?: string,
 ): Promise<GalleryPhoto | null> {
+  const activeToken = getClientToken(token);
   try {
     const res = await uploadGalleryPhotoFn({
-      data: { photo: photoInput, ...(token ? { token } : {}) },
+      data: { photo: photoInput, ...(activeToken ? { token: activeToken } : {}) },
     });
     if (res?.success && res.photo) {
       if (typeof window !== "undefined") {
@@ -78,8 +91,11 @@ export async function uploadLivePhoto(
 }
 
 export async function removeLivePhoto(id: string, token?: string): Promise<boolean> {
+  const activeToken = getClientToken(token);
   try {
-    const res = await deleteGalleryPhotoFn({ data: { id, ...(token ? { token } : {}) } });
+    const res = await deleteGalleryPhotoFn({
+      data: { id, ...(activeToken ? { token: activeToken } : {}) },
+    });
     if (res?.success) {
       if (typeof window !== "undefined") {
         try {
