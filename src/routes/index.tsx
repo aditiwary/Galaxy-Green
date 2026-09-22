@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -159,6 +159,14 @@ function Index() {
   const [selectedPlotForVisit, setSelectedPlotForVisit] = useState("600 sq ft");
   const [airportModalOpen, setAirportModalOpen] = useState(false);
   const [airportZoom, setAirportZoom] = useState(1);
+  const [airportPan, setAirportPan] = useState({ x: 0, y: 0 });
+  const [isAirportDragging, setIsAirportDragging] = useState(false);
+  const airportDragStartRef = useRef<{
+    startX: number;
+    startY: number;
+    initialPanX: number;
+    initialPanY: number;
+  } | null>(null);
 
   // Floating dock visibility & minimization state
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -186,6 +194,17 @@ function Index() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Lock background body scroll on mobile and desktop when modals or mobile menu are active
+  useEffect(() => {
+    if (menuOpen || airportModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [menuOpen, airportModalOpen]);
+
   useEffect(() => {
     if (!airportModalOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -196,6 +215,57 @@ function Index() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [airportModalOpen]);
+
+  const resetAirportView = () => {
+    setAirportZoom(1);
+    setAirportPan({ x: 0, y: 0 });
+  };
+
+  const handleAirportPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (airportZoom <= 1) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsAirportDragging(true);
+    airportDragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialPanX: airportPan.x,
+      initialPanY: airportPan.y,
+    };
+  };
+
+  const handleAirportPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isAirportDragging || !airportDragStartRef.current) return;
+    const deltaX = e.clientX - airportDragStartRef.current.startX;
+    const deltaY = e.clientY - airportDragStartRef.current.startY;
+    setAirportPan({
+      x: airportDragStartRef.current.initialPanX + deltaX,
+      y: airportDragStartRef.current.initialPanY + deltaY,
+    });
+  };
+
+  const handleAirportPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isAirportDragging) {
+      setIsAirportDragging(false);
+      airportDragStartRef.current = null;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        // pointer was already released
+      }
+    }
+  };
+
+  const handleAirportWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.25 : 0.25;
+    setAirportZoom((prev) => {
+      const next = Math.min(3.5, Math.max(0.75, Number((prev + delta).toFixed(2))));
+      if (next <= 1) {
+        setAirportPan({ x: 0, y: 0 });
+      }
+      return next;
+    });
+  };
 
   // Trigger site visit modal with pre-filled plot
   const handlePlotSelectForBooking = (plotNumber: string, size: string) => {
@@ -369,7 +439,7 @@ function Index() {
         {/* Mobile Navigation Drawer */}
         {menuOpen && (
           <nav
-            className="border-t border-border bg-background px-5 py-6 lg:hidden animate-in fade-in slide-in-from-top-4 shadow-xl"
+            className="border-t border-border bg-background px-5 py-6 lg:hidden animate-in fade-in slide-in-from-top-4 shadow-xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto"
             aria-label="Mobile navigation"
             itemScope
             itemType="https://schema.org/SiteNavigationElement"
@@ -806,7 +876,7 @@ function Index() {
               <div
                 className="relative overflow-hidden rounded-lg border border-border shadow-glow group cursor-pointer"
                 onClick={() => {
-                  setAirportZoom(1);
+                  resetAirportView();
                   setAirportModalOpen(true);
                 }}
                 role="button"
@@ -815,7 +885,7 @@ function Index() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setAirportZoom(1);
+                    resetAirportView();
                     setAirportModalOpen(true);
                   }
                 }}
@@ -1528,7 +1598,7 @@ function Index() {
 
       {/* Luxury Floating Concierge Capsule */}
       <div
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 transition-all duration-300 ease-out ${
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 mb-[env(safe-area-inset-bottom,0px)] mr-[env(safe-area-inset-right,0px)] z-40 transition-all duration-300 ease-out ${
           isFloatingDockVisible
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 translate-y-6 pointer-events-none"
@@ -1608,7 +1678,7 @@ function Index() {
       {/* Full Screen High-Definition Airport & Connectivity Modal */}
       {airportModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-2xl flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-2xl flex flex-col justify-between p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
         >
@@ -1632,7 +1702,13 @@ function Index() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setAirportZoom((prev) => Math.max(0.75, prev - 0.25))}
+                  onClick={() =>
+                    setAirportZoom((prev) => {
+                      const next = Math.max(0.75, Number((prev - 0.25).toFixed(2)));
+                      if (next <= 1) setAirportPan({ x: 0, y: 0 });
+                      return next;
+                    })
+                  }
                   disabled={airportZoom <= 0.75}
                   className="size-7 sm:size-8 text-foreground hover:bg-background"
                   title="Zoom Out"
@@ -1645,20 +1721,22 @@ function Index() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setAirportZoom((prev) => Math.min(3, prev + 0.25))}
-                  disabled={airportZoom >= 3}
+                  onClick={() =>
+                    setAirportZoom((prev) => Math.min(3.5, Number((prev + 0.25).toFixed(2))))
+                  }
+                  disabled={airportZoom >= 3.5}
                   className="size-7 sm:size-8 text-foreground hover:bg-background"
                   title="Zoom In"
                 >
                   <ZoomIn className="size-3.5 sm:size-4" />
                 </Button>
-                {airportZoom !== 1 && (
+                {(airportZoom !== 1 || airportPan.x !== 0 || airportPan.y !== 0) && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setAirportZoom(1)}
+                    onClick={resetAirportView}
                     className="size-7 sm:size-8 text-muted-foreground hover:text-foreground hover:bg-background"
-                    title="Reset Zoom"
+                    title="Reset View"
                   >
                     <RotateCcw className="size-3.5" />
                   </Button>
@@ -1689,23 +1767,40 @@ function Index() {
             </div>
           </div>
 
-          {/* Modal Body: Pan & Zoom High Quality Container */}
-          <div className="relative flex-1 flex items-center justify-center my-3 overflow-auto rounded-xl border border-border/80 bg-black/60 p-2 sm:p-4 select-none">
+          {/* Modal Body: Fluid Pan & Zoom Container with Pointer Events */}
+          <div
+            className="relative flex-1 flex items-center justify-center my-2 sm:my-3 overflow-hidden rounded-xl border border-border/80 bg-black/70 p-2 sm:p-4 select-none touch-none"
+            onPointerDown={handleAirportPointerDown}
+            onPointerMove={handleAirportPointerMove}
+            onPointerUp={handleAirportPointerUp}
+            onPointerCancel={handleAirportPointerUp}
+            onWheel={handleAirportWheel}
+            onDoubleClick={() => {
+              if (airportZoom > 1) {
+                resetAirportView();
+              } else {
+                setAirportZoom(2);
+              }
+            }}
+          >
             <div
-              className="transition-transform duration-200 ease-out origin-center"
+              className="origin-center transition-transform select-none"
               style={{
-                transform: `scale(${airportZoom})`,
-                cursor: airportZoom > 1 ? "grab" : "zoom-in",
+                transform: `translate3d(${airportPan.x}px, ${airportPan.y}px, 0) scale(${airportZoom})`,
+                transitionDuration: isAirportDragging ? "0ms" : "200ms",
+                cursor: airportZoom > 1 ? (isAirportDragging ? "grabbing" : "grab") : "zoom-in",
               }}
-              onClick={() => {
-                setAirportZoom((prev) => (prev === 1 ? 1.75 : 1));
-              }}
-              title={airportZoom === 1 ? "Click to zoom into photograph" : "Click to reset zoom"}
+              title={
+                airportZoom > 1
+                  ? "Drag to pan · Double-click to reset · Scroll to zoom"
+                  : "Click zoom controls, double-click, or use wheel/trackpad to zoom"
+              }
             >
               <img
                 src={connectivityImage}
                 alt="Chaudhary Charan Singh International Airport (LKO) and Amausi Available Plots aerial photograph"
-                className="max-h-[76vh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-all"
+                className="max-h-[72vh] max-h-[72dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl pointer-events-none select-none"
+                draggable={false}
               />
             </div>
           </div>

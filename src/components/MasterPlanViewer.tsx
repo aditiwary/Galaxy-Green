@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,6 +18,9 @@ import {
   Zap,
   ArrowRight,
   ShieldAlert,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 import masterplanImage from "@/assets/township-masterplan.jpg";
 import { fetchLivePlots } from "@/lib/plots-client";
@@ -32,6 +35,68 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
   const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>("all");
   const [activePlot, setActivePlot] = useState<Plot | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Master Plan Pan & Zoom State for all screen sizes & inputs
+  const [planZoom, setPlanZoom] = useState<number>(1);
+  const [planPan, setPlanPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPlanDragging, setIsPlanDragging] = useState(false);
+  const planDragStartRef = useRef<{
+    startX: number;
+    startY: number;
+    initialPanX: number;
+    initialPanY: number;
+  } | null>(null);
+
+  const resetPlanView = () => {
+    setPlanZoom(1);
+    setPlanPan({ x: 0, y: 0 });
+  };
+
+  const handlePlanPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (planZoom <= 1) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsPlanDragging(true);
+    planDragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialPanX: planPan.x,
+      initialPanY: planPan.y,
+    };
+  };
+
+  const handlePlanPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPlanDragging || !planDragStartRef.current) return;
+    const deltaX = e.clientX - planDragStartRef.current.startX;
+    const deltaY = e.clientY - planDragStartRef.current.startY;
+    setPlanPan({
+      x: planDragStartRef.current.initialPanX + deltaX,
+      y: planDragStartRef.current.initialPanY + deltaY,
+    });
+  };
+
+  const handlePlanPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isPlanDragging) {
+      setIsPlanDragging(false);
+      planDragStartRef.current = null;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        // pointer was already released
+      }
+    }
+  };
+
+  const handlePlanWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.25 : 0.25;
+    setPlanZoom((prev) => {
+      const next = Math.min(3.5, Math.max(0.75, Number((prev + delta).toFixed(2))));
+      if (next <= 1) {
+        setPlanPan({ x: 0, y: 0 });
+      }
+      return next;
+    });
+  };
 
   const loadPlots = async () => {
     try {
@@ -309,34 +374,127 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
         </Dialog>
 
         {/* Master Plan Lightbox */}
-        <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-          <DialogContent className="max-w-4xl bg-card border-border text-foreground p-6">
+        <Dialog
+          open={lightboxOpen}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) resetPlanView();
+            setLightboxOpen(isOpen);
+          }}
+        >
+          <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-4xl bg-card border-border text-foreground p-4 sm:p-6 max-h-[92dvh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl font-display uppercase tracking-tight text-foreground">
-                Township Aerial Layout & Master Plan
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Architectural layout visual showcasing demarcated plots, wide 40-ft boulevard, and
-                central amenity park.
-              </DialogDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-display uppercase tracking-tight text-foreground">
+                    Township Aerial Layout & Master Plan
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                    Architectural layout visual showcasing demarcated plots, wide 40-ft boulevard,
+                    and central amenity park.
+                  </DialogDescription>
+                </div>
+
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-0.5 self-start sm:self-auto">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      setPlanZoom((prev) => {
+                        const next = Math.max(0.75, Number((prev - 0.25).toFixed(2)));
+                        if (next <= 1) setPlanPan({ x: 0, y: 0 });
+                        return next;
+                      })
+                    }
+                    disabled={planZoom <= 0.75}
+                    className="size-7 sm:size-8 text-foreground hover:bg-background"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut className="size-3.5 sm:size-4" />
+                  </Button>
+                  <span className="text-[11px] font-mono font-semibold px-1 min-w-[2.8rem] text-center">
+                    {Math.round(planZoom * 100)}%
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      setPlanZoom((prev) => Math.min(3.5, Number((prev + 0.25).toFixed(2))))
+                    }
+                    disabled={planZoom >= 3.5}
+                    className="size-7 sm:size-8 text-foreground hover:bg-background"
+                    title="Zoom In"
+                  >
+                    <ZoomIn className="size-3.5 sm:size-4" />
+                  </Button>
+                  {(planZoom !== 1 || planPan.x !== 0 || planPan.y !== 0) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={resetPlanView}
+                      className="size-7 sm:size-8 text-muted-foreground hover:text-foreground hover:bg-background"
+                      title="Reset View"
+                    >
+                      <RotateCcw className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </DialogHeader>
-            <div className="mt-4 overflow-hidden rounded border border-border relative bg-surface">
-              <img
-                src={masterplanImage}
-                alt="Aerial master plan of Galaxy Green Sai Suraksha Nagar"
-                className="w-full h-auto object-cover max-h-[75vh]"
-              />
-            </div>
-            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground font-mono">
-              <span>Amausi Corridor, Lucknow · Phase 1 Layout</span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs uppercase"
-                onClick={() => setLightboxOpen(false)}
+
+            {/* Interactive Pan & Zoom Master Plan Container */}
+            <div
+              className="mt-3 overflow-hidden rounded-xl border border-border relative bg-black/70 flex items-center justify-center p-2 sm:p-4 min-h-[320px] max-h-[65vh] select-none touch-none"
+              onPointerDown={handlePlanPointerDown}
+              onPointerMove={handlePlanPointerMove}
+              onPointerUp={handlePlanPointerUp}
+              onPointerCancel={handlePlanPointerUp}
+              onWheel={handlePlanWheel}
+              onDoubleClick={() => {
+                if (planZoom > 1) {
+                  resetPlanView();
+                } else {
+                  setPlanZoom(2);
+                }
+              }}
+            >
+              <div
+                className="origin-center transition-transform select-none"
+                style={{
+                  transform: `translate3d(${planPan.x}px, ${planPan.y}px, 0) scale(${planZoom})`,
+                  transitionDuration: isPlanDragging ? "0ms" : "200ms",
+                  cursor: planZoom > 1 ? (isPlanDragging ? "grabbing" : "grab") : "zoom-in",
+                }}
+                title={
+                  planZoom > 1
+                    ? "Drag to pan · Double-click to reset · Scroll to zoom"
+                    : "Click zoom controls, double-click, or use wheel/trackpad to zoom"
+                }
               >
-                Close Plan
-              </Button>
+                <img
+                  src={masterplanImage}
+                  alt="Aerial master plan of Galaxy Green Sai Suraksha Nagar"
+                  className="w-full h-auto object-contain max-h-[58vh] max-h-[58dvh] rounded-lg shadow-2xl pointer-events-none select-none"
+                  draggable={false}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3 text-xs text-muted-foreground font-mono">
+              <span>Amausi Corridor, Lucknow · Phase 1 Layout</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs uppercase w-full sm:w-auto"
+                  onClick={() => {
+                    resetPlanView();
+                    setLightboxOpen(false);
+                  }}
+                >
+                  Close Plan
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

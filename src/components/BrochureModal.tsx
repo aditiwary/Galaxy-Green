@@ -97,7 +97,7 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-border text-foreground p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-2xl bg-card border-border text-foreground p-4 sm:p-8 max-h-[min(90dvh,90vh)] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Badge

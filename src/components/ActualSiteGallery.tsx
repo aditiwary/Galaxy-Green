@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Camera,
   MapPin,
@@ -206,32 +206,102 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
     activeTab === "all" ? photos : photos.filter((photo) => photo.category === activeTab);
 
   const [galleryZoom, setGalleryZoom] = useState<number>(1);
+  const [galleryPan, setGalleryPan] = useState({ x: 0, y: 0 });
+  const [isGalleryDragging, setIsGalleryDragging] = useState(false);
+  const galleryDragStartRef = useRef<{
+    startX: number;
+    startY: number;
+    initialPanX: number;
+    initialPanY: number;
+  } | null>(null);
+
+  const resetGalleryView = useCallback(() => {
+    setGalleryZoom(1);
+    setGalleryPan({ x: 0, y: 0 });
+  }, []);
 
   const openLightbox = (index: number) => {
     if (index >= 0 && index < filteredPhotos.length) {
-      setGalleryZoom(1);
+      resetGalleryView();
       setLightboxIndex(index);
     }
   };
 
-  const closeLightbox = () => {
-    setGalleryZoom(1);
+  const closeLightbox = useCallback(() => {
+    resetGalleryView();
     setLightboxIndex(null);
-  };
+  }, [resetGalleryView]);
 
   const nextPhoto = useCallback(() => {
     if (lightboxIndex === null || filteredPhotos.length === 0) return;
-    setGalleryZoom(1);
+    resetGalleryView();
     setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % filteredPhotos.length));
-  }, [lightboxIndex, filteredPhotos.length]);
+  }, [lightboxIndex, filteredPhotos.length, resetGalleryView]);
 
   const prevPhoto = useCallback(() => {
     if (lightboxIndex === null || filteredPhotos.length === 0) return;
-    setGalleryZoom(1);
+    resetGalleryView();
     setLightboxIndex((prev) =>
       prev === null ? null : (prev - 1 + filteredPhotos.length) % filteredPhotos.length,
     );
-  }, [lightboxIndex, filteredPhotos.length]);
+  }, [lightboxIndex, filteredPhotos.length, resetGalleryView]);
+
+  // Lock background body scroll when lightbox is open
+  useEffect(() => {
+    if (lightboxIndex !== null) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [lightboxIndex]);
+
+  const handleGalleryPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (galleryZoom <= 1) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsGalleryDragging(true);
+    galleryDragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialPanX: galleryPan.x,
+      initialPanY: galleryPan.y,
+    };
+  };
+
+  const handleGalleryPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isGalleryDragging || !galleryDragStartRef.current) return;
+    const deltaX = e.clientX - galleryDragStartRef.current.startX;
+    const deltaY = e.clientY - galleryDragStartRef.current.startY;
+    setGalleryPan({
+      x: galleryDragStartRef.current.initialPanX + deltaX,
+      y: galleryDragStartRef.current.initialPanY + deltaY,
+    });
+  };
+
+  const handleGalleryPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isGalleryDragging) {
+      setIsGalleryDragging(false);
+      galleryDragStartRef.current = null;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        // pointer was already released
+      }
+    }
+  };
+
+  const handleGalleryWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.25 : 0.25;
+    setGalleryZoom((prev) => {
+      const next = Math.min(3.5, Math.max(0.75, Number((prev + delta).toFixed(2))));
+      if (next <= 1) {
+        setGalleryPan({ x: 0, y: 0 });
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -243,7 +313,7 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxIndex, nextPhoto, prevPhoto]);
+  }, [lightboxIndex, nextPhoto, prevPhoto, closeLightbox]);
 
   return (
     <section
@@ -483,7 +553,7 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
       {/* Lightbox Modal */}
       {lightboxIndex !== null && filteredPhotos[lightboxIndex] && (
         <div
-          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
         >
@@ -504,7 +574,13 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setGalleryZoom((prev) => Math.max(0.75, prev - 0.25))}
+                  onClick={() =>
+                    setGalleryZoom((prev) => {
+                      const next = Math.max(0.75, Number((prev - 0.25).toFixed(2)));
+                      if (next <= 1) setGalleryPan({ x: 0, y: 0 });
+                      return next;
+                    })
+                  }
                   disabled={galleryZoom <= 0.75}
                   className="size-7 sm:size-8 text-foreground hover:bg-background"
                   title="Zoom Out"
@@ -517,20 +593,22 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setGalleryZoom((prev) => Math.min(3, prev + 0.25))}
-                  disabled={galleryZoom >= 3}
+                  onClick={() =>
+                    setGalleryZoom((prev) => Math.min(3.5, Number((prev + 0.25).toFixed(2))))
+                  }
+                  disabled={galleryZoom >= 3.5}
                   className="size-7 sm:size-8 text-foreground hover:bg-background"
                   title="Zoom In"
                 >
                   <ZoomIn className="size-3.5 sm:size-4" />
                 </Button>
-                {galleryZoom !== 1 && (
+                {(galleryZoom !== 1 || galleryPan.x !== 0 || galleryPan.y !== 0) && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setGalleryZoom(1)}
+                    onClick={resetGalleryView}
                     className="size-7 sm:size-8 text-muted-foreground hover:text-foreground hover:bg-background"
-                    title="Reset Zoom"
+                    title="Reset View"
                   >
                     <RotateCcw className="size-3.5" />
                   </Button>
@@ -562,36 +640,59 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
           </div>
 
           {/* Lightbox Body (Image + Prev/Next Controls) */}
-          <div className="relative flex-1 flex items-center justify-center my-3 overflow-auto rounded-xl border border-border/80 bg-black/60 p-2 sm:p-4 select-none">
+          <div
+            className="relative flex-1 flex items-center justify-center my-2 sm:my-3 overflow-hidden rounded-xl border border-border/80 bg-black/70 p-2 sm:p-4 select-none touch-none"
+            onPointerDown={handleGalleryPointerDown}
+            onPointerMove={handleGalleryPointerMove}
+            onPointerUp={handleGalleryPointerUp}
+            onPointerCancel={handleGalleryPointerUp}
+            onWheel={handleGalleryWheel}
+            onDoubleClick={() => {
+              if (galleryZoom > 1) {
+                resetGalleryView();
+              } else {
+                setGalleryZoom(2);
+              }
+            }}
+          >
             <button
-              onClick={prevPhoto}
-              className="absolute left-2 sm:left-4 z-20 size-10 sm:size-12 rounded-full bg-background/85 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                prevPhoto();
+              }}
+              className="absolute left-2 sm:left-4 z-20 size-10 sm:size-12 rounded-full bg-background/85 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 active:scale-95 shadow-lg"
               aria-label="Previous photograph"
             >
               <ChevronLeft className="size-5 sm:size-6" />
             </button>
 
             <div
-              className="transition-transform duration-200 ease-out origin-center"
+              className="origin-center transition-transform select-none"
               style={{
-                transform: `scale(${galleryZoom})`,
-                cursor: galleryZoom > 1 ? "grab" : "zoom-in",
+                transform: `translate3d(${galleryPan.x}px, ${galleryPan.y}px, 0) scale(${galleryZoom})`,
+                transitionDuration: isGalleryDragging ? "0ms" : "200ms",
+                cursor: galleryZoom > 1 ? (isGalleryDragging ? "grabbing" : "grab") : "zoom-in",
               }}
-              onClick={() => {
-                setGalleryZoom((prev) => (prev === 1 ? 1.75 : 1));
-              }}
-              title={galleryZoom === 1 ? "Click to zoom into photograph" : "Click to reset zoom"}
+              title={
+                galleryZoom > 1
+                  ? "Drag to pan · Double-click to reset · Scroll to zoom"
+                  : "Click zoom controls, double-click, or use wheel/trackpad to zoom"
+              }
             >
               <img
                 src={filteredPhotos[lightboxIndex].src}
                 alt={filteredPhotos[lightboxIndex].title}
-                className="max-h-[76vh] w-auto max-w-full object-contain rounded-lg shadow-2xl"
+                className="max-h-[72vh] max-h-[72dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl pointer-events-none select-none"
+                draggable={false}
               />
             </div>
 
             <button
-              onClick={nextPhoto}
-              className="absolute right-2 sm:right-4 z-20 size-10 sm:size-12 rounded-full bg-background/85 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextPhoto();
+              }}
+              className="absolute right-2 sm:right-4 z-20 size-10 sm:size-12 rounded-full bg-background/85 hover:bg-background border border-border text-foreground flex items-center justify-center transition-transform hover:scale-110 active:scale-95 shadow-lg"
               aria-label="Next photograph"
             >
               <ChevronRight className="size-5 sm:size-6" />
