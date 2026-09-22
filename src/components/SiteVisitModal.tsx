@@ -238,154 +238,199 @@ export function SiteVisitModal({
               </div>
 
               {/* Date & Time Slot */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-[11px] uppercase font-mono text-muted-foreground">
-                    Preferred Date
-                  </Label>
-                  <Input
-                    type="date"
-                    value={visitDate}
-                    onChange={(e) => setVisitDate(e.target.value)}
-                    className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
-                  />
-                </div>
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[11px] uppercase font-mono text-muted-foreground">
+                      Preferred Date
+                    </Label>
+                    <Input
+                      type="date"
+                      value={visitDate}
+                      onChange={(e) => setVisitDate(e.target.value)}
+                      className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border"
+                    />
+                  </div>
 
-                <div>
-                  <div className="flex items-center justify-between">
+                  <div>
                     <Label className="text-[11px] uppercase font-mono text-muted-foreground">
                       Time Slot
                     </Label>
-                    <button
-                      type="button"
-                      onClick={() => setSlotType(slotType === "preset" ? "custom" : "preset")}
-                      className="text-[10px] font-mono text-primary hover:underline"
-                    >
-                      {slotType === "preset" ? "+ Custom Time" : "Use Preset Slots"}
-                    </button>
+                    <div className="grid grid-cols-2 gap-1.5 mt-1">
+                      {[
+                        { id: "Morning (10:00 AM)", label: "10:00 AM (Morning)" },
+                        { id: "Afternoon (2:00 PM)", label: "02:00 PM (Afternoon)" },
+                        { id: "Evening Sunset (4:30 PM)", label: "04:30 PM (Evening)" },
+                        { id: "custom", label: "⚡ Custom Timing" },
+                      ].map((slotOption) => (
+                        <button
+                          key={slotOption.id}
+                          type="button"
+                          onClick={() => {
+                            if (slotOption.id === "custom") {
+                              setSlotType("custom");
+                            } else {
+                              setSlotType("preset");
+                              setSlotPreset(slotOption.id);
+                            }
+                          }}
+                          className={`px-2 py-1.5 rounded-md text-[11px] font-mono border transition-all text-center ${
+                            (slotOption.id === "custom" && slotType === "custom") ||
+                            (slotType === "preset" && presetSlot === slotOption.id)
+                              ? "bg-primary text-primary-foreground border-primary font-semibold shadow-glow"
+                              : "bg-surface border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+                          }`}
+                        >
+                          {slotOption.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                </div>
 
-                  {slotType === "preset" ? (
-                    <select
-                      value={presetSlot}
-                      onChange={(e) => {
-                        if (e.target.value === "CUSTOM_SLOT_TRIGGER") {
-                          setSlotType("custom");
-                        } else {
-                          setSlotPreset(e.target.value);
-                        }
-                      }}
-                      className="mt-1 h-9 sm:h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
-                    >
-                      <option value="Morning (10:00 AM)">Morning (10:00 AM)</option>
-                      <option value="Afternoon (2:00 PM)">Afternoon (2:00 PM)</option>
-                      <option value="Evening Sunset (4:30 PM)">Evening Sunset (4:30 PM)</option>
-                      <option value="CUSTOM_SLOT_TRIGGER">⚡ Choose Custom Timing...</option>
-                    </select>
-                  ) : (
-                    <div className="mt-1 relative">
+                {/* Custom Timing Panel (Revealed when Custom Timing is active) */}
+                {slotType === "custom" && (
+                  <div className="p-3 rounded-lg bg-surface/90 border border-primary/40 space-y-2 animate-in fade-in slide-in-from-top-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-primary font-semibold flex items-center gap-1.5">
+                        <Clock className="size-3.5" /> Enter Your Preferred Timing:
+                      </span>
+                      <span className="text-emerald-400 text-[10px]">Daily 7:00 AM – 7:00 PM</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       <Input
                         placeholder="e.g. 11:30 AM or 05:15 PM"
                         value={customTime}
                         onChange={(e) => setCustomTime(e.target.value)}
-                        className="h-9 sm:h-10 text-xs bg-surface border-primary/60 text-foreground pr-8"
+                        className="h-9 text-xs bg-background border-primary/60 text-foreground font-mono font-medium"
                       />
-                      <Clock className="size-3.5 absolute right-2.5 top-3 text-primary pointer-events-none" />
                     </div>
-                  )}
-                </div>
+
+                    {/* Quick Timing Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] font-mono text-muted-foreground mr-1">
+                        Suggestions:
+                      </span>
+                      {[
+                        "08:30 AM",
+                        "11:00 AM",
+                        "11:30 AM",
+                        "01:30 PM",
+                        "03:30 PM",
+                        "05:30 PM",
+                        "06:30 PM",
+                      ].map((time) => (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => setCustomTime(time)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                            customTime === time
+                              ? "bg-primary text-primary-foreground border-primary font-semibold"
+                              : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Custom Timing Quick Chips (Only visible when custom slot is chosen) */}
-              {slotType === "custom" && (
-                <div className="p-2.5 rounded-md bg-surface/80 border border-border/80 space-y-1.5 animate-in fade-in slide-in-from-top-1">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-                    <span>Quick Select Preferred Timing:</span>
-                    <span className="text-emerald-400">Coordinators Available 7 AM - 7 PM</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      "08:30 AM",
-                      "11:00 AM",
-                      "11:30 AM",
-                      "01:30 PM",
-                      "03:30 PM",
-                      "05:30 PM",
-                      "06:30 PM",
-                    ].map((time) => (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => setCustomTime(time)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                          customTime === time
-                            ? "bg-primary text-primary-foreground border-primary font-semibold"
-                            : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Plot Preference Section */}
-              <div className="space-y-2 pt-1 border-t border-border/60">
+              <div className="space-y-2 pt-2 border-t border-border/60">
                 <div className="flex items-center justify-between">
                   <Label className="text-[11px] uppercase font-mono text-muted-foreground">
-                    Plot Sizing Preference
+                    Plot Sizing & Configuration
                   </Label>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setPlotMode("preset")}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                        plotMode === "preset"
-                          ? "bg-primary text-primary-foreground border-primary font-semibold"
-                          : "bg-surface border-border text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      Standard Sizes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPlotMode("custom")}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                        plotMode === "custom"
-                          ? "bg-primary text-primary-foreground border-primary font-semibold"
-                          : "bg-surface border-border text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <Sparkles className="size-2.5 inline mr-1" /> Custom Plot
-                    </button>
-                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400">
+                    ₹1,199 / Sq Ft Base Rate
+                  </span>
                 </div>
 
-                {plotMode === "preset" ? (
-                  <select
-                    value={presetPlot}
-                    onChange={(e) => {
-                      if (e.target.value === "CUSTOM_PLOT_TRIGGER") {
-                        setPlotMode("custom");
-                      } else {
-                        setPresetPlot(e.target.value);
-                      }
-                    }}
-                    className="h-10 w-full px-3 text-xs bg-surface border border-border rounded text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="600 sq ft">600 Sq Ft (Starting Plot · ₹7.19 L)</option>
-                    <option value="800 sq ft">800 Sq Ft (Compact Home · ₹9.59 L)</option>
-                    <option value="1000 sq ft">1,000 Sq Ft (Most Popular · ₹11.99 L)</option>
-                    <option value="1200 sq ft">1,200 Sq Ft (Spacious Duplex · ₹14.39 L)</option>
-                    <option value="1500 sq ft">1,500 Sq Ft (Executive Villa · ₹17.99 L)</option>
-                    <option value="2000 sq ft">2,000 Sq Ft (Luxury Villa · ₹23.98 L)</option>
-                    <option value="CUSTOM_PLOT_TRIGGER">
-                      ⚡ Custom Requirement (Any Size On Buyer Wish)...
-                    </option>
-                  </select>
-                ) : (
-                  /* Custom Plot Configuration Box */
+                {/* Preset Plot Tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: "600 sq ft", size: "600 Sq Ft", price: "₹7.19 Lakh", desc: "Starting" },
+                    { id: "800 sq ft", size: "800 Sq Ft", price: "₹9.59 Lakh", desc: "Compact" },
+                    {
+                      id: "1000 sq ft",
+                      size: "1,000 Sq Ft",
+                      price: "₹11.99 Lakh",
+                      desc: "Most Popular",
+                    },
+                    {
+                      id: "1200 sq ft",
+                      size: "1,200 Sq Ft",
+                      price: "₹14.39 Lakh",
+                      desc: "Duplex Villa",
+                    },
+                    {
+                      id: "1500 sq ft",
+                      size: "1,500 Sq Ft",
+                      price: "₹17.99 Lakh",
+                      desc: "Executive",
+                    },
+                    {
+                      id: "2000 sq ft",
+                      size: "2,000 Sq Ft",
+                      price: "₹23.98 Lakh",
+                      desc: "Luxury Estate",
+                    },
+                  ].map((plotItem) => (
+                    <button
+                      key={plotItem.id}
+                      type="button"
+                      onClick={() => {
+                        setPlotMode("preset");
+                        setPresetPlot(plotItem.id);
+                      }}
+                      className={`p-2.5 rounded-lg border text-left transition-all ${
+                        plotMode === "preset" && presetPlot === plotItem.id
+                          ? "border-primary bg-primary/15 shadow-glow ring-1 ring-primary/40"
+                          : "border-border/80 bg-surface hover:bg-surface-hover hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-xs font-display font-semibold text-foreground">
+                          {plotItem.size}
+                        </span>
+                        <span className="text-[9px] font-mono text-muted-foreground">
+                          {plotItem.desc}
+                        </span>
+                      </div>
+                      <span className="block text-[11px] font-mono text-primary font-semibold mt-0.5">
+                        {plotItem.price}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Plot Mode Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setPlotMode(plotMode === "custom" ? "preset" : "custom")}
+                  className={`w-full p-2.5 rounded-lg border flex items-center justify-between transition-all ${
+                    plotMode === "custom"
+                      ? "border-primary bg-primary/15 shadow-glow ring-1 ring-primary/50"
+                      : "border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="size-4 text-primary" />
+                    <span className="text-xs font-display font-semibold text-foreground">
+                      Custom Size Requirement (Any Size On Buyer Wish)
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-primary border border-primary/40 px-2 py-0.5 rounded">
+                    {plotMode === "custom" ? "Active" : "Click to Customize"}
+                  </span>
+                </button>
+
+                {/* Custom Plot Configuration Box (Revealed when Custom is active) */}
+                {plotMode === "custom" && (
                   <div className="p-3.5 rounded-lg bg-surface/90 border border-primary/40 space-y-3 animate-in fade-in duration-200">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-[11px] font-mono font-semibold text-primary flex items-center gap-1.5">

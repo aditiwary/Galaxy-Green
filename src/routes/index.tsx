@@ -162,6 +162,8 @@ function Index() {
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactPlot, setContactPlot] = useState("600 sq ft");
+  const [customPlotArea, setCustomPlotArea] = useState<number>(2000);
+  const [contactCustomTime, setContactCustomTime] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [contactHoneypot, setContactHoneypot] = useState("");
   const [formError, setFormError] = useState("");
@@ -203,12 +205,20 @@ function Index() {
     setFormSubmitting(true);
 
     try {
+      const finalPlot =
+        contactPlot === "Custom Size"
+          ? `Custom ${customPlotArea} Sq Ft (₹${((customPlotArea * 1199) / 100000).toFixed(2)} Lakh · Tailored Size)`
+          : contactPlot;
+      const finalSlot = contactCustomTime.trim()
+        ? `Custom Time: ${contactCustomTime.trim()}`
+        : "Morning (10:00 AM)";
+
       const createdLead = await recordNewInquiry({
         name: contactName.trim(),
         phone: cleanPhone,
-        plotPreference: contactPlot,
+        plotPreference: finalPlot,
         message: contactMessage.trim(),
-        slot: "Morning (10:00 AM)",
+        slot: finalSlot,
         cabPickup: false,
         pickupLocation: "On Site",
         website: contactHoneypot,
@@ -221,7 +231,8 @@ function Index() {
         `Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar (Ref: ${createdLead.id}).`,
         `Name: ${contactName.trim()}`,
         `Mobile: ${cleanPhone}`,
-        `Plot Preference: ${contactPlot}`,
+        `Plot Preference: ${finalPlot}`,
+        contactCustomTime.trim() ? `Preferred Timing: ${contactCustomTime.trim()}` : "",
         contactMessage.trim() ? `Message: ${contactMessage.trim()}` : "",
       ]
         .filter(Boolean)
@@ -1257,11 +1268,16 @@ function Index() {
                 </div>
 
                 <div>
-                  <label className="form-label">Plot Preference</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="form-label mb-0">Plot Preference</label>
+                    <span className="text-[10px] font-mono text-emerald-400">
+                      ₹1,199 / Sq Ft Base
+                    </span>
+                  </div>
                   <select
                     value={contactPlot}
                     onChange={(e) => setContactPlot(e.target.value)}
-                    className="form-control block w-full appearance-none px-4 text-xs font-mono"
+                    className="form-control block w-full px-4 text-xs font-mono"
                   >
                     <option value="600 sq ft">600 Sq Ft (₹7.19 Lakh · Starting Size)</option>
                     <option value="800 sq ft">800 Sq Ft (₹9.59 Lakh)</option>
@@ -1269,8 +1285,85 @@ function Index() {
                     <option value="1200 sq ft">1,200 Sq Ft (₹14.39 Lakh)</option>
                     <option value="1500 sq ft">1,500 Sq Ft (₹17.99 Lakh)</option>
                     <option value="2000 sq ft">2,000 Sq Ft (₹23.98 Lakh)</option>
-                    <option value="Custom Size">Custom Requirement (Any Size On Buyer Wish)</option>
+                    <option value="Custom Size">
+                      ⚡ Custom Size Requirement (Any Size On Buyer Wish)
+                    </option>
                   </select>
+                </div>
+
+                {contactPlot === "Custom Size" && (
+                  <div className="p-3.5 rounded-lg bg-surface/90 border border-primary/40 space-y-2.5 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-primary font-semibold">
+                        Custom Area (Sq Ft):
+                      </span>
+                      <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                        Estimated: ₹{((customPlotArea * 1199) / 100000).toFixed(2)} Lakh
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={600}
+                        max={25000}
+                        step={50}
+                        value={customPlotArea}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value, 10);
+                          setCustomPlotArea(isNaN(v) ? 600 : v);
+                        }}
+                        className="h-9 text-xs font-mono font-semibold bg-background"
+                      />
+                      <span className="text-xs font-mono text-muted-foreground">Sq Ft</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {[750, 1800, 2500, 3500, 5000].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setCustomPlotArea(s)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                            customPlotArea === s
+                              ? "bg-primary text-primary-foreground border-primary font-semibold"
+                              : "bg-background border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {s} Sq Ft
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="form-label mb-0">Preferred Visit Timing (Optional)</label>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      Open 7 AM - 7 PM
+                    </span>
+                  </div>
+                  <Input
+                    placeholder="e.g. 11:30 AM or 05:00 PM (or choose chip below)"
+                    value={contactCustomTime}
+                    onChange={(e) => setContactCustomTime(e.target.value)}
+                    className="form-control"
+                  />
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "05:30 PM"].map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setContactCustomTime(t)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                          contactCustomTime === t
+                            ? "bg-primary text-primary-foreground border-primary font-semibold"
+                            : "bg-background/80 border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
