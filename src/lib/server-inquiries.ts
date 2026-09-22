@@ -8,6 +8,7 @@ import {
   verifyAdminToken,
   signPinHash,
   verifySignedPinHash,
+  setActivePinHash,
 } from "./auth-token";
 
 export { generateAdminToken, verifyAdminToken };
@@ -199,30 +200,40 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
 
     let storedPin = "";
 
-    // 1. Check MySQL first if connected
+    // 1. Check MySQL first as authoritative source of truth
     const rows = await executeQuery<AdminConfigRow[]>(
       "SELECT dealer_pin FROM admin_config WHERE id = 1 LIMIT 1",
     );
     if (rows && rows.length > 0 && rows[0]?.dealer_pin) {
       storedPin = String(rows[0].dealer_pin);
+      setActivePinHash(storedPin);
+      memoryDealerPinHash = storedPin;
+      trySavePinDisk(storedPin);
     }
 
-    // 2. If DB is offline or returned empty, check client's signedPinToken
+    // 2. If DB is offline or returned empty, check server in-memory hash or /tmp disk cache
+    if (!storedPin) {
+      storedPin = memoryDealerPinHash || tryLoadPinDisk() || "";
+    }
+
+    // 3. Client signed token fallback if DB completely uninitialized
     if (!storedPin && data.clientPinToken) {
       const verified = verifySignedPinHash(data.clientPinToken);
       if (verified) {
         storedPin = verified;
         memoryDealerPinHash = verified;
+        setActivePinHash(verified);
         trySavePinDisk(verified);
       }
     }
 
-    // 3. If still empty, check server in-memory hash or /tmp disk cache
-    if (!storedPin) {
-      storedPin = memoryDealerPinHash || tryLoadPinDisk() || "";
-    }
-
     const cleanInput = String(data.pin || "").trim();
+    if (!cleanInput) {
+      return {
+        success: false,
+        error: "Password / PIN cannot be blank.",
+      };
+    }
 
     let isPinMatch = false;
     if (storedPin.startsWith("$2b$") || storedPin.startsWith("$2a$")) {
@@ -235,6 +246,7 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
           const upgradedHash = await bcrypt.hash(cleanInput, 10);
           memoryDealerPinHash = upgradedHash;
           storedPin = upgradedHash;
+          setActivePinHash(upgradedHash);
           trySavePinDisk(upgradedHash);
           await executeQuery("UPDATE admin_config SET dealer_pin = ? WHERE id = 1", [upgradedHash]);
         } catch (upgradeErr) {
@@ -249,6 +261,7 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
           const defaultHash = await bcrypt.hash("0000", 10);
           memoryDealerPinHash = defaultHash;
           storedPin = defaultHash;
+          setActivePinHash(defaultHash);
           trySavePinDisk(defaultHash);
           await executeQuery("UPDATE admin_config SET dealer_pin = ? WHERE id = 1", [defaultHash]);
         } catch (e) {
@@ -260,7 +273,8 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
     if (isPinMatch) {
       // Clear failed count on successful authentication
       pinAttemptMap.delete(trackerKey);
-      const token = generateAdminToken();
+      setActivePinHash(storedPin);
+      const token = generateAdminToken(storedPin);
       const signedPinToken = storedPin ? signPinHash(storedPin) : undefined;
       return { success: true, token, signedPinToken };
     }
@@ -280,7 +294,7 @@ export const verifyDealerPinFn = createServerFn({ method: "POST" })
     const remainingAttempts = 5 - tracker.count;
     return {
       success: false,
-      error: `Access denied. Invalid PIN. (${remainingAttempts} attempts remaining before lockout).`,
+      error: `Access denied. Invalid Password / PIN. (${remainingAttempts} attempts remaining before lockout).`,
     };
   });
 
@@ -319,11 +333,11 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       );
       let storedPin =
         rows && rows.length > 0 && rows[0]?.dealer_pin ? String(rows[0].dealer_pin) : "";
-      if (!storedPin && data.clientPinToken) {
-        storedPin = verifySignedPinHash(data.clientPinToken) || "";
-      }
       if (!storedPin) {
         storedPin = memoryDealerPinHash || tryLoadPinDisk() || "";
+      }
+      if (!storedPin && data.clientPinToken) {
+        storedPin = verifySignedPinHash(data.clientPinToken) || "";
       }
       const clean = String(data.dealerPin).trim();
       if (storedPin.startsWith("$2b$") || storedPin.startsWith("$2a$")) {
@@ -336,12 +350,15 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     }
 
     if (!isAuthorized) {
-      return { success: false, error: "Unauthorized. Please unlock the portal with your PIN." };
+      return { success: false, error: "Unauthorized. Please unlock the portal with your password." };
     }
 
-    // If updating PIN, validate format
-    if (data.newPin && !/^\d{4,8}$/.test(data.newPin)) {
-      return { success: false, error: "PIN must be between 4 to 8 digits." };
+    // If updating PIN, validate format (supports 4 to 32 characters)
+    if (data.newPin) {
+      const cleanNew = data.newPin.trim();
+      if (cleanNew.length < 4 || cleanNew.length > 32) {
+        return { success: false, error: "Password / PIN must be between 4 and 32 characters." };
+      }
     }
 
     const updates: string[] = [];
@@ -349,9 +366,11 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     let signedPinToken: string | undefined = undefined;
 
     if (data.newPin) {
-      const hashedPin = await bcrypt.hash(data.newPin, 10);
+      const cleanNew = data.newPin.trim();
+      const hashedPin = await bcrypt.hash(cleanNew, 10);
       memoryDealerPinHash = hashedPin;
       trySavePinDisk(hashedPin);
+      setActivePinHash(hashedPin);
       signedPinToken = signPinHash(hashedPin);
       updates.push("dealer_pin = ?");
       params.push(hashedPin);
@@ -377,12 +396,16 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     const res = await executeQuery(sql, params);
 
     if (res !== null) {
-      return { success: true, signedPinToken, message: "Settings saved successfully in MySQL!" };
+      return {
+        success: true,
+        signedPinToken,
+        message: "Security Password updated in MySQL database! All sessions logged out across all devices.",
+      };
     }
     return {
       success: true,
       signedPinToken,
-      message: "Security PIN updated and synchronized with cryptographic cloud storage!",
+      message: "Security Password updated and synchronized across all devices!",
     };
   });
 

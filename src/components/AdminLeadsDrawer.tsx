@@ -137,39 +137,43 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     [authToken],
   );
 
+  // Explicitly locks and logs out the CRM portal across all local session stores
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    setAuthToken("");
+    setPinInput("");
+    setPinError(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("gg_dealer_token");
+      localStorage.removeItem("gg_dealer_token");
+      localStorage.removeItem("gg_dealer_pin_signed_token");
+    }
+  }, []);
+
+  // CRM Portal is LOCKED / LOGGED OUT by default on every open or reload
   useEffect(() => {
+    handleLogout();
     if (open) {
-      if (typeof window !== "undefined") {
-        const savedToken = sessionStorage.getItem("gg_dealer_token");
-        if (savedToken) {
-          setAuthToken(savedToken);
-          setIsAuthenticated(true);
-          loadData(savedToken);
-          return;
-        }
-      }
       loadData();
     }
-  }, [open, loadData]);
+  }, [open, loadData, handleLogout]);
 
-  // Handle Secure Server-Side PIN verification
+  // Handle Secure Server-Side Password/PIN verification
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pinInput.trim()) {
+    const clean = pinInput.trim();
+    if (!clean) {
       setPinError(true);
-      toast.error("Please enter your PIN.");
+      toast.error("Please enter your security password / PIN.");
       return;
     }
 
     setVerifyingPin(true);
     setPinError(false);
     try {
-      const res = await verifyDealerPin(pinInput.trim());
+      const res = await verifyDealerPin(clean);
       if (res?.success && res.token) {
         setAuthToken(res.token);
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("gg_dealer_token", res.token);
-        }
         setIsAuthenticated(true);
         setPinError(false);
         setPinInput("");
@@ -177,7 +181,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         await loadData(res.token);
       } else {
         setPinError(true);
-        toast.error(res?.error || "Incorrect PIN. Access Denied.");
+        toast.error(res?.error || "Incorrect Password / PIN. Access Denied.");
       }
     } catch {
       setPinError(true);
@@ -193,24 +197,35 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)));
       toast.success(`Lead ${id} marked as "${newStatus}"`);
     } else {
-      toast.error("Failed to update status. Please unlock again if session expired.");
+      toast.error("Session expired or invalid. Please unlock again with your password.");
+      handleLogout();
     }
   };
 
   const handlePlotStatusChange = async (id: string, newStatus: Plot["status"]) => {
     setPlots((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
-    await setPlotStatus(id, newStatus, authToken);
-    window.dispatchEvent(new CustomEvent("plots-updated"));
-    toast.success("Plot status updated");
+    const success = await setPlotStatus(id, newStatus, authToken);
+    if (success) {
+      window.dispatchEvent(new CustomEvent("plots-updated"));
+      toast.success("Plot status updated");
+    } else {
+      toast.error("Session expired. Please unlock again.");
+      handleLogout();
+    }
   };
 
   const handleDeletePlot = async (id: string, number: string) => {
     if (!confirm(`Are you sure you want to remove Plot ${number} from the live site?`)) return;
     setPlots((prev) => prev.filter((p) => p.id !== id));
     try {
-      await removePlot(id, authToken);
-      window.dispatchEvent(new CustomEvent("plots-updated"));
-      toast.success(`Plot ${number} deleted.`);
+      const success = await removePlot(id, authToken);
+      if (success) {
+        window.dispatchEvent(new CustomEvent("plots-updated"));
+        toast.success(`Plot ${number} deleted.`);
+      } else {
+        toast.error("Unauthorized. Please unlock again.");
+        handleLogout();
+      }
     } catch {
       toast.error("Failed to delete plot");
     }
@@ -237,68 +252,60 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     };
 
     const created = await addLivePlot(input, authToken);
-    setPlots((prev) => [...prev, created]);
-    window.dispatchEvent(new CustomEvent("plots-updated"));
-    setShowAddPlotForm(false);
-    setNewPlotNumber("");
-    toast.success(`Plot ${created.number} added to live website!`);
+    if (created) {
+      setPlots((prev) => [...prev, created]);
+      window.dispatchEvent(new CustomEvent("plots-updated"));
+      setShowAddPlotForm(false);
+      setNewPlotNumber("");
+      toast.success(`Plot ${created.number} added to live website!`);
+    } else {
+      toast.error("Unauthorized or session expired. Please unlock again.");
+      handleLogout();
+    }
   };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPinInput) {
-      toast.info("No changes to save.");
+    const cleanNewPin = newPinInput.trim();
+    if (!cleanNewPin) {
+      toast.info("No new password entered.");
       return;
     }
-    if (newPinInput !== confirmPinInput) {
-      toast.error("New PIN and Confirm PIN do not match.");
+    if (cleanNewPin !== confirmPinInput.trim()) {
+      toast.error("New Password and Confirm Password do not match.");
       return;
     }
-    if (!/^\d{4,8}$/.test(newPinInput)) {
-      toast.error("PIN must be 4 to 8 numeric digits.");
+    if (cleanNewPin.length < 4 || cleanNewPin.length > 32) {
+      toast.error("Password / PIN must be between 4 and 32 characters.");
       return;
     }
 
     setSavingSettings(true);
     try {
-      const activeToken =
-        authToken ||
-        (typeof window !== "undefined" ? sessionStorage.getItem("gg_dealer_token") || "" : "");
-
-      const clientPinToken = getClientPinToken();
+      const activeToken = authToken;
       const res = await updateAdminConfigFn({
         data: {
           token: activeToken,
-          newPin: newPinInput.trim(),
-          clientPinToken,
+          newPin: cleanNewPin,
         },
       });
       const typedRes = res as
         | { success?: boolean; signedPinToken?: string; message?: string; error?: string }
         | undefined;
       if (typedRes?.success) {
-        if (typedRes.signedPinToken) {
-          setClientPinToken(typedRes.signedPinToken);
-        }
-        toast.success(typedRes.message || "Security PIN updated and saved successfully!");
-
-        if (newPinInput) {
-          // If PIN changed, update active session token
-          const authRes = await verifyDealerPin(newPinInput.trim());
-          if (authRes?.token) {
-            setAuthToken(authRes.token);
-            if (typeof window !== "undefined") {
-              sessionStorage.setItem("gg_dealer_token", authRes.token);
-            }
-          }
-        }
+        // Log out immediately across all devices & clear state
+        handleLogout();
         setNewPinInput("");
         setConfirmPinInput("");
+        toast.success(
+          "Security Password updated in MySQL database! All sessions logged out across all devices. Please enter your new password to unlock.",
+          { duration: 7000 },
+        );
       } else {
-        toast.error(res?.error || "Failed to save settings.");
+        toast.error(res?.error || "Failed to update security password in database.");
       }
     } catch {
-      toast.error("Failed to save settings.");
+      toast.error("Failed to save settings. Please verify database connection.");
     } finally {
       setSavingSettings(false);
     }
@@ -350,20 +357,19 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                 Dealer Management Portal
               </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                Enter your secure dealer PIN to manage customer leads, plot inventory, and
-                integration settings.
+                Enter your secure database password to manage customer leads, live plot inventory, and settings.
               </p>
 
               <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
                 <div className="relative">
                   <Input
                     type={showPin ? "text" : "password"}
-                    maxLength={8}
+                    maxLength={32}
                     autoFocus
-                    placeholder="Enter Security PIN"
+                    placeholder="Enter Security Password / PIN"
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
-                    className={`h-12 text-center text-lg tracking-widest font-mono bg-[#080f0c] border pr-10 ${
+                    className={`h-12 text-center text-base tracking-widest font-mono bg-[#080f0c] border pr-10 ${
                       pinError ? "border-destructive text-destructive" : "border-border"
                     }`}
                   />
@@ -371,7 +377,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     type="button"
                     onClick={() => setShowPin(!showPin)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                    aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                    aria-label={showPin ? "Hide Password" : "Show Password"}
                   >
                     {showPin ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
@@ -382,10 +388,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   className="w-full h-11 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg"
                 >
                   <KeyRound className="size-4 mr-2" />{" "}
-                  {verifyingPin ? "Verifying..." : "Unlock Portal"}
+                  {verifyingPin ? "Verifying with Database..." : "Unlock Portal"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground font-mono flex items-center justify-center gap-1.5">
-                  <Lock className="size-3 text-emerald-400" /> End-to-end encrypted session
+                  <Lock className="size-3 text-emerald-400" /> Locked by default • End-to-end encrypted
                 </p>
               </form>
             </div>
@@ -412,14 +418,20 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsAuthenticated(false)}
-                    className="h-9 px-3.5 text-xs border-border/80 hover:bg-surface font-mono text-muted-foreground hover:text-foreground rounded-lg transition-all"
+                    onClick={() => {
+                      handleLogout();
+                      toast.info("CRM Portal Locked & Logged Out");
+                    }}
+                    className="h-9 px-3.5 text-xs border-amber-500/40 text-amber-300 hover:bg-amber-500/10 font-mono rounded-lg transition-all"
                   >
-                    <Lock className="size-3.5 mr-1.5 text-accent" /> Lock
+                    <Lock className="size-3.5 mr-1.5 text-amber-400" /> Lock & Log Out
                   </Button>
                   <button
                     type="button"
-                    onClick={() => onOpenChange(false)}
+                    onClick={() => {
+                      handleLogout();
+                      onOpenChange(false);
+                    }}
                     className="size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95"
                     title="Close CRM Portal"
                     aria-label="Close CRM Portal"
@@ -957,7 +969,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     </div>
                   </div>
 
-                  {/* Security PIN Change */}
+                  {/* Security Password Change */}
                   <div className="p-6 bg-[#0e1c16] border border-border/80 rounded-xl space-y-3.5 shadow-sm card-architectural">
                     <div className="flex items-center gap-3">
                       <div className="icon-monogram-gold size-9">
@@ -965,26 +977,25 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       </div>
                       <div>
                         <h5 className="font-display uppercase text-sm font-semibold text-foreground">
-                          Change Dealer Security PIN
+                          Change Dealer Security Password / PIN
                         </h5>
                         <p className="text-[11px] text-muted-foreground font-mono">
-                          Bcrypt hashed authentication for CRM and plot inventory
+                          Bcrypt hashed authentication stored directly in MySQL (<code className="text-primary">admin_config.dealer_pin</code>)
                         </p>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Set a new private numeric PIN (4-8 digits) to secure your dealer portal and
-                      CRM leads.
+                      Set a new private security password or PIN (4-32 characters). Changing your password will immediately update the database, invalidate all active sessions, and log out all devices across your network. In the future, you must log in using the new password only.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md pt-1">
                       <div>
                         <Label className="text-[10px] uppercase font-mono text-muted-foreground">
-                          New PIN
+                          New Password / PIN
                         </Label>
                         <Input
                           type="password"
-                          maxLength={8}
-                          placeholder="••••"
+                          maxLength={32}
+                          placeholder="Enter new password"
                           value={newPinInput}
                           onChange={(e) => setNewPinInput(e.target.value)}
                           className="mt-1.5 h-11 text-center font-mono text-base bg-[#080f0c] border-border/80 tracking-widest rounded-lg"
@@ -992,12 +1003,12 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       </div>
                       <div>
                         <Label className="text-[10px] uppercase font-mono text-muted-foreground">
-                          Confirm New PIN
+                          Confirm New Password / PIN
                         </Label>
                         <Input
                           type="password"
-                          maxLength={8}
-                          placeholder="••••"
+                          maxLength={32}
+                          placeholder="Confirm new password"
                           value={confirmPinInput}
                           onChange={(e) => setConfirmPinInput(e.target.value)}
                           className="mt-1.5 h-11 text-center font-mono text-base bg-[#080f0c] border-border/80 tracking-widest rounded-lg"
@@ -1005,7 +1016,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       </div>
                     </div>
                     <p className="text-[11px] text-muted-foreground italic">
-                      Leave blank to keep your current security PIN unchanged.
+                      Leave blank to keep your current security password unchanged.
                     </p>
                   </div>
 
@@ -1015,7 +1026,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     className="h-12 px-8 uppercase text-xs tracking-wider font-semibold bg-primary text-primary-foreground hover:bg-primary/90 btn-shimmer rounded-lg shadow-glow"
                   >
                     <Check className="size-4 mr-2" />
-                    {savingSettings ? "Saving Changes..." : "Save Settings & Webhook"}
+                    {savingSettings ? "Updating Database..." : "Save Settings & Update Password"}
                   </Button>
                 </form>
               </TabsContent>
