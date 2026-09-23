@@ -14,4 +14,4 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://galaxygreenlucknow.com/sitemap.xml
+Sitemap: https://galaxygreen.in/sitemap.xml

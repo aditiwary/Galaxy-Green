@@ -105,11 +105,16 @@ export const Route = createFileRoute("/")({
           "Eco-luxury freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India (near CCS International Airport). Immediate registry, 100% Dakhil Kharij mutation, 30ft wide roads, 24/7 security & verified clear land titles.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://galaxygreenlucknow.com/" },
+      { property: "og:url", content: "https://galaxygreen.in/" },
       {
         property: "og:image",
-        content:
-          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+        content: "https://galaxygreen.in/galaxy-green-logo.jpg",
+      },
+      { property: "og:image:width", content: "1024" },
+      { property: "og:image:height", content: "1024" },
+      {
+        property: "og:image:alt",
+        content: "Galaxy Green Sai Suraksha Nagar Official Luxury Township Logo",
       },
       { name: "twitter:card", content: "summary_large_image" },
       {
@@ -123,8 +128,7 @@ export const Route = createFileRoute("/")({
       },
       {
         name: "twitter:image",
-        content:
-          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+        content: "https://galaxygreen.in/galaxy-green-logo.jpg",
       },
     ],
   }),
