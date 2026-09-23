@@ -11,7 +11,9 @@
     "db:seed": "node scripts/seed-mysql.js",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "node scripts/test-deployment-suite.mjs && node scripts/test-visit-booking.mjs && node scripts/test-persistence.mjs"
+    "test": "node scripts/test-deployment-suite.mjs && node scripts/test-visit-booking.mjs && node scripts/test-persistence.mjs",
+    "bundle:cpanel": "node scripts/bundle-cpanel.mjs",
+    "ready": "node scripts/bundle-cpanel.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
