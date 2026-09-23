@@ -4,7 +4,7 @@ import { plotSchema, DEFAULT_PLOTS, type Plot, type PlotInput } from "./plot-typ
 import { executeQuery } from "./db";
 import { verifyAdminToken } from "./auth-token";
 
-// In-memory cache fallback in case cloud MySQL connection is absent (e.g. initial Vercel deploy)
+// In-memory cache fallback in case MySQL connection is absent
 let memoryPlots: Plot[] = [...DEFAULT_PLOTS];
 
 function trySavePlotsDisk(plots: Plot[]) {

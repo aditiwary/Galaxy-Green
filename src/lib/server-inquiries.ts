@@ -36,24 +36,21 @@ export const checkDbHealthFn = createServerFn({ method: "GET" }).handler(async (
     if (!pool) {
       return {
         connected: false,
-        isVercel: Boolean(process.env["VERCEL"]),
         message: "No MySQL connection configured. Running in cloud fallback mode.",
       };
     }
     await pool.query("SELECT 1 as ping");
     return {
       connected: true,
-      isVercel: Boolean(process.env["VERCEL"]),
       message: "MySQL Online & Active",
     };
   } catch (err: unknown) {
     const errorObj = err as { code?: string; message?: string };
     return {
       connected: false,
-      isVercel: Boolean(process.env["VERCEL"]),
       message:
         errorObj?.code === "ECONNREFUSED"
-          ? "MySQL is running on localhost. On Vercel, configure DATABASE_URL in Vercel Project Settings."
+          ? "MySQL connection refused. Please verify database credentials in .env or cPanel Node.js settings."
           : `Database offline: ${errorObj?.message || "Connection failed"}`,
     };
   }

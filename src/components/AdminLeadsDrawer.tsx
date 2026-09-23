@@ -150,7 +150,6 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [savingSettings, setSavingSettings] = useState(false);
   const [dbHealth, setDbHealth] = useState<{
     connected: boolean;
-    isVercel?: boolean;
     message: string;
   } | null>(null);
 
@@ -1625,11 +1624,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                             </summary>
                             <div className="mt-2 p-2.5 rounded bg-black/40 border border-border/60 font-mono text-[10px] space-y-1 text-muted-foreground">
                               <div>
-                                To link a cloud MySQL database (TiDB, Aiven, or Railway), add in
-                                Vercel Dashboard:
+                                To configure MySQL database credentials, update your server .env or cPanel Node.js application environment:
                               </div>
                               <div className="text-white bg-black/80 p-1.5 rounded border border-white/10 select-all">
-                                DATABASE_URL=mysql://user:password@host:port/galaxy_green
+                                DATABASE_URL=mysql://user:password@localhost:3306/galaxy_green
                               </div>
                             </div>
                           </details>

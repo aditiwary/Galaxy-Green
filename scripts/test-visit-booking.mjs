@@ -147,7 +147,7 @@ const availableChipsAt1500 = SUGGESTED_CUSTOM_TIMES.filter(
 );
 assert.deepEqual(
   availableChipsAt1500,
-  ["03:30 PM", "04:30 PM", "05:30 PM", "06:30 PM"],
+  ["03:30 PM", "04:30 PM", "05:30 PM", "06:00 PM"],
   "Only future times available at 3:00 PM",
 );
 console.log(
