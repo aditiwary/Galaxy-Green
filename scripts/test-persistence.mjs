@@ -67,8 +67,17 @@ function assert(condition, message) {
 
 async function run() {
   const connectionUri =
-    process.env.DATABASE_URL || process.env.MYSQL_URL || "mysql://root@localhost:3306/galaxy_green";
-  const conn = await mysql.createConnection(connectionUri);
+    process.env.DATABASE_URL ||
+    process.env.MYSQL_URL ||
+    "mysql://root@localhost:3306/galaxy_green";
+  const isLocalhost =
+    connectionUri.includes("localhost") || connectionUri.includes("127.0.0.1");
+  const conn = await mysql.createConnection({
+    uri: connectionUri,
+    ...(!isLocalhost && !connectionUri.includes("ssl=")
+      ? { ssl: { rejectUnauthorized: false } }
+      : {}),
+  });
 
   try {
     // -------------------------------------------------------------
