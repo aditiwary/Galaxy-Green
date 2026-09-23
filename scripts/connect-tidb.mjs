@@ -17,7 +17,8 @@ async function run() {
   console.log("--------------------------------------------------");
 
   const isLocalhost = connectionUri.includes("localhost") || connectionUri.includes("127.0.0.1");
-  const ssl = !isLocalhost && !connectionUri.includes("ssl=") ? { rejectUnauthorized: false } : undefined;
+  const ssl =
+    !isLocalhost && !connectionUri.includes("ssl=") ? { rejectUnauthorized: false } : undefined;
 
   let conn;
   try {
@@ -34,7 +35,9 @@ async function run() {
     console.log("   [SUCCESS] Connected to gateway.");
 
     console.log(`2. Creating '${targetDb}' database if not exists...`);
-    await initConn.query(`CREATE DATABASE IF NOT EXISTS \`${targetDb}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+    await initConn.query(
+      `CREATE DATABASE IF NOT EXISTS \`${targetDb}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+    );
     await initConn.end();
     console.log(`   [SUCCESS] '${targetDb}' database ready.`);
 
@@ -51,7 +54,9 @@ async function run() {
     const schemaPath = path.resolve(process.cwd(), "database/schema.sql");
     const schemaSql = fs.readFileSync(schemaPath, "utf-8");
     await conn.query(schemaSql);
-    console.log("   [SUCCESS] All tables created (plots, inquiries, admin_config, gallery_photos).");
+    console.log(
+      "   [SUCCESS] All tables created (plots, inquiries, admin_config, gallery_photos).",
+    );
 
     console.log("4. Verifying default plots and configuration...");
     const [plotRows] = await conn.query("SELECT COUNT(*) as count FROM plots");
@@ -73,7 +78,10 @@ async function run() {
     const envPath = path.resolve(process.cwd(), ".env");
     let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf-8") : "";
     if (envContent.includes("DATABASE_URL=")) {
-      envContent = envContent.replace(/DATABASE_URL=.*(\r?\n|$)/, `DATABASE_URL="${connectionUri}"$1`);
+      envContent = envContent.replace(
+        /DATABASE_URL=.*(\r?\n|$)/,
+        `DATABASE_URL="${connectionUri}"$1`,
+      );
     } else {
       envContent += `\nDATABASE_URL="${connectionUri}"\n`;
     }

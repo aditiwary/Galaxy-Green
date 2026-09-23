@@ -310,20 +310,33 @@ export function SiteVisitModal({
         {step === "form" ? (
           <>
             <DialogHeader>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
-                >
-                  VIP Experience
-                </Badge>
-                <span className="text-xs text-muted-foreground font-mono">
-                  Zero Obligation · Free Guided Ground Tour
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+                  <img
+                    src="/galaxy-green-emblem.png"
+                    alt="Galaxy Green"
+                    width={44}
+                    height={44}
+                    className="size-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
+                    >
+                      VIP Experience
+                    </Badge>
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      Zero Obligation · Free Guided Ground Tour
+                    </span>
+                  </div>
+                  <DialogTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5">
+                    Book Your Private Site Visit
+                  </DialogTitle>
+                </div>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-1">
-                Book Your Private Site Visit
-              </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 Inspect physical plot boundary pillars, review original legal registry documents,
                 and choose custom dimensions with complete freedom.
@@ -796,8 +809,19 @@ export function SiteVisitModal({
         ) : (
           /* Confirmation State */
           <div className="text-center py-4 space-y-4">
-            <div className="icon-monogram-gold size-16 mx-auto grid place-items-center shadow-glow">
-              <CheckCircle2 className="size-8 text-accent" />
+            <div className="relative size-16 mx-auto">
+              <div className="size-16 rounded-2xl overflow-hidden shadow-glow ring-2 ring-primary/40 bg-[#071510]">
+                <img
+                  src="/galaxy-green-emblem.png"
+                  alt="Galaxy Green"
+                  width={64}
+                  height={64}
+                  className="size-full object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-emerald-500 text-black grid place-items-center shadow-lg">
+                <CheckCircle2 className="size-3.5" />
+              </div>
             </div>
 
             <div>

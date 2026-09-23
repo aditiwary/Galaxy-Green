@@ -80,8 +80,8 @@ const realEstateSchema = {
   description:
     "Eco-luxury plotted township featuring freehold residential plots in Amausi, Lucknow, Uttar Pradesh, India near CCS International Airport. Immediate registry, 100% mutation (Dakhil Kharij), 30ft wide roads, and round-the-clock security.",
   url: "https://galaxygreenlucknow.com/",
-  image:
-    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+  logo: "https://galaxygreenlucknow.com/galaxy-green-logo.jpg",
+  image: "https://galaxygreenlucknow.com/galaxy-green-logo.jpg",
   offers: {
     "@type": "AggregateOffer",
     priceCurrency: "INR",
@@ -119,8 +119,8 @@ const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
   name: "Galaxy Green Sai Suraksha Nagar Sales Office",
-  image:
-    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+  logo: "https://galaxygreenlucknow.com/galaxy-green-logo.jpg",
+  image: "https://galaxygreenlucknow.com/galaxy-green-logo.jpg",
   telephone: "+91-90444-12642",
   url: "https://galaxygreenlucknow.com/",
   priceRange: "₹₹",
@@ -388,15 +388,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:locale", content: "en_IN" },
       {
         property: "og:image",
-        content:
-          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+        content: "https://galaxygreenlucknow.com/galaxy-green-logo.jpg",
       },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
+      { property: "og:image:width", content: "1024" },
+      { property: "og:image:height", content: "1024" },
       {
         property: "og:image:alt",
-        content:
-          "Galaxy Green Sai Suraksha Nagar plotted township entrance in Lucknow, Uttar Pradesh, India",
+        content: "Galaxy Green Sai Suraksha Nagar Official Luxury Township Logo",
       },
 
       // Twitter Cards
@@ -412,8 +410,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         name: "twitter:image",
-        content:
-          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&h=630&q=80",
+        content: "https://galaxygreenlucknow.com/galaxy-green-logo.jpg",
       },
     ],
     links: [
@@ -432,6 +429,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap",
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
     ],
     scripts: [
       {

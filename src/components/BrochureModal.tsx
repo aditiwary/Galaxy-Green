@@ -99,18 +99,33 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-2xl bg-card border-border text-foreground p-4 sm:p-8 max-h-[min(90dvh,90vh)] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
-            >
-              Official Prospectus 2026
-            </Badge>
-            <span className="text-xs text-muted-foreground font-mono">Phase 1 Master Document</span>
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+              <img
+                src="/galaxy-green-emblem.png"
+                alt="Galaxy Green"
+                width={44}
+                height={44}
+                className="size-full object-cover"
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
+                >
+                  Official Prospectus 2026
+                </Badge>
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  Phase 1 Master Document
+                </span>
+              </div>
+              <DialogTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5">
+                Galaxy Green Sai Suraksha Nagar
+              </DialogTitle>
+            </div>
           </div>
-          <DialogTitle className="text-2xl font-display uppercase tracking-tight text-foreground mt-1">
-            Galaxy Green Sai Suraksha Nagar
-          </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
             Complete architectural specifications, plot dimension matrix, and legal credentials for
             Amausi, Lucknow.

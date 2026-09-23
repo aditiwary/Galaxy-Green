@@ -51,9 +51,7 @@ async function main() {
       const isLocalhost =
         connectionUri.includes("localhost") || connectionUri.includes("127.0.0.1");
       const ssl =
-        !isLocalhost && !connectionUri.includes("ssl=")
-          ? { rejectUnauthorized: false }
-          : undefined;
+        !isLocalhost && !connectionUri.includes("ssl=") ? { rejectUnauthorized: false } : undefined;
 
       try {
         connection = await mysql.createConnection({

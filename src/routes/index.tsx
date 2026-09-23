@@ -131,21 +131,30 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function Logo() {
+function Logo({ showMotto = false }: { showMotto?: boolean }) {
   return (
     <a href="#home" className="flex items-center gap-3 group" aria-label="Galaxy Green home">
-      <span className="grid size-10 place-items-center rounded-md border border-primary/40 bg-primary/10 shadow-glow group-hover:border-primary transition-colors">
-        <span className="relative size-4 rotate-45 border border-primary">
-          <span className="absolute inset-1 bg-primary" />
-        </span>
-      </span>
-      <span className="leading-none">
-        <strong className="block font-display text-base font-semibold uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">
+      <div className="relative size-11 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-[#071510]">
+        <img
+          src="/galaxy-green-emblem.png"
+          alt="Galaxy Green Emblem Logo"
+          width={48}
+          height={48}
+          className="size-full object-cover"
+        />
+      </div>
+      <span className="leading-tight">
+        <strong className="block font-display text-base sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
           Galaxy Green
         </strong>
-        <span className="mt-1 block text-[9px] uppercase tracking-widest text-primary/80 font-mono">
+        <span className="block text-[9px] sm:text-[10px] uppercase tracking-widest text-primary/90 font-mono font-medium">
           Sai Suraksha Nagar
         </span>
+        {showMotto && (
+          <span className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-muted-foreground/80 font-mono mt-0.5">
+            Safe Homes | Better Tomorrow
+          </span>
+        )}
       </span>
     </a>
   );
@@ -1566,7 +1575,7 @@ function Index() {
       <footer className="border-t border-border bg-background px-5 pt-12 pb-24 sm:pb-16 lg:px-8">
         <div className="mx-auto max-w-7xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
-            <Logo />
+            <Logo showMotto={true} />
             <p className="mt-4 max-w-md text-xs leading-relaxed text-muted-foreground">
               Galaxy Green Sai Suraksha Nagar, QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008.
               Freehold residential plotted development.
@@ -1607,19 +1616,31 @@ function Index() {
         {dockMinimized ? (
           <button
             onClick={() => setDockMinimized(false)}
-            className="flex items-center gap-2 rounded-full border border-primary/50 bg-card/95 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-foreground shadow-luxury backdrop-blur-xl transition-all hover:border-primary hover:bg-card hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 rounded-full border border-primary/50 bg-card/95 p-1 pl-1.5 pr-3 text-xs font-semibold uppercase tracking-wider text-foreground shadow-luxury backdrop-blur-xl transition-all hover:border-primary hover:bg-card hover:scale-105 active:scale-95"
             aria-label="Open Luxury Concierge Desk"
           >
-            <span className="size-2 rounded-full bg-emerald-400" />
+            <img
+              src="/galaxy-green-emblem.png"
+              alt="Concierge"
+              width={28}
+              height={28}
+              className="size-7 rounded-full object-cover shadow-glow ring-1 ring-primary/40"
+            />
             <span className="font-display tracking-normal text-xs text-primary font-semibold">
               Concierge
             </span>
-            <MessageCircle className="size-3.5 text-emerald-500 ml-0.5" />
+            <MessageCircle className="size-3.5 text-emerald-400 ml-0.5" />
           </button>
         ) : (
-          <div className="flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 pl-3.5 pr-2 shadow-luxury backdrop-blur-xl ring-1 ring-white/5 transition-all">
+          <div className="flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 pl-3 pr-2 shadow-luxury backdrop-blur-xl ring-1 ring-white/5 transition-all">
             <div className="hidden md:flex items-center gap-2 pr-2 border-r border-border/60">
-              <span className="size-2 rounded-full bg-emerald-400" />
+              <img
+                src="/galaxy-green-emblem.png"
+                alt="Galaxy Green"
+                width={20}
+                height={20}
+                className="size-5 rounded-full object-cover ring-1 ring-primary/40"
+              />
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                 Direct Desk
               </span>

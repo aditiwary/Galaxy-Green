@@ -609,8 +609,19 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#0a1410]">
-              <div className="icon-monogram-gold size-16 grid place-items-center shadow-glow mb-4">
-                <Lock className="size-7 text-accent" />
+              <div className="relative mb-4">
+                <div className="size-20 rounded-2xl overflow-hidden shadow-glow ring-2 ring-primary/40 bg-[#071510]">
+                  <img
+                    src="/galaxy-green-emblem.png"
+                    alt="Galaxy Green Logo"
+                    width={80}
+                    height={80}
+                    className="size-full object-cover"
+                  />
+                </div>
+                <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-surface border border-accent/60 grid place-items-center shadow-lg">
+                  <Lock className="size-3.5 text-accent" />
+                </div>
               </div>
               <h3 className="text-2xl font-display uppercase tracking-tight text-foreground">
                 Dealer Management Portal
@@ -662,16 +673,27 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
           <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0a1410]">
             <SheetHeader className="px-6 py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
-                    <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
-                      Dealer Operations Portal
-                    </span>
+                <div className="flex items-center gap-3">
+                  <div className="size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+                    <img
+                      src="/galaxy-green-emblem.png"
+                      alt="Galaxy Green Logo"
+                      width={44}
+                      height={44}
+                      className="size-full object-cover"
+                    />
                   </div>
-                  <SheetTitle className="text-2xl font-display uppercase tracking-tight text-foreground mt-1">
-                    Galaxy Green Control Hub
-                  </SheetTitle>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
+                      <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
+                        Dealer Operations Portal
+                      </span>
+                    </div>
+                    <SheetTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5">
+                      Galaxy Green Control Hub
+                    </SheetTitle>
+                  </div>
                 </div>
 
                 {/* Control Actions: Lock & Close Buttons on Same Horizontal Alignment */}
