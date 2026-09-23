@@ -1,6 +1,7 @@
 /**
  * Visit scheduling date & time validation utilities
- * Ensures local timezone accuracy (immune to UTC date shift) and strict prevention of past date/time bookings.
+ * Ensures local timezone accuracy (immune to UTC date shift) and strict prevention of past date/time bookings
+ * while keeping all upcoming dates and operational future timings (7:00 AM – 7:00 PM) fully open and usable.
  */
 
 export function getLocalDateString(d: Date = new Date()): string {
@@ -11,14 +12,33 @@ export function getLocalDateString(d: Date = new Date()): string {
 }
 
 export function parseTimeHoursMinutes(timeStr: string): { hours: number; minutes: number } | null {
-  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-  if (!match) return null;
-  let hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const meridian = match[3]?.toUpperCase();
-  if (meridian === "PM" && hours < 12) hours += 12;
-  if (meridian === "AM" && hours === 12) hours = 0;
-  return { hours, minutes };
+  if (!timeStr || typeof timeStr !== "string") return null;
+  const clean = timeStr.trim();
+
+  // Try HH:MM AM/PM or HH:MM (e.g. 10:00 AM, 04:30 PM, 14:00, 10.30 AM)
+  const colonMatch = clean.match(/(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i);
+  if (colonMatch) {
+    let hours = parseInt(colonMatch[1], 10);
+    const minutes = parseInt(colonMatch[2], 10);
+    const meridian = colonMatch[3]?.toUpperCase();
+    if (meridian === "PM" && hours < 12) hours += 12;
+    if (meridian === "AM" && hours === 12) hours = 0;
+    // If no meridian specified and hours between 1 and 6, treat as afternoon PM (operating hours 7am - 7pm)
+    if (!meridian && hours >= 1 && hours <= 6) hours += 12;
+    return { hours, minutes };
+  }
+
+  // Try single hour e.g. "10 AM", "2 PM", "11pm", "5 PM"
+  const hourMatch = clean.match(/^(\d{1,2})\s*(AM|PM)$/i);
+  if (hourMatch) {
+    let hours = parseInt(hourMatch[1], 10);
+    const meridian = hourMatch[2].toUpperCase();
+    if (meridian === "PM" && hours < 12) hours += 12;
+    if (meridian === "AM" && hours === 12) hours = 0;
+    return { hours, minutes: 0 };
+  }
+
+  return null;
 }
 
 export function isTimePassedForDate(
@@ -26,12 +46,17 @@ export function isTimePassedForDate(
   selectedDate: string,
   now: Date = new Date(),
 ): boolean {
+  if (!selectedDate) return false;
   const todayStr = getLocalDateString(now);
 
-  // If date is in the past
-  if (selectedDate < todayStr) return true;
-  // If date is in the future
-  if (selectedDate > todayStr) return false;
+  // Normalize selectedDate (in case of full ISO string or extra whitespace)
+  const normDate = selectedDate.includes("T") ? selectedDate.split("T")[0] : selectedDate.trim();
+
+  // If date is in the future, it is NEVER passed — all upcoming dates & timings are valid!
+  if (normDate > todayStr) return false;
+
+  // If date is in the past, it has already passed
+  if (normDate < todayStr) return true;
 
   // Selected date is TODAY: check against current time
   const parsed = parseTimeHoursMinutes(timeStr);
@@ -55,14 +80,14 @@ export const PRESET_SLOTS: readonly PresetSlot[] = [
 ] as const;
 
 export const SUGGESTED_CUSTOM_TIMES: readonly string[] = [
-  "08:30 AM",
+  "09:00 AM",
   "10:00 AM",
   "11:00 AM",
   "11:30 AM",
-  "01:30 PM",
+  "01:00 PM",
   "02:00 PM",
   "03:30 PM",
   "04:30 PM",
   "05:30 PM",
-  "06:30 PM",
+  "06:00 PM",
 ] as const;

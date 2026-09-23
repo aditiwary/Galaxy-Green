@@ -72,6 +72,7 @@ import { LegalTrustBadge } from "@/components/LegalTrustBadge";
 
 // Backend Client Service
 import { recordNewInquiry } from "@/lib/leads-client";
+import { getLocalDateString } from "@/lib/visit-helpers";
 import { toast } from "sonner";
 
 const PHONE = "919044412642";
@@ -137,8 +138,8 @@ export const Route = createFileRoute("/")({
 
 function Logo({ showMotto = false }: { showMotto?: boolean }) {
   return (
-    <a href="#home" className="flex items-center gap-3 group" aria-label="Galaxy Green home">
-      <div className="relative size-11 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-[#071510]">
+    <a href="#home" className="flex items-center gap-2.5 sm:gap-3 group shrink-0" aria-label="Galaxy Green home">
+      <div className="relative size-10 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-[#071510]">
         <img
           src="/galaxy-green-emblem.png"
           alt="Galaxy Green Emblem Logo"
@@ -147,11 +148,11 @@ function Logo({ showMotto = false }: { showMotto?: boolean }) {
           className="size-full object-cover"
         />
       </div>
-      <span className="leading-tight">
-        <strong className="block font-display text-base sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+      <span className="flex flex-col justify-center leading-tight">
+        <strong className="block font-display text-sm sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
           Galaxy Green
         </strong>
-        <span className="block text-[9px] sm:text-[10px] uppercase tracking-widest text-primary/90 font-mono font-medium">
+        <span className="block text-[8px] sm:text-[10px] uppercase tracking-widest text-primary/90 font-mono font-medium">
           Sai Suraksha Nagar
         </span>
         {showMotto && (
@@ -169,6 +170,34 @@ function Index() {
   const [siteVisitOpen, setSiteVisitOpen] = useState(false);
   const [brochureOpen, setBrochureOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+
+  // Auto-restore and auto-load Admin Portal on page refresh if active or url has #admin
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (
+        window.location.hash === "#admin" ||
+        sessionStorage.getItem("gg_admin_open") === "true"
+      ) {
+        setAdminOpen(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (adminOpen) {
+        sessionStorage.setItem("gg_admin_open", "true");
+        if (window.location.hash !== "#admin") {
+          window.history.replaceState(null, "", "#admin");
+        }
+      } else {
+        sessionStorage.removeItem("gg_admin_open");
+        if (window.location.hash === "#admin") {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
+      }
+    }
+  }, [adminOpen]);
   const [selectedPlotForVisit, setSelectedPlotForVisit] = useState("600 sq ft");
   const [airportModalOpen, setAirportModalOpen] = useState(false);
   const [airportZoom, setAirportZoom] = useState(1);
@@ -373,11 +402,11 @@ function Index() {
     >
       {/* Top Header */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl transition-all">
-        <div className="mx-auto flex h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-3 sm:px-6 lg:px-6 xl:px-8">
           <Logo />
 
           <nav
-            className="hidden items-center gap-1.5 xl:gap-3.5 2xl:gap-5 lg:flex"
+            className="hidden items-center gap-1 xl:gap-2.5 2xl:gap-3.5 lg:flex"
             aria-label="Main navigation"
             itemScope
             itemType="https://schema.org/SiteNavigationElement"
@@ -397,24 +426,24 @@ function Index() {
                 key={href}
                 href={href}
                 itemProp="url"
-                className="px-2 xl:px-2.5 py-1 rounded text-[11px] xl:text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all font-medium whitespace-nowrap"
+                className="px-1.5 xl:px-2.5 py-1 rounded text-[11px] xl:text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all font-medium whitespace-nowrap"
               >
                 <span itemProp="name">{label}</span>
               </a>
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-2.5 xl:gap-3 shrink-0">
-            <div className="h-6 w-px bg-border/80 mx-1 xl:mx-1.5" />
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+            <div className="h-5 w-px bg-border/80 mx-0.5 xl:mx-1" />
 
-            {/* Sales CRM launcher button for businessman */}
+            {/* Admin Portal launcher button */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setAdminOpen(true)}
-              className="h-9 px-3 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-wider font-mono shrink-0"
+              className="h-8.5 sm:h-9 px-2.5 xl:px-3 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-wider font-mono shrink-0"
             >
-              <Lock className="size-3.5 mr-1.5" /> Sales CRM
+              <Lock className="size-3.5 mr-1.5" /> Admin Portal
             </Button>
 
             <Button
@@ -423,7 +452,7 @@ function Index() {
                 setSelectedPlotForVisit("1000 sq ft");
                 setSiteVisitOpen(true);
               }}
-              className="h-9 px-3.5 xl:px-4 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 whitespace-nowrap"
+              className="h-8.5 sm:h-9 px-3 xl:px-4 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 whitespace-nowrap"
             >
               Book Site Visit <ArrowRight className="size-3.5 ml-1.5" />
             </Button>
@@ -434,9 +463,9 @@ function Index() {
               variant="outline"
               size="sm"
               onClick={() => setAdminOpen(true)}
-              className="h-9 px-2 text-[10px] border-primary/40 text-primary uppercase font-mono"
+              className="h-8 px-2 text-[10px] border-primary/40 text-primary uppercase font-mono"
             >
-              CRM
+              Admin
             </Button>
             <Button
               variant="ghost"
@@ -1298,7 +1327,7 @@ function Index() {
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-12 items-start">
             <div className="lg:col-span-5 space-y-6">
-              <p className="eyebrow">09 · Direct Developer Contact</p>
+              <p className="eyebrow">09 · Direct Management Contact</p>
               <h2 className="section-title">Arrange Your Personal Site Tour</h2>
               <p className="text-base text-muted-foreground leading-relaxed">
                 Connect directly with the management team. Submit your requirement below to receive
@@ -1313,7 +1342,7 @@ function Index() {
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
-                      Developer & Managing Director
+                      Managing Director
                     </span>
                     <h4 className="font-display text-lg uppercase text-foreground font-semibold">
                       Vishal Singh
@@ -1485,11 +1514,11 @@ function Index() {
                     </div>
                     <Input
                       type="date"
-                      min={new Date().toLocaleDateString("en-CA")}
+                      min={getLocalDateString()}
                       value={contactVisitDate}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const minDate = new Date().toLocaleDateString("en-CA");
+                        const minDate = getLocalDateString();
                         if (val && val < minDate) {
                           setFormError("Preferred visit date cannot be in the past.");
                           return;
@@ -1590,7 +1619,7 @@ function Index() {
               onClick={() => setAdminOpen(true)}
               className="text-primary hover:underline flex items-center gap-1 uppercase"
             >
-              <Lock className="size-3" /> Sales CRM Portal
+              <Lock className="size-3" /> Admin Portal
             </button>
             <span>·</span>
             <button

@@ -78,15 +78,14 @@ export function SiteVisitModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [visitDate, setVisitDate] = useState(() => {
-    // If today's visiting hours have passed, default to tomorrow
-    if (new Date().getHours() >= 17) {
+    const now = new Date();
+    // After 18:30 (6:30 PM), ground visits for today have ended; default to tomorrow
+    if (now.getHours() > 18 || (now.getHours() === 18 && now.getMinutes() >= 30)) {
       const d = new Date();
       d.setDate(d.getDate() + 1);
       return getLocalDateString(d);
     }
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return getLocalDateString(d);
+    return getLocalDateString(now);
   });
 
   // Time Slot State (Preset vs Custom)
@@ -169,6 +168,11 @@ export function SiteVisitModal({
           setCustomTime("05:30 PM");
         }
       }
+    } else if (newDate > todayStr) {
+      // Future date selected: All slots are active. If slot was empty, reset to default morning slot
+      if (!presetSlot) {
+        setSlotPreset(PRESET_SLOTS[0].id);
+      }
     }
   };
 
@@ -198,7 +202,7 @@ export function SiteVisitModal({
       return;
     }
 
-    // 4. Time slot validation (Strictly block passed dates & times)
+    // 4. Time slot validation (Strictly block passed dates & times for today, allow all operational future timings)
     if (visitDate === todayStr) {
       if (isPastOperatingHours) {
         setError(
@@ -233,6 +237,25 @@ export function SiteVisitModal({
         if (isTimePassedForDate(customTime, visitDate)) {
           setError(
             `The custom timing "${customTime}" has already passed for today. Please pick an upcoming time slot.`,
+          );
+          return;
+        }
+      }
+    } else {
+      // Future date validation: verify timing is within daylight operating hours (7:00 AM – 7:00 PM)
+      if (slotType === "custom") {
+        if (!customTime.trim()) {
+          setError("Please specify your preferred custom visit timing.");
+          return;
+        }
+        const parsed = parseTimeHoursMinutes(customTime);
+        if (!parsed) {
+          setError("Please enter a valid visit timing (e.g. 11:30 AM or 05:00 PM).");
+          return;
+        }
+        if (parsed.hours < 7 || parsed.hours >= 19) {
+          setError(
+            "Visits are conducted between 7:00 AM and 7:00 PM. Please enter a time within operational hours.",
           );
           return;
         }
@@ -309,35 +332,35 @@ export function SiteVisitModal({
       <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-xl bg-card border-border text-foreground p-4 sm:p-7 max-h-[min(90dvh,90vh)] overflow-y-auto">
         {step === "form" ? (
           <>
-            <DialogHeader>
+            <DialogHeader className="pr-6">
               <div className="flex items-center gap-3">
-                <div className="size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+                <div className="size-11 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
                   <img
                     src="/galaxy-green-emblem.png"
                     alt="Galaxy Green"
-                    width={44}
-                    height={44}
+                    width={48}
+                    height={48}
                     className="size-full object-cover"
                   />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <Badge
                       variant="outline"
-                      className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono"
+                      className="border-primary text-primary bg-primary/10 text-[10px] uppercase font-mono shrink-0"
                     >
                       VIP Experience
                     </Badge>
-                    <span className="text-[11px] text-muted-foreground font-mono">
+                    <span className="text-[11px] text-muted-foreground font-mono truncate">
                       Zero Obligation · Free Guided Ground Tour
                     </span>
                   </div>
-                  <DialogTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5">
+                  <DialogTitle className="text-lg sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5 leading-snug">
                     Book Your Private Site Visit
                   </DialogTitle>
                 </div>
               </div>
-              <DialogDescription className="text-xs text-muted-foreground">
+              <DialogDescription className="text-xs text-muted-foreground mt-1">
                 Inspect physical plot boundary pillars, review original legal registry documents,
                 and choose custom dimensions with complete freedom.
               </DialogDescription>

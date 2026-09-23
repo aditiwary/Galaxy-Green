@@ -251,7 +251,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         }
         setPinError(false);
         setPinInput("");
-        toast.success("Dealer Portal Unlocked Successfully");
+        toast.success("Admin Portal Unlocked Successfully");
         await loadData(res.token);
       } else {
         setPinError(true);
@@ -280,7 +280,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     const success = await setPlotStatus(id, newStatus, getActiveToken());
     if (success) {
       window.dispatchEvent(new CustomEvent("plots-updated"));
-      toast.success("Plot status updated");
+      toast.success("✓ Plot status auto-saved to database");
     } else {
       toast.error("Unable to update plot status. Please try again.");
     }
@@ -346,18 +346,13 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     setEditPlotFeature(plot.feature);
   };
 
-  const handleSavePlotEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSavePlotEdit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!editingPlot) return;
     if (!editPlotNumber.trim()) {
       toast.error("Plot number cannot be empty.");
       return;
     }
-
-    const confirmSave = confirm(
-      `Confirm database save: Are you sure you want to commit changes to Plot ${editPlotNumber}? These changes will be permanently stored in your MySQL database and live on the website.`,
-    );
-    if (!confirmSave) return;
 
     setSavingPlotEdit(true);
     try {
@@ -377,8 +372,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         window.dispatchEvent(new CustomEvent("plots-updated"));
         setEditingPlot(null);
         toast.success(
-          `✓ Plot ${res.number} successfully saved to MySQL database & permanently remembered!`,
-          { duration: 6000 },
+          `✓ Plot ${res.number} auto-saved to database!`,
+          { duration: 4000 },
         );
       } else {
         toast.error("Unable to update plot. Please try again.");
@@ -594,7 +589,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               <div className="flex items-center gap-2">
                 <span className="size-2 rounded-full bg-primary" />
                 <span className="text-xs uppercase tracking-wider text-muted-foreground font-mono">
-                  Dealer Security Access
+                  Admin Security Access
                 </span>
               </div>
               <button
@@ -624,11 +619,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                 </div>
               </div>
               <h3 className="text-2xl font-display uppercase tracking-tight text-foreground">
-                Dealer Management Portal
+                Admin Management Portal
               </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm">
                 Enter your secure database password to manage customer leads, live plot inventory,
-                and settings.
+                and site configuration.
               </p>
 
               <form onSubmit={handlePinSubmit} className="mt-6 w-full max-w-xs space-y-4">
@@ -687,7 +682,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     <div className="flex items-center gap-2">
                       <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
                       <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
-                        Dealer Operations Portal
+                        Admin Operations Portal
                       </span>
                     </div>
                     <SheetTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5">
@@ -703,7 +698,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     size="sm"
                     onClick={() => {
                       handleLogout();
-                      toast.info("CRM Portal Locked & Logged Out");
+                      toast.info("Admin Portal Locked & Logged Out");
                     }}
                     className="h-9 px-3.5 text-xs border-amber-500/40 text-amber-300 hover:bg-amber-500/10 font-mono rounded-lg transition-all"
                   >
@@ -715,8 +710,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       onOpenChange(false);
                     }}
                     className="size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95"
-                    title="Close CRM Portal"
-                    aria-label="Close CRM Portal"
+                    title="Close Admin Portal"
+                    aria-label="Close Admin Portal"
                   >
                     <X className="size-4" />
                   </button>
@@ -1216,7 +1211,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         </span>
                       </div>
                       <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
-                        Permanent Storage Active
+                        Auto-Save Active
                       </span>
                     </div>
 
@@ -1235,7 +1230,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                         ) : (
                           <>
                             <CheckCircle2 className="size-3.5 mr-1.5" />
-                            Save Changes & Commit to Database
+                            Save Changes & Auto-Commit
                           </>
                         )}
                       </Button>
@@ -1703,7 +1698,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       </div>
                       <div>
                         <h5 className="font-display uppercase text-sm font-semibold text-foreground">
-                          Change Dealer Security Password / PIN
+                          Change Admin Security Password / PIN
                         </h5>
                         <p className="text-[11px] text-muted-foreground font-mono">
                           Bcrypt hashed authentication stored directly in MySQL (
