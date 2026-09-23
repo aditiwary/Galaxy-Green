@@ -665,10 +665,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         ) : (
           /* Authenticated Admin Hub with Tabs */
           <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0a1410]">
-            <SheetHeader className="px-6 py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+            <SheetHeader className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
+              <div className="flex items-center justify-between gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="size-9 sm:size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
                     <img
                       src="/galaxy-green-emblem.png"
                       alt="Galaxy Green Logo"
@@ -677,21 +677,21 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       className="size-full object-cover"
                     />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
-                      <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20 shrink-0" />
+                      <span className="text-[10px] sm:text-xs uppercase tracking-widest text-primary font-mono font-medium truncate">
                         Admin Operations Portal
                       </span>
                     </div>
-                    <SheetTitle className="text-xl sm:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5">
+                    <SheetTitle className="text-base sm:text-xl lg:text-2xl font-display uppercase tracking-tight text-foreground mt-0.5 truncate">
                       Galaxy Green Control Hub
                     </SheetTitle>
                   </div>
                 </div>
 
                 {/* Control Actions: Lock & Close Buttons on Same Horizontal Alignment */}
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
@@ -699,16 +699,18 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       handleLogout();
                       toast.info("Admin Portal Locked & Logged Out");
                     }}
-                    className="h-9 px-3.5 text-xs border-amber-500/40 text-amber-300 hover:bg-amber-500/10 font-mono rounded-lg transition-all"
+                    className="h-8 sm:h-9 px-2.5 sm:px-3.5 text-[11px] sm:text-xs border-amber-500/40 text-amber-300 hover:bg-amber-500/10 font-mono rounded-lg transition-all"
                   >
-                    <Lock className="size-3.5 mr-1.5 text-amber-400" /> Lock & Log Out
+                    <Lock className="size-3.5 sm:mr-1.5 text-amber-400" />
+                    <span className="hidden sm:inline">Lock &amp; Log Out</span>
+                    <span className="sm:hidden">Lock</span>
                   </Button>
                   <button
                     type="button"
                     onClick={() => {
                       onOpenChange(false);
                     }}
-                    className="size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95"
+                    className="size-8 sm:size-9 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface hover:border-primary/50 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all active:scale-95 shrink-0"
                     title="Close Admin Portal"
                     aria-label="Close Admin Portal"
                   >
@@ -722,31 +724,31 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               defaultValue="leads"
               className="flex-1 flex flex-col overflow-hidden bg-[#0a1410]"
             >
-              <div className="px-6 py-3 border-b border-border/80 bg-[#0c1612] shrink-0">
-                <TabsList className="bg-[#080f0c] border border-border/80 p-1 rounded-lg h-auto flex flex-wrap sm:flex-nowrap gap-1">
+              <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-b border-border/80 bg-[#0c1612] shrink-0 overflow-x-auto scrollbar-none">
+                <TabsList className="bg-[#080f0c] border border-border/80 p-1 rounded-lg h-auto flex flex-nowrap gap-1 min-w-max sm:min-w-0 sm:w-full">
                   <TabsTrigger
                     value="leads"
-                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                    className="flex-1 py-1.5 sm:py-2 px-2.5 sm:px-3 text-[11px] sm:text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all whitespace-nowrap"
                   >
-                    <User className="size-3.5 mr-1.5" /> Buyer Inquiries ({leads.length})
+                    <User className="size-3.5 mr-1.5 shrink-0" /> Inquiries ({leads.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="plots"
-                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                    className="flex-1 py-1.5 sm:py-2 px-2.5 sm:px-3 text-[11px] sm:text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all whitespace-nowrap"
                   >
-                    <Layers className="size-3.5 mr-1.5" /> Plot Inventory ({plots.length})
+                    <Layers className="size-3.5 mr-1.5 shrink-0" /> Plots ({plots.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="gallery"
-                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                    className="flex-1 py-1.5 sm:py-2 px-2.5 sm:px-3 text-[11px] sm:text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all whitespace-nowrap"
                   >
-                    <Camera className="size-3.5 mr-1.5" /> Site Photos ({galleryPhotos.length})
+                    <Camera className="size-3.5 mr-1.5 shrink-0" /> Photos ({galleryPhotos.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"
-                    className="flex-1 py-2 text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all"
+                    className="flex-1 py-1.5 sm:py-2 px-2.5 sm:px-3 text-[11px] sm:text-xs uppercase font-semibold data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/40 rounded-md transition-all whitespace-nowrap"
                   >
-                    <ShieldCheck className="size-3.5 mr-1.5" /> Security & PIN
+                    <ShieldCheck className="size-3.5 mr-1.5 shrink-0" /> PIN &amp; DB
                   </TabsTrigger>
                 </TabsList>
               </div>

@@ -381,7 +381,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
             setLightboxOpen(isOpen);
           }}
         >
-          <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-4xl bg-card border-border text-foreground p-4 sm:p-6 max-h-[92dvh] overflow-y-auto">
+          <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-4xl bg-card border-border text-foreground p-4 sm:p-6 max-h-[92dvh] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]">
             <DialogHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>

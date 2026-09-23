@@ -138,8 +138,12 @@ export const Route = createFileRoute("/")({
 
 function Logo({ showMotto = false }: { showMotto?: boolean }) {
   return (
-    <a href="#home" className="flex items-center gap-2.5 sm:gap-3 group shrink-0" aria-label="Galaxy Green home">
-      <div className="relative size-10 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-[#071510]">
+    <a
+      href="#home"
+      className="flex items-center gap-2 sm:gap-2.5 md:gap-3 group shrink-0 min-w-0"
+      aria-label="Galaxy Green home"
+    >
+      <div className="relative size-9 sm:size-11 md:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-[#071510]">
         <img
           src="/galaxy-green-emblem.png"
           alt="Galaxy Green Emblem Logo"
@@ -148,15 +152,15 @@ function Logo({ showMotto = false }: { showMotto?: boolean }) {
           className="size-full object-cover"
         />
       </div>
-      <span className="flex flex-col justify-center leading-tight">
-        <strong className="block font-display text-sm sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+      <span className="flex flex-col justify-center leading-tight min-w-0">
+        <strong className="block font-display text-sm sm:text-base md:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors truncate">
           Galaxy Green
         </strong>
-        <span className="block text-[8px] sm:text-[10px] uppercase tracking-widest text-primary/90 font-mono font-medium">
+        <span className="block text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-widest text-primary/90 font-mono font-medium truncate">
           Sai Suraksha Nagar
         </span>
         {showMotto && (
-          <span className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-muted-foreground/80 font-mono mt-0.5">
+          <span className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-muted-foreground/80 font-mono mt-0.5 truncate">
             Safe Homes | Better Tomorrow
           </span>
         )}
@@ -401,12 +405,13 @@ function Index() {
       className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground"
     >
       {/* Top Header */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl transition-all">
-        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-3 sm:px-6 lg:px-6 xl:px-8">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl transition-all pt-[env(safe-area-inset-top,0px)]">
+        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-3.5 sm:px-6 lg:px-8 min-w-0 gap-3">
           <Logo />
 
+          {/* Desktop Navigation for Large Monitors & Standard Displays (1280px+) */}
           <nav
-            className="hidden items-center gap-1 xl:gap-2.5 2xl:gap-3.5 lg:flex"
+            className="hidden items-center gap-1 2xl:gap-2 xl:flex shrink min-w-0"
             aria-label="Main navigation"
             itemScope
             itemType="https://schema.org/SiteNavigationElement"
@@ -426,22 +431,22 @@ function Index() {
                 key={href}
                 href={href}
                 itemProp="url"
-                className="px-1.5 xl:px-2.5 py-1 rounded text-[11px] xl:text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all font-medium whitespace-nowrap"
+                className="px-2 2xl:px-2.5 py-1 rounded text-[11px] 2xl:text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all font-medium whitespace-nowrap"
               >
                 <span itemProp="name">{label}</span>
               </a>
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
-            <div className="h-5 w-px bg-border/80 mx-0.5 xl:mx-1" />
+          {/* Right Action Hub for Desktop */}
+          <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
+            <div className="h-5 w-px bg-border/80 mx-0.5 2xl:mx-1" />
 
-            {/* Admin Portal launcher button */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setAdminOpen(true)}
-              className="h-8.5 sm:h-9 px-2.5 xl:px-3 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-wider font-mono shrink-0"
+              className="h-8.5 sm:h-9 px-2.5 2xl:px-3 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-wider font-mono shrink-0"
             >
               <Lock className="size-3.5 mr-1.5" /> Admin Portal
             </Button>
@@ -452,41 +457,57 @@ function Index() {
                 setSelectedPlotForVisit("1000 sq ft");
                 setSiteVisitOpen(true);
               }}
-              className="h-8.5 sm:h-9 px-3 xl:px-4 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 whitespace-nowrap"
+              className="h-8.5 sm:h-9 px-3 2xl:px-4 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 whitespace-nowrap btn-shimmer"
             >
               Book Site Visit <ArrowRight className="size-3.5 ml-1.5" />
             </Button>
           </div>
 
-          <div className="flex items-center gap-2 lg:hidden">
+          {/* Responsive Hub for Tablets, Laptops & Mobile (< 1280px) */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 xl:hidden shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setAdminOpen(true)}
-              className="h-8 px-2 text-[10px] border-primary/40 text-primary uppercase font-mono"
+              className="h-8 sm:h-8.5 px-2 sm:px-2.5 text-[10px] sm:text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase font-mono shrink-0"
+              title="Open Admin Portal"
             >
-              Admin
+              <Lock className="size-3 mr-1" />
+              <span className="hidden xs:inline">Admin</span>
             </Button>
+
+            <Button
+              size="sm"
+              onClick={() => {
+                setSelectedPlotForVisit("1000 sq ft");
+                setSiteVisitOpen(true);
+              }}
+              className="h-8 sm:h-8.5 px-2.5 sm:px-3.5 uppercase tracking-wider text-[10px] sm:text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 hidden sm:inline-flex btn-shimmer"
+            >
+              Book Visit <ArrowRight className="size-3 ml-1" />
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
+              className="size-8.5 sm:size-9 text-foreground hover:bg-surface rounded-lg"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               onClick={() => setMenuOpen((open) => !open)}
             >
-              {menuOpen ? <X /> : <Menu />}
+              {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile & Tablet Navigation Drawer */}
         {menuOpen && (
           <nav
-            className="border-t border-border bg-background px-5 py-6 lg:hidden animate-in fade-in slide-in-from-top-4 shadow-xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto"
+            className="border-t border-border bg-background/95 backdrop-blur-2xl px-5 py-6 xl:hidden animate-in fade-in slide-in-from-top-4 shadow-2xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto"
             aria-label="Mobile navigation"
             itemScope
             itemType="https://schema.org/SiteNavigationElement"
           >
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1 max-w-lg mx-auto">
               {[
                 ["About", "#about"],
                 ["Master Plan", "#masterplan"],
@@ -503,19 +524,20 @@ function Index() {
                   href={href}
                   itemProp="url"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between py-2.5 px-2 rounded hover:bg-surface text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium border-b border-border/40 transition-colors"
+                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium transition-colors"
                 >
                   <span itemProp="name">{label}</span>
                   <span className="font-mono text-[10px] text-muted-foreground/60">0{idx + 1}</span>
                 </a>
               ))}
-              <div className="pt-4 border-t border-border flex flex-col gap-2.5">
+              <div className="pt-4 mt-2 border-t border-border/80 flex flex-col gap-2.5">
                 <Button
                   onClick={() => {
                     setMenuOpen(false);
+                    setSelectedPlotForVisit("1000 sq ft");
                     setSiteVisitOpen(true);
                   }}
-                  className="w-full h-11 uppercase text-xs font-semibold bg-primary text-primary-foreground"
+                  className="w-full h-11 uppercase text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
                 >
                   Book Free Site Visit <ArrowRight className="size-3.5 ml-1.5" />
                 </Button>
@@ -525,7 +547,7 @@ function Index() {
                     setMenuOpen(false);
                     setBrochureOpen(true);
                   }}
-                  className="w-full h-11 uppercase text-xs"
+                  className="w-full h-11 uppercase text-xs border-border/80"
                 >
                   <Download className="size-3.5 mr-1.5" /> Download E-Brochure
                 </Button>
@@ -536,7 +558,7 @@ function Index() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative flex min-h-[95vh] items-end pt-24 overflow-hidden">
+      <section className="relative flex min-h-[92vh] min-h-[92dvh] items-end pt-20 sm:pt-24 overflow-hidden">
         <img
           src={heroImage}
           alt="Galaxy Green Sai Suraksha Nagar grand gated entrance archway in Lucknow"
@@ -547,79 +569,79 @@ function Index() {
         <div className="absolute inset-0 bg-hero-overlay" />
         <div className="absolute inset-0 bg-grid opacity-25" />
 
-        <div className="relative mx-auto w-full max-w-7xl px-5 pb-20 pt-36 lg:px-8 lg:pb-24">
+        <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 pt-28 sm:pt-36 lg:pb-24 min-w-0">
           {/* Ambient architectural luminescence */}
           <div className="hero-glow -top-10 -left-10 opacity-75" />
 
-          <div className="max-w-4xl relative z-10">
+          <div className="max-w-4xl relative z-10 w-full min-w-0">
             {/* Live Availability Tag */}
-            <div className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-primary/40 bg-background/80 px-4 py-1.5 backdrop-blur-md shadow-sm">
-              <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20" />
-              <span className="text-xs uppercase tracking-widest text-primary font-mono font-medium">
+            <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-3.5 sm:px-4 py-1.5 backdrop-blur-md shadow-sm max-w-full">
+              <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20 shrink-0" />
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-primary font-mono font-medium truncate">
                 Phase 1 Open · Amausi Airport Growth Corridor
               </span>
             </div>
 
-            <h1 className="font-display text-5xl font-semibold uppercase leading-[0.96] sm:text-7xl lg:text-8xl tracking-tight">
+            <h1 className="fluid-hero-title">
               Galaxy Green
-              <span className="mt-2 block text-emerald-gradient">Sai Suraksha Nagar</span>
+              <span className="mt-1.5 sm:mt-2 block text-emerald-gradient">Sai Suraksha Nagar</span>
             </h1>
 
-            <p className="mt-7 max-w-2xl text-base leading-relaxed text-foreground/80 sm:text-lg">
+            <p className="mt-5 sm:mt-7 max-w-2xl text-sm sm:text-base lg:text-lg leading-relaxed text-foreground/80 text-pretty">
               Secure your freehold residential plot at Amausi, Lucknow—where high-yield airport
               connectivity meets an eco-luxury gated community. Immediate registry and bank loan
               approvals.
             </p>
 
             {/* CTAs */}
-            <div className="mt-9 flex flex-wrap gap-3.5">
+            <div className="mt-7 sm:mt-9 flex flex-wrap gap-2.5 sm:gap-3.5">
               <Button
                 size="lg"
                 onClick={() => {
                   setSelectedPlotForVisit("1000 sq ft");
                   setSiteVisitOpen(true);
                 }}
-                className="h-13 px-8 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
+                className="h-11 sm:h-13 px-5 sm:px-8 uppercase tracking-wider text-[11px] sm:text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
               >
-                Schedule Site Visit <ArrowRight className="size-4 ml-2" />
+                Schedule Site Visit <ArrowRight className="size-3.5 sm:size-4 ml-1.5 sm:ml-2" />
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-13 border-foreground/30 bg-background/40 px-7 uppercase tracking-wider text-xs backdrop-blur-md hover:bg-background/60"
+                className="h-11 sm:h-13 border-foreground/30 bg-background/40 px-4 sm:px-7 uppercase tracking-wider text-[11px] sm:text-xs backdrop-blur-md hover:bg-background/60"
               >
                 <a href="#masterplan">
-                  Explore Master Plan <ArrowDown className="size-4 ml-2" />
+                  Explore Master Plan <ArrowDown className="size-3.5 sm:size-4 ml-1.5 sm:ml-2" />
                 </a>
               </Button>
               <Button
                 size="lg"
                 variant="ghost"
                 onClick={() => setBrochureOpen(true)}
-                className="h-13 px-6 uppercase tracking-wider text-xs border border-primary/30 text-primary bg-primary/10 hover:bg-primary/20 backdrop-blur-md"
+                className="h-11 sm:h-13 px-4 sm:px-6 uppercase tracking-wider text-[11px] sm:text-xs border border-primary/30 text-primary bg-primary/10 hover:bg-primary/20 backdrop-blur-md"
               >
-                <Download className="size-4 mr-2" /> E-Brochure
+                <Download className="size-3.5 sm:size-4 mr-1.5 sm:mr-2" /> E-Brochure
               </Button>
             </div>
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="mt-14 grid max-w-4xl grid-cols-2 border border-border/80 bg-background/60 backdrop-blur-xl rounded-md divide-y sm:divide-y-0 sm:divide-x divide-border/60 sm:grid-cols-4 shadow-luxury relative z-10">
+          <div className="mt-10 sm:mt-14 grid w-full max-w-4xl grid-cols-2 border border-border/80 bg-background/60 backdrop-blur-xl rounded-md divide-y sm:divide-y-0 sm:divide-x divide-border/60 sm:grid-cols-4 shadow-luxury relative z-10 min-w-0">
             {[
               ["₹1,199", "Per Sq Ft Rate", "Phase 1 fixed pricing"],
               ["600+", "Sq Ft Min Size", "Up to custom requirement"],
               ["100%", "Freehold & Mutation", "Dakhil Kharij ready"],
               ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
             ].map(([value, label, sub]) => (
-              <div key={label} className="p-4 sm:p-5 transition-colors hover:bg-white/[0.02]">
-                <strong className="font-display text-2xl text-primary block tracking-tight sm:text-3xl">
+              <div key={label} className="p-3.5 sm:p-5 transition-colors hover:bg-white/[0.02] min-w-0">
+                <strong className="font-display text-xl sm:text-2xl lg:text-3xl text-primary block tracking-tight truncate">
                   {value}
                 </strong>
-                <span className="mt-1 block text-xs uppercase font-medium text-foreground tracking-wide">
+                <span className="mt-1 block text-[11px] sm:text-xs uppercase font-medium text-foreground tracking-wide truncate">
                   {label}
                 </span>
-                <span className="text-[10px] text-muted-foreground font-mono block mt-0.5">
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono block mt-0.5 truncate">
                   {sub}
                 </span>
               </div>

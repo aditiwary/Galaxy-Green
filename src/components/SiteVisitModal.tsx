@@ -329,7 +329,7 @@ export function SiteVisitModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-xl bg-card border-border text-foreground p-4 sm:p-7 max-h-[min(90dvh,90vh)] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-xl bg-card border-border text-foreground p-4 sm:p-7 max-h-[min(92dvh,92vh)] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {step === "form" ? (
           <>
             <DialogHeader className="pr-6">

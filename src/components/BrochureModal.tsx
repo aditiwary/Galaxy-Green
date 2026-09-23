@@ -97,7 +97,7 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-2xl bg-card border-border text-foreground p-4 sm:p-8 max-h-[min(90dvh,90vh)] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-2xl bg-card border-border text-foreground p-4 sm:p-8 max-h-[min(92dvh,92vh)] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <DialogHeader className="pr-6">
           <div className="flex items-center gap-3">
             <div className="size-11 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
