@@ -28,71 +28,34 @@ interface BrochureModalProps {
 export function BrochureModal({ open, onOpenChange }: BrochureModalProps) {
   const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setDownloading(true);
-    setTimeout(() => {
-      // Create a printable text/markdown prospectus blob as brochure download
-      const content = `=====================================================
-GALAXY GREEN SAI SURAKSHA NAGAR — OFFICIAL PROJECT PROSPECTUS
-=====================================================
-Location: QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008
-Proximity: 5 Mins from Chaudhary Charan Singh International Airport (Amausi)
-Metro Access: 4 Mins from Amausi Metro Station
-
-CURRENT RATE: Rs. 1,199 per sq. ft. (Fixed Phase 1 Allotment)
-
-1. PROJECT OVERVIEW
------------------------------------------------------
-Galaxy Green Sai Suraksha Nagar is a planned eco-luxury gated
-residential township spread across a lush green landscape near Lucknow's
-primary growth node at Amausi. 
-
-2. PLOT SPECIFICATIONS & PRICING (Rs. 1,199 / Sq Ft)
------------------------------------------------------
-- 600 Sq Ft (20 ft x 30 ft)   : Rs. 7,19,400 (Starting Compact Duplex)
-- 800 Sq Ft (20 ft x 40 ft)   : Rs. 9,59,200
-- 1,000 Sq Ft (25 ft x 40 ft) : Rs. 11,99,000 (Most Popular Layout)
-- 1,200 Sq Ft (30 ft x 40 ft) : Rs. 14,38,800
-- 1,500 Sq Ft (30 ft x 50 ft) : Rs. 17,98,500 (Executive Villa)
-- 2,000 Sq Ft (40 ft x 50 ft) : Rs. 23,98,000 (Grand Villa)
-- Custom Plots                : Calculated at Rs. 1,199 per sq. ft.
-
-3. INFRASTRUCTURE & AMENITIES
------------------------------------------------------
-* 40-Feet Wide Main Asphalt Boulevard
-* 30-Feet Wide Internal Concrete Paver Lanes
-* Grand Gated Entrance with 24/7 RFID Security Checkpoint
-* Full Perimeter Boundary Wall & CCTV Surveillance
-* Landscaped Green Parks with Jogging & Yoga Track
-* Dedicated Children's Play Zone & Senior Citizen Sit-outs
-* Underground Drainage & Pre-laid Water Supply Conduits
-* High-Lumen Solar Street Lighting on Every Lane
-
-4. LEGAL TITLE & BANK APPROVALS
------------------------------------------------------
-[x] 100% Freehold Residential Land
-[x] Clear & Marketable Title Documentation
-[x] Immediate Registry & Mutation (Dakhil Kharij) Guarantee
-[x] Pre-Approved Loan Facility with SBI, HDFC, ICICI & PNB (Up to 80%)
-
-5. CONTACT & BOOKINGS
------------------------------------------------------
-Managing Director: Vishal Singh
-Direct WhatsApp / Mobile: +91 90444 12642
-Web Portal: Galaxy Green Sai Suraksha Nagar
-=====================================================
-`;
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    try {
+      const response = await fetch("/Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf");
+      if (!response.ok) throw new Error("File not found");
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Galaxy_Green_Sai_Suraksha_Nagar_Brochure.txt";
+      a.download = "Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("PDF brochure downloaded successfully!");
+    } catch {
+      // Direct fallback
+      const a = document.createElement("a");
+      a.href = "/Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf";
+      a.download = "Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf";
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("Opening PDF brochure...");
+    } finally {
       setDownloading(false);
-      toast.success("Brochure downloaded successfully!");
-    }, 600);
+    }
   };
 
   return (
@@ -213,14 +176,23 @@ Web Portal: Galaxy Green Sai Suraksha Nagar
             className="w-full sm:flex-1 h-12 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow btn-shimmer"
           >
             <Download className="size-4 mr-2" />
-            {downloading ? "Preparing Document..." : "Download Full PDF Brochure"}
+            {downloading ? "Preparing PDF..." : "Download Full PDF Brochure"}
           </Button>
+          <a
+            href="/Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-4 rounded-md border border-border uppercase tracking-wider text-xs text-muted-foreground hover:text-foreground hover:bg-surface transition-colors font-medium"
+          >
+            <ExternalLink className="size-3.5 mr-1.5" />
+            View PDF
+          </a>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto h-12 uppercase tracking-wider text-xs border-border"
           >
-            Close Preview
+            Close
           </Button>
         </div>
       </DialogContent>

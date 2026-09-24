@@ -6,6 +6,10 @@ console.log("==========================================");
 console.log("  Galaxy Green — cPanel Deployment Bundle ");
 console.log("==========================================");
 
+// 0. Ensure Brochure PDF is generated
+console.log("0. Generating official PDF brochure...");
+execSync("node scripts/generate-brochure-pdf.mjs", { stdio: "inherit" });
+
 // 1. Build project for Node.js standalone server
 console.log("1. Building standalone Node.js server with Nitro...");
 execSync("NITRO_PRESET=node-server npm run build", { stdio: "inherit" });

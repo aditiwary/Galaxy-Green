@@ -7,13 +7,10 @@ import {
   Calendar,
   Car,
   Check,
-  CheckCircle2,
   Compass,
   Download,
   ExternalLink,
   FileCheck,
-  FileText,
-  Footprints,
   HeartPulse,
   Landmark,
   Layers,
@@ -419,7 +416,6 @@ function Index() {
             {[
               ["About", "#about"],
               ["Master Plan", "#masterplan"],
-              ["Amenities", "#amenities"],
               ["Live Photos", "#site-gallery"],
               ["Connectivity", "#location"],
               ["ROI Calculator", "#calculator"],
@@ -511,7 +507,6 @@ function Index() {
               {[
                 ["About", "#about"],
                 ["Master Plan", "#masterplan"],
-                ["Amenities", "#amenities"],
                 ["Live Photos", "#site-gallery"],
                 ["Connectivity", "#location"],
                 ["ROI Calculator", "#calculator"],
@@ -740,93 +735,7 @@ function Index() {
       {/* Interactive Master Plan & Plot Availability Grid */}
       <MasterPlanViewer onSelectPlotForBooking={handlePlotSelectForBooking} />
 
-      {/* Amenities Section */}
-      <section id="amenities" className="section-shell bg-surface border-y border-border">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div>
-              <p className="eyebrow">03 · Planned Infrastructure</p>
-              <h2 className="section-title max-w-2xl">Everyday Luxury & Community Amenities</h2>
-            </div>
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Thoughtfully engineered infrastructure designed to support a serene, active, and
-              multi-generational lifestyle.
-            </p>
-          </div>
 
-          {/* Amenities Grid */}
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: Footprints,
-                num: "01",
-                title: "Jogging & Walking Track",
-                desc: "Dedicated paved perimeter pathways for morning fitness and peaceful evening strolls.",
-              },
-              {
-                icon: ShieldCheck,
-                num: "02",
-                title: "24/7 RFID Security",
-                desc: "Manned security check-posts with full CCTV coverage and perimeter walls.",
-              },
-              {
-                icon: Trees,
-                num: "03",
-                title: "Central Green Parks",
-                desc: "Landscaped gardens, yoga gazebos, and safe children play areas.",
-              },
-              {
-                icon: RouteIcon,
-                num: "04",
-                title: "40-Ft & 30-Ft Roads",
-                desc: "Wide asphalt boulevard with interlocked concrete paver internal streets.",
-              },
-              {
-                icon: Zap,
-                num: "05",
-                title: "Underground Power",
-                desc: "Concealed underground electricity cabling and solar street lights.",
-              },
-              {
-                icon: HeartPulse,
-                num: "06",
-                title: "Potable Water Supply",
-                desc: "Dedicated deep-bore water reservoir with pre-laid feeder pipelines.",
-              },
-              {
-                icon: Car,
-                num: "07",
-                title: "EV Charging Points",
-                desc: "Dedicated electric vehicle charging bays for residents and visitors.",
-              },
-              {
-                icon: Sparkles,
-                num: "08",
-                title: "Sewage & Drainage",
-                desc: "Engineered underground rainwater harvesting and drainage systems.",
-              },
-            ].map(({ icon: Icon, num, title, desc }) => (
-              <article
-                key={title}
-                className="card-architectural group p-6 rounded-xl relative overflow-hidden"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="icon-monogram size-12">
-                    <Icon className="size-5 transition-transform duration-300 group-hover:scale-110" />
-                  </div>
-                  <span className="font-mono text-xs text-primary/60 font-semibold tracking-wider">
-                    {num}
-                  </span>
-                </div>
-                <h4 className="mt-6 font-display text-lg uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">
-                  {title}
-                </h4>
-                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{desc}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Real On-Ground Site Gallery & Live Progress */}
       <ActualSiteGallery
@@ -1014,38 +923,7 @@ function Index() {
                 developed as per timeline.
               </p>
 
-              <div className="space-y-4 pt-2">
-                {[
-                  { name: "Boundary Wall & Gate", progress: "100% Completed", status: "Complete" },
-                  { name: "40-Ft Main Boulevard", progress: "100% Asphalted", status: "Complete" },
-                  {
-                    name: "Plot Demarcation Stones",
-                    progress: "100% Installed",
-                    status: "Complete",
-                  },
-                  {
-                    name: "Internal 30-Ft Concrete Pavers",
-                    progress: "90% Laid",
-                    status: "In Progress",
-                  },
-                  {
-                    name: "Central Landscaped Park & Walkways",
-                    progress: "Phase 1 Landscaping",
-                    status: "Active",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.name}
-                    className="p-3.5 rounded bg-card border border-border flex items-center justify-between text-xs"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <CheckCircle2 className="size-4 text-primary shrink-0" />
-                      <span className="text-foreground font-medium">{item.name}</span>
-                    </div>
-                    <span className="font-mono text-primary font-semibold">{item.progress}</span>
-                  </div>
-                ))}
-              </div>
+
             </div>
 
             {/* Testimonials */}
