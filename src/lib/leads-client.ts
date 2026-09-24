@@ -3,6 +3,10 @@ import {
   getInquiriesFn,
   submitInquiryFn,
   updateInquiryStatusFn,
+  deleteInquiryFn,
+  adminCreateInquiryFn,
+  getAdminConfigFn,
+  updateAdminConfigFn,
   verifyDealerPinFn,
   checkDbHealthFn,
 } from "./server-inquiries";
@@ -11,6 +15,7 @@ export { verifyDealerPinFn, checkDbHealthFn };
 
 const STORAGE_KEY = "galaxy_green_leads_v1";
 const PIN_TOKEN_KEY = "gg_dealer_pin_signed_token";
+const BASE_RATE_CACHE_KEY = "gg_market_base_rate";
 
 export function getClientPinToken(): string | undefined {
   if (typeof window === "undefined") return undefined;
@@ -187,3 +192,139 @@ export function exportLeadsToCsv(leads: Inquiry[]): void {
   link.click();
   document.body.removeChild(link);
 }
+
+export async function deleteLead(id: string, token?: string): Promise<boolean> {
+  const activeToken =
+    token ||
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token")
+      : undefined);
+  if (!activeToken) return false;
+
+  try {
+    const res = await deleteInquiryFn({ data: { token: activeToken, id } });
+    if (res?.success) {
+      if (typeof window !== "undefined") {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const list: Inquiry[] = JSON.parse(saved);
+            const filtered = list.filter((item) => item.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+          }
+        } catch (err) {
+          void err;
+        }
+      }
+      return true;
+    }
+  } catch (err) {
+    console.warn("Delete inquiry error:", err);
+  }
+
+  return false;
+}
+
+export async function adminAddLead(
+  input: {
+    name: string;
+    phone: string;
+    email?: string;
+    plotPreference?: string;
+    visitDate?: string;
+    slot?: string;
+    status?: Inquiry["status"];
+    message?: string;
+  },
+  token?: string,
+): Promise<Inquiry | null> {
+  const activeToken =
+    token ||
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token")
+      : undefined);
+  if (!activeToken) return null;
+
+  try {
+    const res = await adminCreateInquiryFn({ data: { token: activeToken, inquiry: input } });
+    if (res?.success && res.inquiry) {
+      if (typeof window !== "undefined") {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          const list: Inquiry[] = saved ? JSON.parse(saved) : [];
+          list.unshift(res.inquiry);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        } catch (err) {
+          void err;
+        }
+      }
+      return res.inquiry;
+    }
+  } catch (err) {
+    console.warn("Admin add inquiry error:", err);
+  }
+
+  return null;
+}
+
+export async function fetchMarketBaseRate(): Promise<number> {
+  try {
+    const res = await getAdminConfigFn();
+    if (res?.baseRatePerSqFt && !isNaN(res.baseRatePerSqFt)) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(BASE_RATE_CACHE_KEY, String(res.baseRatePerSqFt));
+      }
+      return res.baseRatePerSqFt;
+    }
+  } catch (err) {
+    console.warn("Error fetching base rate from server:", err);
+  }
+
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem(BASE_RATE_CACHE_KEY);
+    if (cached) {
+      const parsed = parseInt(cached, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+  }
+
+  return 1199;
+}
+
+export async function updateMarketBaseRate(
+  rate: number,
+  updatePlots = false,
+  token?: string,
+): Promise<{ success: boolean; rate?: number; message?: string }> {
+  const activeToken =
+    token ||
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token")
+      : undefined);
+
+  try {
+    const res = await updateAdminConfigFn({
+      data: {
+        token: activeToken,
+        baseRatePerSqFt: rate,
+        updatePlots,
+      },
+    });
+
+    if (res?.success) {
+      const newRate = res.baseRatePerSqFt || rate;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(BASE_RATE_CACHE_KEY, String(newRate));
+        window.dispatchEvent(
+          new CustomEvent("market-rate-updated", { detail: { baseRate: newRate } }),
+        );
+      }
+      return { success: true, rate: newRate, message: res.message };
+    }
+    return { success: false, message: res?.error || "Failed to update market price." };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Error saving market price.";
+    return { success: false, message: msg };
+  }
+}
+

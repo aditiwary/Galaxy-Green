@@ -42,6 +42,10 @@ import {
 import {
   fetchAllLeads,
   updateLeadStatus,
+  deleteLead,
+  adminAddLead,
+  fetchMarketBaseRate,
+  updateMarketBaseRate,
   exportLeadsToCsv,
   verifyDealerPin,
   checkDbHealthFn,
@@ -107,6 +111,24 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Add Lead Form State
+  const [showAddLeadForm, setShowAddLeadForm] = useState(false);
+  const [newLeadName, setNewLeadName] = useState("");
+  const [newLeadPhone, setNewLeadPhone] = useState("");
+  const [newLeadEmail, setNewLeadEmail] = useState("");
+  const [newLeadPlot, setNewLeadPlot] = useState("1000 sq ft");
+  const [newLeadDate, setNewLeadDate] = useState("");
+  const [newLeadSlot, setNewLeadSlot] = useState("Morning (10:00 AM)");
+  const [newLeadStatus, setNewLeadStatus] = useState<Inquiry["status"]>("New");
+  const [newLeadMessage, setNewLeadMessage] = useState("");
+  const [addingLead, setAddingLead] = useState(false);
+
+  // Market Base Rate State (₹ / Sq Ft)
+  const [baseMarketRate, setBaseMarketRate] = useState<number>(1199);
+  const [newMarketRateInput, setNewMarketRateInput] = useState<string>("1199");
+  const [updatePlotsWithMarketRate, setUpdatePlotsWithMarketRate] = useState<boolean>(false);
+  const [savingMarketRate, setSavingMarketRate] = useState<boolean>(false);
+
   // Plot Inventory State
   const [plots, setPlots] = useState<Plot[]>([]);
   const [loadingPlots, setLoadingPlots] = useState(false);
@@ -158,7 +180,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     setLoadingPlots(true);
     setLoadingGallery(true);
     try {
-      const [plotsData, photosData, , health] = await Promise.all([
+      const [plotsData, photosData, configData, health] = await Promise.all([
         fetchLivePlots(),
         fetchLiveGalleryPhotos(),
         getAdminConfigFn(),
@@ -167,6 +189,10 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       setPlots(plotsData);
       setGalleryPhotos(photosData);
       setDbHealth(health);
+      if (configData?.baseRatePerSqFt) {
+        setBaseMarketRate(configData.baseRatePerSqFt);
+        setNewMarketRateInput(String(configData.baseRatePerSqFt));
+      }
       if (activeToken) {
         setLoadingLeads(true);
         const leadsData = await fetchAllLeads(activeToken);
@@ -281,6 +307,104 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       toast.error("Unable to update lead status. Please try again.");
     }
   };
+
+  const handleDeleteLead = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to permanently delete inquiry from "${name}" (${id})?`)) {
+      return;
+    }
+    const token = getActiveToken();
+    const success = await deleteLead(id, token);
+    if (success) {
+      setLeads((prev) => prev.filter((l) => l.id !== id));
+      toast.success(`Inquiry ${id} permanently removed.`);
+    } else {
+      toast.error("Failed to delete inquiry. Please try again.");
+    }
+  };
+
+  const handleAdminAddLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newLeadName.trim().length < 2) {
+      toast.error("Please enter buyer name.");
+      return;
+    }
+    const cleanPhone = newLeadPhone.replace(/\D/g, "");
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      toast.error("Please enter a valid 10-digit Indian mobile number.");
+      return;
+    }
+
+    setAddingLead(true);
+    try {
+      const created = await adminAddLead(
+        {
+          name: newLeadName.trim(),
+          phone: cleanPhone,
+          email: newLeadEmail.trim() || undefined,
+          plotPreference: newLeadPlot,
+          visitDate: newLeadDate || undefined,
+          slot: newLeadSlot,
+          status: newLeadStatus,
+          message: newLeadMessage.trim() || undefined,
+        },
+        getActiveToken(),
+      );
+
+      if (created) {
+        setLeads((prev) => [created, ...prev]);
+        setShowAddLeadForm(false);
+        setNewLeadName("");
+        setNewLeadPhone("");
+        setNewLeadEmail("");
+        setNewLeadMessage("");
+        setNewLeadDate("");
+        toast.success(`Inquiry created successfully! Ref: ${created.id}`);
+      } else {
+        toast.error("Failed to create inquiry. Please try again.");
+      }
+    } catch {
+      toast.error("Error creating inquiry.");
+    } finally {
+      setAddingLead(false);
+    }
+  };
+
+  const handleUpdateMarketRate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = parseInt(newMarketRateInput, 10);
+    if (isNaN(parsed) || parsed < 100 || parsed > 50000) {
+      toast.error("Please enter a valid rate between ₹100 and ₹50,000 per Sq Ft.");
+      return;
+    }
+
+    setSavingMarketRate(true);
+    try {
+      const res = await updateMarketBaseRate(
+        parsed,
+        updatePlotsWithMarketRate,
+        getActiveToken(),
+      );
+      if (res.success && res.rate) {
+        setBaseMarketRate(res.rate);
+        setNewMarketRateInput(String(res.rate));
+        if (updatePlotsWithMarketRate) {
+          const freshPlots = await fetchLivePlots();
+          setPlots(freshPlots);
+          window.dispatchEvent(new CustomEvent("plots-updated"));
+        }
+        toast.success(
+          `Market Base Rate updated to ₹${res.rate.toLocaleString("en-IN")} / Sq Ft!`,
+        );
+      } else {
+        toast.error(res.message || "Failed to update market rate.");
+      }
+    } catch {
+      toast.error("Failed to update market base rate.");
+    } finally {
+      setSavingMarketRate(false);
+    }
+  };
+
 
   const handlePlotStatusChange = async (id: string, newStatus: Plot["status"]) => {
     setPlots((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
@@ -833,9 +957,151 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       >
                         <Download className="size-3.5 mr-1.5" /> Export CSV
                       </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setShowAddLeadForm((prev) => !prev)}
+                        className="h-10 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs uppercase font-semibold rounded-lg flex items-center gap-1.5"
+                      >
+                        <PlusCircle className="size-3.5" />
+                        {showAddLeadForm ? "Close Form" : "+ Add Inquiry"}
+                      </Button>
                     </div>
                   </div>
                 </div>
+
+                {/* Add Inquiry Form Panel */}
+                {showAddLeadForm && (
+                  <form
+                    onSubmit={handleAdminAddLead}
+                    className="p-6 bg-[#0c1612] border-b border-border/80 space-y-4 shrink-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs uppercase font-mono tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <PlusCircle className="size-3.5" /> Add New Inquiry / Booking Request
+                      </h5>
+                      <span className="text-[10px] font-mono text-muted-foreground">Admin Direct Entry</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Client Name *
+                        </Label>
+                        <Input
+                          placeholder="e.g. Ramesh Sharma"
+                          value={newLeadName}
+                          onChange={(e) => setNewLeadName(e.target.value)}
+                          required
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Phone Number (10 digits) *
+                        </Label>
+                        <Input
+                          placeholder="9876543210"
+                          value={newLeadPhone}
+                          onChange={(e) => setNewLeadPhone(e.target.value)}
+                          required
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Email Address
+                        </Label>
+                        <Input
+                          type="email"
+                          placeholder="client@example.com"
+                          value={newLeadEmail}
+                          onChange={(e) => setNewLeadEmail(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Plot Preference
+                        </Label>
+                        <Input
+                          placeholder="e.g. Plot A-101 / Custom 1500 sqft"
+                          value={newLeadPlot}
+                          onChange={(e) => setNewLeadPlot(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Visit Date
+                        </Label>
+                        <Input
+                          type="date"
+                          value={newLeadDate}
+                          onChange={(e) => setNewLeadDate(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Time Slot
+                        </Label>
+                        <Input
+                          placeholder="e.g. 10:30 AM"
+                          value={newLeadSlot}
+                          onChange={(e) => setNewLeadSlot(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Initial Status
+                        </Label>
+                        <select
+                          value={newLeadStatus}
+                          onChange={(e) => setNewLeadStatus(e.target.value as Inquiry["status"])}
+                          className="mt-1 w-full h-9 px-3 text-xs rounded-lg bg-[#080f0c] border border-border/80 text-foreground focus:border-primary focus:outline-none"
+                        >
+                          <option value="New">New</option>
+                          <option value="Contacted">Contacted</option>
+                          <option value="Visit Scheduled">Visit Scheduled</option>
+                          <option value="Site Visit Done">Site Visit Done</option>
+                          <option value="Booked">Booked</option>
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label className="text-[10px] uppercase font-mono text-muted-foreground">
+                          Notes / Message
+                        </Label>
+                        <Input
+                          placeholder="Special requirements, budget or meeting notes"
+                          value={newLeadMessage}
+                          onChange={(e) => setNewLeadMessage(e.target.value)}
+                          className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg text-foreground"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAddLeadForm(false)}
+                        className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={addingLead}
+                        size="sm"
+                        className="h-8 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg"
+                      >
+                        {addingLead ? "Adding..." : "Save Inquiry"}
+                      </Button>
+                    </div>
+                  </form>
+                )}
 
                 {/* Leads List */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-[#0a1410]">
@@ -929,7 +1195,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                               </a>
                             </Button>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <span className="text-[10px] text-muted-foreground uppercase font-mono">
                               Status:
                             </span>
@@ -946,6 +1212,16 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                               <option value="Site Visit Done">Site Visit Done</option>
                               <option value="Booked">Booked</option>
                             </select>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteLead(lead.id, lead.name)}
+                              className="h-7 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 border border-rose-900/40 rounded transition-colors"
+                              title="Delete inquiry"
+                            >
+                              <Trash2 className="size-3 mr-1" /> Delete
+                            </Button>
                           </div>
                         </div>
                       </article>
@@ -976,6 +1252,58 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                     <PlusCircle className="size-3.5 mr-1.5" />
                     {showAddPlotForm ? "Close Form" : "+ Add Real Plot"}
                   </Button>
+                </div>
+
+                {/* Base Market Rate Banner & Quick Controller */}
+                <div className="p-4 px-6 bg-[#0e2118] border-b border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-mono tracking-wider uppercase text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-emerald-400 animate-pulse" /> Current Base Market Rate
+                      </span>
+                      <Badge variant="outline" className="text-xs font-mono font-bold border-emerald-500/40 text-emerald-300 bg-emerald-950/40 px-2 py-0.5">
+                        ₹{baseMarketRate.toLocaleString("en-IN")} / Sq Ft
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Controls the website minimum base price (currently ₹{baseMarketRate.toLocaleString("en-IN")}), plots starting price, and ROI/EMI calculations.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleUpdateMarketRate} className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-mono text-muted-foreground">₹</span>
+                      <Input
+                        type="number"
+                        min="100"
+                        step="1"
+                        value={newMarketRateInput}
+                        onChange={(e) => setNewMarketRateInput(e.target.value)}
+                        placeholder={String(baseMarketRate)}
+                        className="w-24 h-9 text-xs font-mono font-bold bg-[#080f0c] border-emerald-500/40 text-emerald-300 focus:border-emerald-400 rounded-lg text-center"
+                      />
+                      <span className="text-xs font-mono text-muted-foreground">/sqft</span>
+                    </div>
+
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-mono text-muted-foreground hover:text-foreground select-none">
+                      <input
+                        type="checkbox"
+                        checked={updatePlotsWithMarketRate}
+                        onChange={(e) => setUpdatePlotsWithMarketRate(e.target.checked)}
+                        className="rounded border-border bg-[#080f0c] text-emerald-500 focus:ring-emerald-500 size-3.5"
+                      />
+                      Sync Active Plots
+                    </label>
+
+                    <Button
+                      type="submit"
+                      disabled={savingMarketRate}
+                      size="sm"
+                      className="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs uppercase font-semibold rounded-lg"
+                    >
+                      {savingMarketRate ? "Saving..." : "Update Rate"}
+                    </Button>
+                  </form>
                 </div>
 
                 {/* Add Plot Form Drawer/Panel */}

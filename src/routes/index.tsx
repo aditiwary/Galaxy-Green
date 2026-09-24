@@ -72,7 +72,7 @@ import { ClockTimePicker } from "@/components/ClockTimePicker";
 import { MyBookingsDrawer } from "@/components/MyBookingsDrawer";
 
 // Backend Client Service
-import { recordNewInquiry } from "@/lib/leads-client";
+import { recordNewInquiry, fetchMarketBaseRate } from "@/lib/leads-client";
 import { saveLocalBooking } from "@/lib/my-bookings";
 import { getLocalDateString, isTimePassedForDate } from "@/lib/visit-helpers";
 import { toast } from "sonner";
@@ -220,6 +220,29 @@ function Index() {
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [dockMinimized, setDockMinimized] = useState(false);
 
+  // Dynamic Base Rate per Sq Ft (default ₹1,199, synchronized across MySQL admin_config and clients)
+  const [baseRate, setBaseRate] = useState<number>(1199);
+
+  useEffect(() => {
+    fetchMarketBaseRate().then((rate) => {
+      if (rate && rate > 0) setBaseRate(rate);
+    });
+
+    const handleRateUpdated = (e: Event) => {
+      const customEvt = e as CustomEvent<{ rate: number }>;
+      if (customEvt.detail?.rate) {
+        setBaseRate(customEvt.detail.rate);
+      } else {
+        fetchMarketBaseRate().then((rate) => {
+          if (rate && rate > 0) setBaseRate(rate);
+        });
+      }
+    };
+
+    window.addEventListener("market-rate-updated", handleRateUpdated);
+    return () => window.removeEventListener("market-rate-updated", handleRateUpdated);
+  }, []);
+
   // Lead Form State
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -357,7 +380,7 @@ function Index() {
     try {
       const finalPlot =
         contactPlot === "Custom Size"
-          ? `Custom ${customPlotArea} Sq Ft (₹${((customPlotArea * 1199) / 100000).toFixed(2)} Lakh · Tailored Size)`
+          ? `Custom ${customPlotArea} Sq Ft (₹${((customPlotArea * baseRate) / 100000).toFixed(2)} Lakh · Tailored Size)`
           : contactPlot;
       const finalSlot = contactCustomTime.trim()
         ? `Custom Time: ${contactCustomTime.trim()}`
@@ -647,7 +670,7 @@ function Index() {
           {/* Quick Metrics Bar */}
           <div className="mt-10 sm:mt-14 grid w-full max-w-4xl grid-cols-2 border border-border/80 bg-background/60 backdrop-blur-xl rounded-md divide-y sm:divide-y-0 sm:divide-x divide-border/60 sm:grid-cols-4 shadow-luxury relative z-10 min-w-0">
             {[
-              ["₹1,199", "Per Sq Ft Rate", "Phase 1 fixed pricing"],
+              [`₹${baseRate.toLocaleString("en-IN")}`, "Per Sq Ft Rate", "Phase 1 fixed pricing"],
               ["600+", "Sq Ft Min Size", "Up to custom requirement"],
               ["100%", "Freehold & Mutation", "Dakhil Kharij ready"],
               ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
@@ -924,7 +947,7 @@ function Index() {
       </section>
 
       {/* Interactive Financial ROI & EMI Calculator */}
-      <EmiRoiCalculator onLockPriceClick={handleCalculatorLock} />
+      <EmiRoiCalculator onLockPriceClick={handleCalculatorLock} baseRate={baseRate} />
 
       {/* Legal Trust & Title Assurance */}
       <section className="section-shell bg-background">
@@ -1003,7 +1026,7 @@ function Index() {
               <h2 className="section-title">Transparent Allotment Rates</h2>
             </div>
             <div className="border-l-2 border-primary pl-5">
-              <p className="font-display text-3xl font-semibold text-primary">₹1,199 / Sq Ft</p>
+              <p className="font-display text-3xl font-semibold text-primary">₹{baseRate.toLocaleString("en-IN")} / Sq Ft</p>
               <p className="text-xs text-muted-foreground font-mono mt-1">
                 Fixed Phase 1 Base Rate · Min 600 Sq Ft to Custom Requirements
               </p>
@@ -1015,7 +1038,7 @@ function Index() {
               {
                 size: "600",
                 dim: "20 × 30 ft",
-                total: "₹7,19,400",
+                total: `₹${(600 * baseRate).toLocaleString("en-IN")}`,
                 note: "Minimum entry size. Ideal for compact smart duplex or high-yield investment.",
                 tag: "Starting Size",
                 popular: false,
@@ -1023,7 +1046,7 @@ function Index() {
               {
                 size: "1,000",
                 dim: "25 × 40 ft",
-                total: "₹11,99,000",
+                total: `₹${(1000 * baseRate).toLocaleString("en-IN")}`,
                 note: "Most sought-after layout. Perfect for luxury 3BHK independent villa with lawn & parking.",
                 tag: "Most Popular",
                 popular: true,
@@ -1031,7 +1054,7 @@ function Index() {
               {
                 size: "1,500",
                 dim: "30 × 50 ft",
-                total: "₹17,98,500",
+                total: `₹${(1500 * baseRate).toLocaleString("en-IN")}`,
                 note: "Generous frontage for front lawn, two-car parking, and spacious terrace garden.",
                 tag: "Executive Villa",
                 popular: false,
@@ -1039,7 +1062,7 @@ function Index() {
               {
                 size: "Custom",
                 dim: "As Per Requirement",
-                total: "₹1,199 / sq ft",
+                total: `₹${baseRate.toLocaleString("en-IN")} / sq ft`,
                 note: "Tailored to your exact wish. Combine multiple plots for large commercial or luxury estates.",
                 tag: "On Buyer Wish",
                 popular: false,
@@ -1161,16 +1184,16 @@ function Index() {
                   What are the plot sizes and rates per sq ft at Galaxy Green?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Standard residential plots start at a transparent Phase 1 rate of ₹1,199 per sq
+                  Standard residential plots start at a transparent Phase 1 rate of ₹{baseRate.toLocaleString("en-IN")} per sq
                   ft. Minimum plot area starts from 600 sq ft, and maximum can be fully tailored to
                   your wish and architectural requirements:
                   <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm font-mono text-foreground/90">
-                    <li>600 Sq Ft (20 × 30 ft) — starting at ₹7.19 Lakh (Ideal budget duplex)</li>
-                    <li>800 Sq Ft (20 × 40 ft) — starting at ₹9.59 Lakh</li>
-                    <li>1,000 Sq Ft (25 × 40 ft) — starting at ₹11.99 Lakh (Most popular 3BHK)</li>
-                    <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹14.39 Lakh</li>
-                    <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹17.99 Lakh (Executive villa)</li>
-                    <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹23.98 Lakh (Luxury estate)</li>
+                    <li>600 Sq Ft (20 × 30 ft) — starting at ₹{((600 * baseRate) / 100000).toFixed(2)} Lakh (Ideal budget duplex)</li>
+                    <li>800 Sq Ft (20 × 40 ft) — starting at ₹{((800 * baseRate) / 100000).toFixed(2)} Lakh</li>
+                    <li>1,000 Sq Ft (25 × 40 ft) — starting at ₹{((1000 * baseRate) / 100000).toFixed(2)} Lakh (Most popular 3BHK)</li>
+                    <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹{((1200 * baseRate) / 100000).toFixed(2)} Lakh</li>
+                    <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹{((1500 * baseRate) / 100000).toFixed(2)} Lakh (Executive villa)</li>
+                    <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹{((2000 * baseRate) / 100000).toFixed(2)} Lakh (Luxury estate)</li>
                     <li>
                       Custom plot sizes up to 5,000+ sq ft customized as per buyer requirement
                     </li>
@@ -1366,7 +1389,7 @@ function Index() {
                   <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
                     <label className="form-label mb-0">Plot Preference</label>
                     <span className="text-[10px] sm:text-xs font-mono text-emerald-400 font-medium">
-                      ₹1,199 / Sq Ft Base
+                      ₹{baseRate.toLocaleString("en-IN")} / Sq Ft Base
                     </span>
                   </div>
                   <select
@@ -1374,12 +1397,12 @@ function Index() {
                     onChange={(e) => setContactPlot(e.target.value)}
                     className="form-control block w-full px-4 text-xs font-mono"
                   >
-                    <option value="600 sq ft">600 Sq Ft (₹7.19 Lakh · Starting Size)</option>
-                    <option value="800 sq ft">800 Sq Ft (₹9.59 Lakh)</option>
-                    <option value="1000 sq ft">1,000 Sq Ft (₹11.99 Lakh · Most Popular)</option>
-                    <option value="1200 sq ft">1,200 Sq Ft (₹14.39 Lakh)</option>
-                    <option value="1500 sq ft">1,500 Sq Ft (₹17.99 Lakh)</option>
-                    <option value="2000 sq ft">2,000 Sq Ft (₹23.98 Lakh)</option>
+                    <option value="600 sq ft">600 Sq Ft (₹{((600 * baseRate) / 100000).toFixed(2)} Lakh · Starting Size)</option>
+                    <option value="800 sq ft">800 Sq Ft (₹{((800 * baseRate) / 100000).toFixed(2)} Lakh)</option>
+                    <option value="1000 sq ft">1,000 Sq Ft (₹{((1000 * baseRate) / 100000).toFixed(2)} Lakh · Most Popular)</option>
+                    <option value="1200 sq ft">1,200 Sq Ft (₹{((1200 * baseRate) / 100000).toFixed(2)} Lakh)</option>
+                    <option value="1500 sq ft">1,500 Sq Ft (₹{((1500 * baseRate) / 100000).toFixed(2)} Lakh)</option>
+                    <option value="2000 sq ft">2,000 Sq Ft (₹{((2000 * baseRate) / 100000).toFixed(2)} Lakh)</option>
                     <option value="Custom Size">
                       ⚡ Custom Size Requirement (Any Size On Buyer Wish)
                     </option>
@@ -1393,7 +1416,7 @@ function Index() {
                         Custom Area (Sq Ft):
                       </span>
                       <span className="text-[11px] font-mono text-emerald-400 font-semibold">
-                        Estimated: ₹{((customPlotArea * 1199) / 100000).toFixed(2)} Lakh
+                        Estimated: ₹{((customPlotArea * baseRate) / 100000).toFixed(2)} Lakh
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1634,6 +1657,33 @@ function Index() {
             <span>© 2026 Galaxy Green</span>
           </div>
         </div>
+
+        {/* Subtle Developer Credit Box */}
+        <div className="mt-8 pt-6 border-t border-border/30 flex justify-center">
+          <div className="inline-flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-md border border-border/40 bg-card/30 backdrop-blur-sm text-[11px] font-mono text-muted-foreground/75 hover:border-border/70 transition-all">
+            <span>
+              Developed by{" "}
+              <a
+                href="mailto:23rajaditya@gmail.com"
+                className="text-foreground/85 hover:text-primary transition-colors underline decoration-border/60 hover:decoration-primary"
+                title="Email Developer: 23rajaditya@gmail.com"
+              >
+                Aditya
+              </a>
+            </span>
+            <span className="hidden sm:inline text-border/60">·</span>
+            <a
+              href="https://www.linkedin.com/in/rajadityaaa23/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-muted-foreground/60 hover:text-[#0a66c2] flex items-center gap-1 transition-colors"
+              title="Aditya on LinkedIn"
+            >
+              <span>LinkedIn</span>
+              <ExternalLink className="size-2.5 opacity-60" />
+            </a>
+          </div>
+        </div>
       </footer>
 
       {/* Luxury Floating Concierge Capsule */}
@@ -1724,6 +1774,7 @@ function Index() {
         open={siteVisitOpen}
         onOpenChange={setSiteVisitOpen}
         defaultPlotPreference={selectedPlotForVisit}
+        baseRate={baseRate}
       />
       <BrochureModal open={brochureOpen} onOpenChange={setBrochureOpen} />
       <AdminLeadsDrawer open={adminOpen} onOpenChange={setAdminOpen} />

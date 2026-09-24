@@ -6,16 +6,17 @@ import { TrendingUp, ShieldCheck, ArrowRight, BadgePercent, FileText } from "luc
 
 interface EmiRoiCalculatorProps {
   onLockPriceClick: (plotSizeText: string) => void;
+  baseRate?: number;
 }
 
-export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
+export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCalculatorProps) {
   const [plotArea, setPlotArea] = useState<number>(600);
   const [customAreaInput, setCustomAreaInput] = useState<string>("600");
   const [downPaymentPercent, setDownPaymentPercent] = useState<number>(20);
   const [tenureYears, setTenureYears] = useState<number>(10);
   const [annualInterestRate, setAnnualInterestRate] = useState<number>(8.5); // Indicative bank plot loan interest rate
 
-  const BASE_RATE = 1199; // Rs 1,199 per sq ft fixed base rate
+  const BASE_RATE = baseRate || 1199; // Dynamic base rate per sq ft
   const effectiveArea = Math.max(100, plotArea);
   const totalCost = effectiveArea * BASE_RATE;
   const downPaymentAmount = Math.round(totalCost * (downPaymentPercent / 100));
@@ -83,14 +84,14 @@ export function EmiRoiCalculator({ onLockPriceClick }: EmiRoiCalculatorProps) {
             <div className="flex items-center gap-2 mb-2">
               <span className="eyebrow">06 · Financial Intelligence</span>
               <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-primary/10 text-primary border border-primary/30">
-                Official Rate: ₹1,199 / Sq Ft
+                Official Rate: ₹{BASE_RATE.toLocaleString("en-IN")} / Sq Ft
               </span>
             </div>
             <h2 className="section-title">Investment ROI & EMI Calculator</h2>
             <p className="mt-3 max-w-2xl text-sm md:text-base text-muted-foreground leading-relaxed">
               Minimum allotment starts from{" "}
               <strong className="text-foreground font-medium">
-                600 sq. ft. ({formatINR(600 * 1199)})
+                600 sq. ft. ({formatINR(600 * BASE_RATE)})
               </strong>
               , with flexible dimensions scalable up to commercial parcels and luxury multi-plot
               estates.

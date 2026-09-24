@@ -32,10 +32,10 @@ interface SiteVisitModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultPlotPreference?: string;
+  baseRate?: number;
 }
 
 const PHONE_NUMBER = "919044412642";
-const BASE_RATE = 1199;
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -58,7 +58,9 @@ export function SiteVisitModal({
   open,
   onOpenChange,
   defaultPlotPreference = "600 sq ft",
+  baseRate = 1199,
 }: SiteVisitModalProps) {
+  const BASE_RATE = baseRate || 1199;
   const [step, setStep] = useState<"form" | "confirmed">("form");
   const [submitting, setSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<Inquiry | null>(null);
@@ -587,37 +589,47 @@ export function SiteVisitModal({
                     Plot Sizing & Configuration
                   </Label>
                   <span className="text-[10px] font-mono text-emerald-400">
-                    ₹1,199 / Sq Ft Base Rate
+                    ₹{BASE_RATE.toLocaleString("en-IN")} / Sq Ft Base Rate
                   </span>
                 </div>
 
                 {/* Preset Plot Tiles */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { id: "600 sq ft", size: "600 Sq Ft", price: "₹7.19 Lakh", desc: "Starting" },
-                    { id: "800 sq ft", size: "800 Sq Ft", price: "₹9.59 Lakh", desc: "Compact" },
+                    {
+                      id: "600 sq ft",
+                      size: "600 Sq Ft",
+                      price: `₹${((600 * BASE_RATE) / 100000).toFixed(2)} Lakh`,
+                      desc: "Starting",
+                    },
+                    {
+                      id: "800 sq ft",
+                      size: "800 Sq Ft",
+                      price: `₹${((800 * BASE_RATE) / 100000).toFixed(2)} Lakh`,
+                      desc: "Compact",
+                    },
                     {
                       id: "1000 sq ft",
                       size: "1,000 Sq Ft",
-                      price: "₹11.99 Lakh",
+                      price: `₹${((1000 * BASE_RATE) / 100000).toFixed(2)} Lakh`,
                       desc: "Most Popular",
                     },
                     {
                       id: "1200 sq ft",
                       size: "1,200 Sq Ft",
-                      price: "₹14.39 Lakh",
+                      price: `₹${((1200 * BASE_RATE) / 100000).toFixed(2)} Lakh`,
                       desc: "Duplex Villa",
                     },
                     {
                       id: "1500 sq ft",
                       size: "1,500 Sq Ft",
-                      price: "₹17.99 Lakh",
+                      price: `₹${((1500 * BASE_RATE) / 100000).toFixed(2)} Lakh`,
                       desc: "Executive",
                     },
                     {
                       id: "2000 sq ft",
                       size: "2,000 Sq Ft",
-                      price: "₹23.98 Lakh",
+                      price: `₹${((2000 * BASE_RATE) / 100000).toFixed(2)} Lakh`,
                       desc: "Luxury Estate",
                     },
                   ].map((plotItem) => (

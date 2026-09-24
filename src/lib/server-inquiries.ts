@@ -316,6 +316,7 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       dealerPin?: string | undefined;
       newPin?: string | undefined;
       baseRatePerSqFt?: number | undefined;
+      updatePlots?: boolean | undefined;
       clientPinToken?: string | undefined;
     }) => data,
   )
@@ -375,14 +376,26 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
       updates.push("dealer_pin = ?");
       params.push(hashedPin);
     }
-    if (data.baseRatePerSqFt !== undefined) {
-      memoryBaseRatePerSqFt = data.baseRatePerSqFt;
+    if (data.baseRatePerSqFt !== undefined && !isNaN(data.baseRatePerSqFt)) {
+      const parsedRate = Math.max(100, Math.round(data.baseRatePerSqFt));
+      memoryBaseRatePerSqFt = parsedRate;
       updates.push("base_rate_per_sq_ft = ?");
-      params.push(data.baseRatePerSqFt);
+      params.push(parsedRate);
+
+      if (data.updatePlots) {
+        try {
+          await executeQuery(
+            "UPDATE plots SET rate_per_sq_ft = ? WHERE status != 'Sold Out'",
+            [parsedRate],
+          );
+        } catch (plotErr) {
+          console.warn("Could not batch update plot rates:", plotErr);
+        }
+      }
     }
 
     if (updates.length === 0) {
-      return { success: true, signedPinToken };
+      return { success: true, baseRatePerSqFt: memoryBaseRatePerSqFt, signedPinToken };
     }
 
     // Ensure row id = 1 exists in admin_config if DB is reachable
@@ -393,21 +406,15 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
     );
 
     const sql = `UPDATE admin_config SET ${updates.join(", ")} WHERE id = 1`;
-    const res = await executeQuery(sql, params);
+    await executeQuery(sql, params);
 
-    if (res === null) {
-      return {
-        success: true,
-        signedPinToken,
-        message:
-          "Security Password updated and synchronized across cloud portal! All sessions logged out across all devices.",
-      };
-    }
     return {
       success: true,
+      baseRatePerSqFt: memoryBaseRatePerSqFt,
       signedPinToken,
-      message:
-        "Security Password updated in MySQL database! All sessions logged out across all devices.",
+      message: data.newPin
+        ? "Security Password and settings updated successfully!"
+        : `Base market rate updated to ₹${memoryBaseRatePerSqFt.toLocaleString("en-IN")} / Sq Ft!`,
     };
   });
 
@@ -579,3 +586,91 @@ export const updateInquiryStatusFn = createServerFn({ method: "POST" })
     }
     return { success: true, message: "Lead status updated and synchronized." };
   });
+
+// Protected: Admin deleting an inquiry
+export const deleteInquiryFn = createServerFn({ method: "POST" })
+  .validator((data: { token: string; id: string }) => data)
+  .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const index = memoryInquiries.findIndex((i) => i.id === data.id);
+    if (index !== -1) {
+      memoryInquiries.splice(index, 1);
+      trySaveInquiriesDisk(memoryInquiries);
+    }
+
+    await executeQuery("DELETE FROM inquiries WHERE id = ?", [data.id]);
+    return { success: true, message: `Inquiry ${data.id} deleted successfully.` };
+  });
+
+// Protected: Admin manually adding an inquiry/lead
+export const adminCreateInquiryFn = createServerFn({ method: "POST" })
+  .validator(
+    (data: {
+      token: string;
+      inquiry: {
+        name: string;
+        phone: string;
+        email?: string | undefined;
+        plotPreference?: string | undefined;
+        visitDate?: string | undefined;
+        slot?: string | undefined;
+        status?: Inquiry["status"] | undefined;
+        message?: string | undefined;
+      };
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    if (!verifyAdminToken(data.token)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const item = data.inquiry;
+    const sanitizedName = sanitizeText(item.name) || "Customer";
+    const sanitizedEmail = sanitizeText(item.email) || null;
+    const sanitizedPlot = sanitizeText(item.plotPreference) || "1000 sq ft";
+    const sanitizedMsg = sanitizeText(item.message) || null;
+    const slotStr = item.slot || "Morning (10:00 AM)";
+    const statusVal = item.status || "New";
+
+    const newInquiry: Inquiry = {
+      name: sanitizedName,
+      phone: item.phone.trim(),
+      email: sanitizedEmail || undefined,
+      plotPreference: sanitizedPlot,
+      visitDate: item.visitDate?.trim() || undefined,
+      slot: slotStr,
+      cabPickup: false,
+      pickupLocation: "On Site",
+      message: sanitizedMsg || undefined,
+      id: `GG-ADM-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: statusVal,
+      createdAt: new Date().toISOString(),
+    };
+
+    await executeQuery(
+      `INSERT INTO inquiries (id, name, phone, email, plot_preference, visit_date, slot, cab_pickup, pickup_location, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newInquiry.id,
+        newInquiry.name,
+        newInquiry.phone,
+        newInquiry.email || null,
+        newInquiry.plotPreference,
+        newInquiry.visitDate || null,
+        newInquiry.slot,
+        0,
+        "On Site",
+        newInquiry.message || null,
+        newInquiry.status,
+      ],
+    );
+
+    memoryInquiries.unshift(newInquiry);
+    trySaveInquiriesDisk(memoryInquiries);
+
+    return { success: true, inquiry: newInquiry };
+  });
+
