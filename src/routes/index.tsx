@@ -7,6 +7,7 @@ import {
   Calendar,
   Car,
   Check,
+  Clock,
   Code2,
   Compass,
   Download,
@@ -69,10 +70,11 @@ import { SiteVisitModal } from "@/components/SiteVisitModal";
 import { BrochureModal } from "@/components/BrochureModal";
 import { AdminLeadsDrawer } from "@/components/AdminLeadsDrawer";
 import { LegalTrustBadge } from "@/components/LegalTrustBadge";
+import { ClockTimePicker } from "@/components/ClockTimePicker";
 
 // Backend Client Service
 import { recordNewInquiry } from "@/lib/leads-client";
-import { getLocalDateString } from "@/lib/visit-helpers";
+import { getLocalDateString, isTimePassedForDate } from "@/lib/visit-helpers";
 import { toast } from "sonner";
 
 const PHONE = "919044412642";
@@ -225,6 +227,7 @@ function Index() {
   const [customPlotArea, setCustomPlotArea] = useState<number>(2000);
   const [contactVisitDate, setContactVisitDate] = useState("");
   const [contactCustomTime, setContactCustomTime] = useState("");
+  const [showContactClock, setShowContactClock] = useState(false);
   const [contactMessage, setContactMessage] = useState("");
   const [contactHoneypot, setContactHoneypot] = useState("");
   const [formError, setFormError] = useState("");
@@ -336,10 +339,16 @@ function Index() {
       return;
     }
     if (contactVisitDate) {
-      const todayStr = new Date().toLocaleDateString("en-CA");
+      const todayStr = getLocalDateString();
       if (contactVisitDate < todayStr) {
-        setFormError("Preferred visit date cannot be in the past.");
+        setFormError("Preferred visit date cannot be in the past. Only present and upcoming dates are allowed.");
         return;
+      }
+      if (contactVisitDate === todayStr && contactCustomTime.trim()) {
+        if (isTimePassedForDate(contactCustomTime.trim(), contactVisitDate)) {
+          setFormError(`The selected visit timing "${contactCustomTime.trim()}" has already passed for today. Please select an upcoming time.`);
+          return;
+        }
       }
     }
     setFormError("");
@@ -1410,59 +1419,132 @@ function Index() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="form-label mb-0">Preferred Visit Date (Optional)</label>
-                    </div>
-                    <Input
-                      type="date"
-                      min={getLocalDateString()}
-                      value={contactVisitDate}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const minDate = getLocalDateString();
-                        if (val && val < minDate) {
-                          setFormError("Preferred visit date cannot be in the past.");
-                          return;
-                        }
-                        setFormError("");
-                        setContactVisitDate(val);
-                      }}
-                      className="form-control"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
-                      <label className="form-label mb-0">Preferred Visit Timing (Optional)</label>
-                      <span className="text-[10px] sm:text-xs font-mono text-muted-foreground">
-                        7 AM - 7 PM
-                      </span>
-                    </div>
-                    <Input
-                      placeholder="e.g. 11:30 AM or 05:00 PM"
-                      value={contactCustomTime}
-                      onChange={(e) => setContactCustomTime(e.target.value)}
-                      className="form-control"
-                    />
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "05:30 PM"].map((t) => (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="form-label mb-0 flex items-center gap-1.5">
+                          <Calendar className="size-3 text-primary" /> Calendar (Year / Month / Date)
+                        </label>
+                        {contactVisitDate === getLocalDateString() && (
+                          <span className="text-[10px] text-primary font-semibold font-mono">Today</span>
+                        )}
+                      </div>
+                      <Input
+                        type="date"
+                        min={getLocalDateString()}
+                        value={contactVisitDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const minDate = getLocalDateString();
+                          if (val && val < minDate) {
+                            setFormError("Preferred visit date cannot be in the past. Only present and upcoming dates are allowed.");
+                            return;
+                          }
+                          setFormError("");
+                          setContactVisitDate(val);
+                        }}
+                        className="form-control"
+                      />
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                         <button
-                          key={t}
                           type="button"
-                          onClick={() => setContactCustomTime(t)}
+                          onClick={() => {
+                            setContactVisitDate(getLocalDateString());
+                            setFormError("");
+                          }}
                           className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                            contactCustomTime === t
+                            contactVisitDate === getLocalDateString()
                               ? "bg-primary text-primary-foreground border-primary font-semibold"
                               : "bg-background/80 border-border text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {t}
+                          Today
                         </button>
-                      ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 1);
+                            setContactVisitDate(getLocalDateString(d));
+                            setFormError("");
+                          }}
+                          className="px-2 py-0.5 rounded text-[10px] font-mono border border-border text-muted-foreground hover:text-foreground bg-background/80 transition-all"
+                        >
+                          Tomorrow
+                        </button>
+                        <span className="text-[9px] font-mono text-muted-foreground ml-auto">
+                          Past dates blocked
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                        <label className="form-label mb-0 flex items-center gap-1.5">
+                          <Clock className="size-3 text-primary" /> Preferred Visit Timing
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowContactClock((prev) => !prev)}
+                          className="text-[10px] sm:text-xs font-mono text-primary hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          🕒 {showContactClock ? "Hide Clock" : "Open Clock Selector"}
+                        </button>
+                      </div>
+                      <Input
+                        placeholder="e.g. 11:30 AM or 05:00 PM"
+                        value={contactCustomTime}
+                        onChange={(e) => {
+                          setContactCustomTime(e.target.value);
+                          setFormError("");
+                        }}
+                        className="form-control"
+                      />
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "05:30 PM"].map((t) => {
+                          const isPassed = isTimePassedForDate(t, contactVisitDate || getLocalDateString());
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              disabled={isPassed}
+                              onClick={() => {
+                                if (isPassed) return;
+                                setContactCustomTime(t);
+                                setFormError("");
+                              }}
+                              className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                                isPassed
+                                  ? "opacity-35 cursor-not-allowed bg-background/40 line-through text-muted-foreground border-border/40"
+                                  : contactCustomTime === t
+                                    ? "bg-primary text-primary-foreground border-primary font-semibold"
+                                    : "bg-background/80 border-border text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {t}
+                              {isPassed && <span className="ml-1 text-[8px] no-underline">✕</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Interactive Clock Time Picker Component when opened */}
+                  {showContactClock && (
+                    <div className="animate-in fade-in slide-in-from-top-1">
+                      <ClockTimePicker
+                        value={contactCustomTime || "11:30 AM"}
+                        onChange={(val) => {
+                          setContactCustomTime(val);
+                          setFormError("");
+                        }}
+                        selectedDate={contactVisitDate || getLocalDateString()}
+                        compact={false}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>

@@ -51,6 +51,7 @@ import {
   PRESET_SLOTS,
   SUGGESTED_CUSTOM_TIMES,
 } from "@/lib/visit-helpers";
+import { ClockTimePicker } from "@/components/ClockTimePicker";
 
 export function SiteVisitModal({
   open,
@@ -171,7 +172,7 @@ export function SiteVisitModal({
     } else if (newDate > todayStr) {
       // Future date selected: All slots are active. If slot was empty, reset to default morning slot
       if (!presetSlot) {
-        setSlotPreset(PRESET_SLOTS[0].id);
+        setSlotPreset(PRESET_SLOTS[0]?.id || "Morning (10:00 AM)");
       }
     }
   };
@@ -396,12 +397,13 @@ export function SiteVisitModal({
               </div>
 
               {/* Date & Time Slot */}
-              <div className="space-y-2">
+              {/* Date & Time Slot with Interactive Clock and Calendar Selection */}
+              <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <Label className="text-[11px] uppercase font-mono text-muted-foreground flex items-center justify-between">
                       <span className="flex items-center gap-1">
-                        <Calendar className="size-3 text-primary" /> Preferred Date *
+                        <Calendar className="size-3 text-primary" /> Calendar (Year / Month / Date) *
                       </span>
                       {isToday && (
                         <span className="text-[10px] text-primary font-semibold">Today</span>
@@ -414,12 +416,41 @@ export function SiteVisitModal({
                       onChange={(e) => handleDateChange(e.target.value)}
                       className="mt-1 h-9 sm:h-10 text-xs bg-surface border-border font-mono font-medium"
                     />
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      {!isPastOperatingHours && (
+                        <button
+                          type="button"
+                          onClick={() => handleDateChange(todayStr)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                            visitDate === todayStr
+                              ? "bg-primary text-primary-foreground border-primary font-semibold"
+                              : "bg-surface border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          Today
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDateChange(tomorrowStr)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                          visitDate === tomorrowStr
+                            ? "bg-primary text-primary-foreground border-primary font-semibold"
+                            : "bg-surface border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Tomorrow
+                      </button>
+                      <span className="text-[9px] font-mono text-muted-foreground ml-auto">
+                        Past dates blocked
+                      </span>
+                    </div>
                   </div>
 
                   <div>
                     <Label className="text-[11px] uppercase font-mono text-muted-foreground flex items-center justify-between">
                       <span className="flex items-center gap-1">
-                        <Clock className="size-3 text-primary" /> Time Slot *
+                        <Clock className="size-3 text-primary" /> Preferred Timing *
                       </span>
                       <span className="text-[10px] text-muted-foreground">7 AM – 7 PM</span>
                     </Label>
@@ -457,7 +488,7 @@ export function SiteVisitModal({
                         );
                       })}
 
-                      {/* Custom Timing Option Button */}
+                      {/* Clock Timing Option Button */}
                       <button
                         type="button"
                         disabled={isToday && isPastOperatingHours}
@@ -474,12 +505,10 @@ export function SiteVisitModal({
                               : "bg-surface border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-primary/40"
                         }`}
                       >
-                        <span className="block leading-tight">⚡ Custom Timing</span>
-                        {isToday && isPastOperatingHours && (
-                          <span className="block text-[9px] text-destructive/90 font-mono no-underline uppercase tracking-wider font-semibold">
-                            Closed
-                          </span>
-                        )}
+                        <span className="block leading-tight font-semibold">🕒 Clock Selector</span>
+                        <span className="block text-[9px] opacity-80 font-mono mt-0.5">
+                          Hours, Mins, AM/PM
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -491,8 +520,7 @@ export function SiteVisitModal({
                     <div className="flex items-center gap-1.5">
                       <AlertTriangle className="size-4 shrink-0 text-amber-400" />
                       <span>
-                        Standard daytime slots for today have passed. Select custom timing or switch
-                        to tomorrow.
+                        Standard morning/afternoon slots have passed today. Use the Clock Selector below or choose tomorrow.
                       </span>
                     </div>
                     <button
@@ -511,8 +539,7 @@ export function SiteVisitModal({
                     <div className="flex items-center gap-1.5">
                       <AlertCircle className="size-4 shrink-0" />
                       <span>
-                        Today's visiting hours have ended (7:00 AM – 7:00 PM). Please schedule for
-                        tomorrow.
+                        Visiting hours for today have ended (7:00 AM – 7:00 PM). Please select tomorrow or an upcoming date.
                       </span>
                     </div>
                     <button
@@ -525,61 +552,17 @@ export function SiteVisitModal({
                   </div>
                 )}
 
-                {/* Custom Timing Panel (Revealed when Custom Timing is active) */}
+                {/* Full Interactive Clock Time Picker Component */}
                 {slotType === "custom" && (
-                  <div className="p-3 rounded-lg bg-surface/90 border border-primary/40 space-y-2 animate-in fade-in slide-in-from-top-1">
-                    <div className="flex items-center justify-between text-[11px] font-mono">
-                      <span className="text-primary font-semibold flex items-center gap-1.5">
-                        <Clock className="size-3.5" /> Enter Your Preferred Timing:
-                      </span>
-                      <span className="text-emerald-400 text-[10px]">Daily 7:00 AM – 7:00 PM</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Input
-                        placeholder="e.g. 11:30 AM or 05:15 PM"
-                        value={customTime}
-                        onChange={(e) => {
-                          setCustomTime(e.target.value);
-                          setError("");
-                        }}
-                        className="h-9 text-xs bg-background border-primary/60 text-foreground font-mono font-medium"
-                      />
-                    </div>
-
-                    {/* Quick Timing Chips */}
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                      <span className="text-[10px] font-mono text-muted-foreground mr-1">
-                        Suggestions:
-                      </span>
-                      {SUGGESTED_CUSTOM_TIMES.map((time) => {
-                        const isPassed = isTimePassedForDate(time, visitDate);
-                        const isSelected = customTime === time;
-
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            disabled={isPassed}
-                            onClick={() => {
-                              if (isPassed) return;
-                              setCustomTime(time);
-                              setError("");
-                            }}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
-                              isPassed
-                                ? "opacity-30 cursor-not-allowed bg-surface/20 line-through text-muted-foreground border-border/30"
-                                : isSelected
-                                  ? "bg-primary text-primary-foreground border-primary font-semibold shadow-glow"
-                                  : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-                            }`}
-                          >
-                            {time}
-                            {isPassed && <span className="ml-1 text-[8px] no-underline">✕</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div className="animate-in fade-in slide-in-from-top-1">
+                    <ClockTimePicker
+                      value={customTime}
+                      onChange={(newTime) => {
+                        setCustomTime(newTime);
+                        setError("");
+                      }}
+                      selectedDate={visitDate}
+                    />
                   </div>
                 )}
               </div>

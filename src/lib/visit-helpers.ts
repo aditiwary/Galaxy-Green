@@ -17,7 +17,7 @@ export function parseTimeHoursMinutes(timeStr: string): { hours: number; minutes
 
   // Try HH:MM AM/PM or HH:MM (e.g. 10:00 AM, 04:30 PM, 14:00, 10.30 AM)
   const colonMatch = clean.match(/(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i);
-  if (colonMatch) {
+  if (colonMatch && colonMatch[1] && colonMatch[2]) {
     let hours = parseInt(colonMatch[1], 10);
     const minutes = parseInt(colonMatch[2], 10);
     const meridian = colonMatch[3]?.toUpperCase();
@@ -30,7 +30,7 @@ export function parseTimeHoursMinutes(timeStr: string): { hours: number; minutes
 
   // Try single hour e.g. "10 AM", "2 PM", "11pm", "5 PM"
   const hourMatch = clean.match(/^(\d{1,2})\s*(AM|PM)$/i);
-  if (hourMatch) {
+  if (hourMatch && hourMatch[1] && hourMatch[2]) {
     let hours = parseInt(hourMatch[1], 10);
     const meridian = hourMatch[2].toUpperCase();
     if (meridian === "PM" && hours < 12) hours += 12;
@@ -39,6 +39,102 @@ export function parseTimeHoursMinutes(timeStr: string): { hours: number; minutes
   }
 
   return null;
+}
+
+export interface ClockTimeParts {
+  hour12: number;
+  minute: number;
+  period: "AM" | "PM";
+}
+
+/**
+ * Decomposes a time string into 12-hour parts (hours 1-12, minutes 0-59, AM/PM)
+ */
+export function splitTimeToHMP(timeStr: string): ClockTimeParts {
+  const parsed = parseTimeHoursMinutes(timeStr);
+  if (!parsed) {
+    return { hour12: 10, minute: 0, period: "AM" };
+  }
+  const { hours, minutes } = parsed;
+  const period: "AM" | "PM" = hours >= 12 ? "PM" : "AM";
+  let hour12 = hours % 12;
+  if (hour12 === 0) hour12 = 12;
+  return { hour12, minute: minutes, period };
+}
+
+/**
+ * Recombines 12-hour parts into standard formatted time string, e.g. "10:30 AM"
+ */
+export function composeHMPToTime(hour12: number, minute: number, period: "AM" | "PM"): string {
+  const h = String(hour12).padStart(2, "0");
+  const m = String(minute).padStart(2, "0");
+  return `${h}:${m} ${period}`;
+}
+
+/**
+ * Converts 12-hour time parts to 24-hour total minutes from midnight
+ */
+export function timePartsToTotalMinutes(hour12: number, minute: number, period: "AM" | "PM"): number {
+  let h24 = hour12 % 12;
+  if (period === "PM") h24 += 12;
+  return h24 * 60 + minute;
+}
+
+/**
+ * Validates if time parts fall within daylight operational hours (7:00 AM – 7:00 PM)
+ */
+export function isWithinOperatingHours(hour12: number, minute: number, period: "AM" | "PM"): boolean {
+  const totalMins = timePartsToTotalMinutes(hour12, minute, period);
+  const openMins = 7 * 60; // 07:00 AM
+  const closeMins = 19 * 60; // 07:00 PM (19:00)
+  return totalMins >= openMins && totalMins <= closeMins;
+}
+
+/**
+ * Check if a specific time has already passed for a selected date
+ */
+export function isSpecificTimePassed(
+  hour12: number,
+  minute: number,
+  period: "AM" | "PM",
+  selectedDate: string,
+  now: Date = new Date(),
+): boolean {
+  if (!selectedDate) return false;
+  const todayStr = getLocalDateString(now);
+  const normDate = (selectedDate.includes("T") ? selectedDate.split("T")[0] : selectedDate).trim();
+
+  // Future date is never passed
+  if (normDate > todayStr) return false;
+  // Past date is always passed
+  if (normDate < todayStr) return true;
+
+  // Selected date is TODAY
+  const selectedMins = timePartsToTotalMinutes(hour12, minute, period);
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  return selectedMins <= nowMins;
+}
+
+/**
+ * Checks if an entire hour (all 60 minutes) has passed for today
+ */
+export function isHourEntirelyPassed(
+  hour12: number,
+  period: "AM" | "PM",
+  selectedDate: string,
+  now: Date = new Date(),
+): boolean {
+  if (!selectedDate) return false;
+  const todayStr = getLocalDateString(now);
+  const normDate = (selectedDate.includes("T") ? selectedDate.split("T")[0] : selectedDate).trim();
+
+  if (normDate > todayStr) return false;
+  if (normDate < todayStr) return true;
+
+  // For the hour to be entirely passed, even the last minute of this hour (:59) must be <= nowMins
+  const lastMinOfHour = timePartsToTotalMinutes(hour12, 59, period);
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  return lastMinOfHour <= nowMins;
 }
 
 export function isTimePassedForDate(
@@ -50,7 +146,7 @@ export function isTimePassedForDate(
   const todayStr = getLocalDateString(now);
 
   // Normalize selectedDate (in case of full ISO string or extra whitespace)
-  const normDate = selectedDate.includes("T") ? selectedDate.split("T")[0] : selectedDate.trim();
+  const normDate = (selectedDate.includes("T") ? selectedDate.split("T")[0] : selectedDate).trim();
 
   // If date is in the future, it is NEVER passed — all upcoming dates & timings are valid!
   if (normDate > todayStr) return false;
