@@ -7,8 +7,10 @@ import {
   Calendar,
   Car,
   Check,
+  Code2,
   Compass,
   Download,
+  Mail,
   ExternalLink,
   FileCheck,
   HeartPulse,
@@ -1223,9 +1225,9 @@ function Index() {
       </section>
 
       {/* Main Contact & Connected Lead Capture Section */}
-      <section id="contact" className="section-shell bg-surface border-t border-border">
+      <section id="contact" className="section-shell bg-surface border-t border-border pb-28 sm:pb-20">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-12 lg:grid-cols-12 items-start">
+          <div className="grid gap-10 lg:gap-12 lg:grid-cols-12 items-start">
             <div className="lg:col-span-5 space-y-6">
               <p className="eyebrow">09 · Direct Management Contact</p>
               <h2 className="section-title">Arrange Your Personal Site Tour</h2>
@@ -1235,37 +1237,37 @@ function Index() {
                 boundaries.
               </p>
 
-              <div className="p-6 rounded-lg bg-card border border-primary/40 shadow-glow space-y-4">
+              <div className="p-4 sm:p-6 rounded-xl bg-card border border-primary/40 shadow-glow space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="size-12 rounded-full bg-primary/10 border border-primary/30 text-primary grid place-items-center">
-                    <User className="size-6" />
+                  <div className="size-11 sm:size-12 rounded-full bg-primary/10 border border-primary/30 text-primary grid place-items-center shrink-0">
+                    <User className="size-5 sm:size-6" />
                   </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
+                  <div className="min-w-0">
+                    <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
                       Managing Director
                     </span>
-                    <h4 className="font-display text-lg uppercase text-foreground font-semibold">
+                    <h4 className="font-display text-base sm:text-lg uppercase text-foreground font-semibold truncate">
                       Vishal Singh
                     </h4>
                   </div>
                 </div>
 
-                <div className="space-y-2 text-xs font-mono pt-2 border-t border-border/60">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Direct Hotline:</span>
+                <div className="space-y-2.5 text-xs font-mono pt-3 border-t border-border/60">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-muted-foreground shrink-0">Direct Hotline:</span>
                     <a
                       href="tel:+919044412642"
-                      className="text-primary font-semibold hover:underline"
+                      className="text-primary font-semibold hover:underline break-words"
                     >
                       +91 90444 12642
                     </a>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Location:</span>
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-muted-foreground shrink-0">Location:</span>
                     <span className="text-foreground">Amausi, Lucknow</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Site Office Hours:</span>
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-muted-foreground shrink-0">Site Office Hours:</span>
                     <span className="text-foreground">9:00 AM – 6:30 PM (Daily)</span>
                   </div>
                 </div>
@@ -1288,12 +1290,12 @@ function Index() {
             </div>
 
             {/* Connected Lead Capture Form */}
-            <div className="lg:col-span-7 bg-card border border-border rounded-lg p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-6 pb-3 border-b border-border/80">
-                <h3 className="font-display text-xl uppercase tracking-tight text-foreground">
+            <div className="lg:col-span-7 bg-card border border-border rounded-xl p-4 sm:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-6 pb-3 border-b border-border/80">
+                <h3 className="font-display text-lg sm:text-xl uppercase tracking-tight text-foreground">
                   Send Booking Inquiry
                 </h3>
-                <span className="text-xs text-muted-foreground font-mono">
+                <span className="text-[11px] sm:text-xs text-muted-foreground font-mono">
                   Instant Response Guaranteed
                 </span>
               </div>
@@ -1340,9 +1342,9 @@ function Index() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
                     <label className="form-label mb-0">Plot Preference</label>
-                    <span className="text-[10px] font-mono text-emerald-400">
+                    <span className="text-[10px] sm:text-xs font-mono text-emerald-400 font-medium">
                       ₹1,199 / Sq Ft Base
                     </span>
                   </div>
@@ -1431,9 +1433,9 @@ function Index() {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
                       <label className="form-label mb-0">Preferred Visit Timing (Optional)</label>
-                      <span className="text-[10px] font-mono text-muted-foreground">
+                      <span className="text-[10px] sm:text-xs font-mono text-muted-foreground">
                         7 AM - 7 PM
                       </span>
                     </div>
@@ -1501,6 +1503,36 @@ function Index() {
               </form>
             </div>
           </div>
+
+          {/* Developer Credit Box — Compact, Unique Contrast Template */}
+          <div className="mt-12 pt-6 border-t border-border/40 flex justify-center px-2">
+            <div className="w-full max-w-sm sm:max-w-md p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-[#070e1b] via-[#0b162c] to-[#070e1b] border border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.15)] flex items-center justify-between gap-3 backdrop-blur-md transition-all hover:border-cyan-400/70">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="size-9 sm:size-10 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 grid place-items-center shrink-0 shadow-sm">
+                  <Code2 className="size-4 sm:size-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-wider font-semibold text-white font-mono">
+                    Developed by Aditya
+                  </p>
+                  <a
+                    href="mailto:23rajaditya@gmail.com"
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1.5 transition-colors truncate mt-0.5"
+                    title="Email: 23rajaditya@gmail.com"
+                  >
+                    <Mail className="size-3.5 shrink-0" />
+                    <span className="truncate">23rajaditya@gmail.com</span>
+                  </a>
+                </div>
+              </div>
+              <a
+                href="mailto:23rajaditya@gmail.com"
+                className="px-3 sm:px-3.5 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 hover:text-white text-[11px] sm:text-xs font-mono font-medium transition-all shrink-0 uppercase tracking-wider"
+              >
+                Contact
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1531,6 +1563,14 @@ function Index() {
             <span>·</span>
             <a href={`tel:+91${PHONE}`} className="hover:text-foreground uppercase">
               +91 90444 12642
+            </a>
+            <span>·</span>
+            <a
+              href="mailto:23rajaditya@gmail.com"
+              className="text-cyan-400 hover:underline flex items-center gap-1 uppercase"
+              title="Developed by Aditya"
+            >
+              <Code2 className="size-3" /> Dev: Aditya
             </a>
             <span>·</span>
             <span>© 2026 Galaxy Green</span>

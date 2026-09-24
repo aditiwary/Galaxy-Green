@@ -208,20 +208,29 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     return "";
   }, [authToken]);
 
-  // Restore authenticated session from sessionStorage or localStorage if active, load public data when opened
+  // Enforce password authentication on every refresh and every time the portal is reopened
   useEffect(() => {
-    if (open) {
-      if (typeof window !== "undefined") {
-        const savedToken =
-          sessionStorage.getItem("gg_dealer_token") || localStorage.getItem("gg_dealer_token");
-        if (savedToken) {
-          authTokenRef.current = savedToken;
-          setAuthToken(savedToken);
-          setIsAuthenticated(true);
-          loadData(savedToken);
-          return;
-        }
-      }
+    // Clean any persistent storage tokens on mount/state change
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("gg_dealer_token");
+      localStorage.removeItem("gg_dealer_token");
+      localStorage.removeItem("gg_dealer_pin_signed_token");
+    }
+
+    if (!open) {
+      // Whenever closed, immediately reset authentication
+      setIsAuthenticated(false);
+      setAuthToken("");
+      authTokenRef.current = "";
+      setPinInput("");
+      setPinError(false);
+    } else {
+      // Whenever opened, unconditionally require fresh password entry
+      setIsAuthenticated(false);
+      setAuthToken("");
+      authTokenRef.current = "";
+      setPinInput("");
+      setPinError(false);
       loadData();
     }
   }, [open, loadData]);
@@ -246,7 +255,6 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         setIsAuthenticated(true);
         if (typeof window !== "undefined") {
           sessionStorage.setItem("gg_dealer_token", res.token);
-          localStorage.setItem("gg_dealer_token", res.token);
         }
         setPinError(false);
         setPinInput("");
