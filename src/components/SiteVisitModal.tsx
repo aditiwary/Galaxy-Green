@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { recordNewInquiry } from "@/lib/leads-client";
+import { saveLocalBooking } from "@/lib/my-bookings";
 import type { Inquiry } from "@/lib/inquiry-types";
 import { toast } from "sonner";
 
@@ -287,6 +288,18 @@ export function SiteVisitModal({
 
       setConfirmedBooking(created);
       setStep("confirmed");
+
+      // Save to device local cache for "My Bookings"
+      saveLocalBooking({
+        id: created.id,
+        name: created.name,
+        phone: created.phone,
+        plotPreference: created.plotPreference,
+        visitDate: created.visitDate,
+        slot: created.slot,
+        message: created.message,
+      });
+
       toast.success("Site Visit Reserved! Reference: " + created.id);
     } catch (err: unknown) {
       console.error("Site visit reservation error:", err);

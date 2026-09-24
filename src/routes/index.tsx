@@ -71,9 +71,11 @@ import { BrochureModal } from "@/components/BrochureModal";
 import { AdminLeadsDrawer } from "@/components/AdminLeadsDrawer";
 import { LegalTrustBadge } from "@/components/LegalTrustBadge";
 import { ClockTimePicker } from "@/components/ClockTimePicker";
+import { MyBookingsDrawer } from "@/components/MyBookingsDrawer";
 
 // Backend Client Service
 import { recordNewInquiry } from "@/lib/leads-client";
+import { saveLocalBooking } from "@/lib/my-bookings";
 import { getLocalDateString, isTimePassedForDate } from "@/lib/visit-helpers";
 import { toast } from "sonner";
 
@@ -373,6 +375,17 @@ function Index() {
         cabPickup: false,
         pickupLocation: "On Site",
         website: contactHoneypot,
+      });
+
+      // Save to device local cache for "My Bookings"
+      saveLocalBooking({
+        id: createdLead.id,
+        name: createdLead.name,
+        phone: createdLead.phone,
+        plotPreference: createdLead.plotPreference,
+        visitDate: createdLead.visitDate,
+        slot: createdLead.slot,
+        message: createdLead.message,
       });
 
       toast.success(`Inquiry Recorded! Reference ID: ${createdLead.id}`);
@@ -1763,6 +1776,7 @@ function Index() {
       </div>
 
       {/* Interactive Modals */}
+      <MyBookingsDrawer onOpenVisitModal={() => setSiteVisitOpen(true)} />
       <SiteVisitModal
         open={siteVisitOpen}
         onOpenChange={setSiteVisitOpen}
