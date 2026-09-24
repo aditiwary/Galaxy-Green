@@ -8,7 +8,6 @@ import {
   Car,
   Check,
   Clock,
-  Code2,
   Compass,
   Download,
   Mail,
@@ -18,7 +17,6 @@ import {
   Landmark,
   Layers,
   Leaf,
-  Linkedin,
   Lock,
   Map,
   MapPin,
@@ -1600,62 +1598,7 @@ function Index() {
             </div>
           </div>
 
-          {/* Developer Credit Box — Futuristic Glowing Holographic Card */}
-          <div className="mt-12 pt-6 border-t border-border/40 flex justify-center px-2">
-            <div className="developer-shine-box group w-full max-w-sm sm:max-w-xl p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="relative size-11 rounded-xl bg-gradient-to-br from-cyan-500/25 via-blue-500/20 to-purple-600/25 border border-cyan-400/50 text-cyan-300 grid place-items-center shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.35)] group-hover:shadow-[0_0_25px_rgba(6,182,212,0.65)] group-hover:border-cyan-300 transition-all">
-                  <Code2 className="size-5" />
-                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs uppercase tracking-wider font-bold text-white font-mono drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">
-                      Developed by Aditya
-                    </p>
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 font-semibold tracking-wider uppercase shadow-[0_0_8px_rgba(6,182,212,0.25)]">
-                      Dev
-                    </span>
-                  </div>
-                  <a
-                    href="mailto:23rajaditya@gmail.com"
-                    className="text-xs text-slate-300 hover:text-cyan-300 font-mono flex items-center gap-1.5 transition-colors truncate mt-1 group/email"
-                    title="Direct Email: 23rajaditya@gmail.com"
-                  >
-                    <Mail className="size-3.5 text-cyan-400 shrink-0 group-hover/email:scale-110 transition-transform" />
-                    <span className="truncate">23rajaditya@gmail.com</span>
-                  </a>
-                </div>
-              </div>
 
-              {/* Action Buttons: LinkedIn Profile & Direct Mail */}
-              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                <a
-                  href="https://www.linkedin.com/in/rajadityaaa23/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-[#0077b5]/20 hover:bg-[#0077b5]/40 border border-[#0077b5]/60 hover:border-[#0077b5] text-sky-200 hover:text-white text-xs font-mono font-semibold transition-all shadow-[0_0_12px_rgba(0,119,181,0.25)] hover:shadow-[0_0_22px_rgba(0,119,181,0.6)] flex items-center gap-1.5"
-                  title="Connect with Aditya on LinkedIn"
-                >
-                  <Linkedin className="size-3.5 text-[#00a0dc]" />
-                  <span>LinkedIn</span>
-                  <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
-                </a>
-
-                <a
-                  href="mailto:23rajaditya@gmail.com"
-                  className="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/35 border border-cyan-400/40 hover:border-cyan-300 text-cyan-200 hover:text-white text-xs font-mono font-semibold transition-all shadow-[0_0_12px_rgba(6,182,212,0.2)] hover:shadow-[0_0_22px_rgba(6,182,212,0.6)] flex items-center gap-1.5"
-                  title="Send Direct Email to Aditya"
-                >
-                  <Mail className="size-3.5 text-cyan-400" />
-                  <span>Mail</span>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
