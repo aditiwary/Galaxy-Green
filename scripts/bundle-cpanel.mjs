@@ -60,6 +60,27 @@ if (fs.existsSync(zipPath)) {
 }
 
 execSync(`cd "${distDir}" && zip -r "${zipPath}" .`, { stdio: "inherit" });
+
+// 8. Copy zip directly to Downloads directory for easy Finder/cPanel upload
+const downloadsZipPath = path.resolve(process.cwd(), "../galaxygreen-cpanel.zip");
+try {
+  fs.copyFileSync(zipPath, downloadsZipPath);
+  console.log(`[SYNC] Also mirrored to: ${downloadsZipPath}`);
+} catch (err) {
+  console.warn("Could not copy to parent downloads directory:", err.message);
+}
+
+// 9. Sync unzipped folder in Downloads
+const downloadsFolderPath = path.resolve(process.cwd(), "../galaxygreen-cpanel");
+try {
+  if (fs.existsSync(downloadsFolderPath)) {
+    execSync(`cp -R "${distDir}/"* "${downloadsFolderPath}/"`);
+    console.log(`[SYNC] Updated folder: ${downloadsFolderPath}`);
+  }
+} catch (err) {
+  console.warn("Could not sync downloads folder:", err.message);
+}
+
 console.log("\n==========================================");
 console.log(`[SUCCESS] Bundle created: ${zipName}`);
 console.log("==========================================");
