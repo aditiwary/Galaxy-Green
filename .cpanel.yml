@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export REPOPATH=/home/rwwhbbz9mrljzxjq/repositories/Galaxy-Green
+    - export DEPLOYPATH=/home/rwwhbbz9mrljzxjq/galaxygreen
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/mkdir -p $DEPLOYPATH/tmp
+    - /usr/bin/unzip -o -q $REPOPATH/galaxygreen-cpanel.zip -d $DEPLOYPATH
+    - /bin/touch $DEPLOYPATH/tmp/restart.txt
