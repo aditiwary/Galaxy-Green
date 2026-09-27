@@ -1657,33 +1657,6 @@ function Index() {
             <span>© 2026 Galaxy Green</span>
           </div>
         </div>
-
-        {/* Subtle Developer Credit Box */}
-        <div className="mt-8 pt-6 border-t border-border/30 flex justify-center">
-          <div className="inline-flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-md border border-border/40 bg-card/30 backdrop-blur-sm text-[11px] font-mono text-muted-foreground/75 hover:border-border/70 transition-all">
-            <span>
-              Developed by{" "}
-              <a
-                href="mailto:23rajaditya@gmail.com"
-                className="text-foreground/85 hover:text-primary transition-colors underline decoration-border/60 hover:decoration-primary"
-                title="Email Developer: 23rajaditya@gmail.com"
-              >
-                Aditya
-              </a>
-            </span>
-            <span className="hidden sm:inline text-border/60">·</span>
-            <a
-              href="https://www.linkedin.com/in/rajadityaaa23/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] text-muted-foreground/60 hover:text-[#0a66c2] flex items-center gap-1 transition-colors"
-              title="Aditya on LinkedIn"
-            >
-              <span>LinkedIn</span>
-              <ExternalLink className="size-2.5 opacity-60" />
-            </a>
-          </div>
-        </div>
       </footer>
 
       {/* Luxury Floating Concierge Capsule */}
