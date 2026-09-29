@@ -350,13 +350,13 @@ export function SiteVisitModal({
           <>
             <DialogHeader className="pr-6">
               <div className="flex items-center gap-3">
-                <div className="size-11 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+                <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 shrink-0 bg-white/10 flex items-center justify-center p-0.5">
                   <img
                     src="/galaxy-green-emblem.png"
-                    alt="Galaxy Green"
+                    alt="Galaxy Green Official Seal"
                     width={48}
                     height={48}
-                    className="size-full object-cover"
+                    className="size-full object-contain"
                   />
                 </div>
                 <div className="min-w-0 flex-1">

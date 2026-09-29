@@ -436,15 +436,24 @@ async function generateBrochure() {
     color: gold,
   });
 
+  if (emblemImage) {
+    page2.drawImage(emblemImage, {
+      x: 35,
+      y: height - 55,
+      width: 45,
+      height: 45,
+    });
+  }
+
   page2.drawText("GALAXY GREEN — INFRASTRUCTURE, LEGAL & BOOKING CREDENTIALS", {
-    x: 35,
+    x: emblemImage ? 90 : 35,
     y: height - 38,
     size: 11,
     font: fontBold,
     color: white,
   });
   page2.drawText("Sai Suraksha Nagar, Amausi, Lucknow · Verified Freehold Plotted Community", {
-    x: 35,
+    x: emblemImage ? 90 : 35,
     y: height - 50,
     size: 8,
     font: fontRegular,

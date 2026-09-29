@@ -125,9 +125,15 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
         <DialogContent className="max-w-md sm:max-w-lg p-5 sm:p-6 bg-card border-border shadow-2xl rounded-2xl max-h-[85vh] flex flex-col">
           <DialogHeader className="space-y-1.5 pb-3 border-b border-border/70 text-left">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="size-9 rounded-lg bg-primary/10 border border-primary/30 text-primary grid place-items-center">
-                  <CalendarCheck className="size-5" />
+              <div className="flex items-center gap-2.5">
+                <div className="size-10 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
+                  <img
+                    src="/galaxy-green-emblem.png"
+                    alt="Official Galaxy Green Seal"
+                    width={40}
+                    height={40}
+                    className="size-full object-contain"
+                  />
                 </div>
                 <div>
                   <DialogTitle className="font-display text-lg uppercase tracking-tight text-foreground">

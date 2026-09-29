@@ -726,7 +726,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#0a1410]">
               <div className="relative mb-4">
-                <div className="size-20 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/5 flex items-center justify-center p-1">
+                <div className="size-20 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/10 flex items-center justify-center p-1.5">
                   <img
                     src="/galaxy-green-emblem.png"
                     alt="Galaxy Green Logo"
@@ -790,7 +790,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
             <SheetHeader className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
               <div className="flex items-center justify-between gap-2 min-w-0">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                  <div className="size-9 sm:size-11 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-white/5 flex items-center justify-center p-0.5">
+                  <div className="size-9 sm:size-11 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 shrink-0 bg-white/10 flex items-center justify-center p-0.5">
                     <img
                       src="/galaxy-green-emblem.png"
                       alt="Galaxy Green Logo"

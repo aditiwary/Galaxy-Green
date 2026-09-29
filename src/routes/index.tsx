@@ -143,16 +143,16 @@ function Logo({ showMotto = false }: { showMotto?: boolean }) {
   return (
     <a
       href="#home"
-      className="flex items-center gap-2 sm:gap-2.5 md:gap-3 group shrink-0 min-w-0"
+      className="flex items-center gap-2.5 sm:gap-3 group shrink-0 min-w-0"
       aria-label="Galaxy Green home"
     >
-      <div className="relative size-10 sm:size-11 md:size-12 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-white/5 flex items-center justify-center p-0.5">
+      <div className="relative size-10 sm:size-11 md:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-white/10 flex items-center justify-center p-0.5 backdrop-blur-sm">
         <img
           src="/galaxy-green-emblem.png"
-          alt="Galaxy Green Emblem Logo"
+          alt="Galaxy Green Official Seal Logo"
           width={48}
           height={48}
-          className="size-full object-contain"
+          className="size-full object-contain filter drop-shadow-sm"
         />
       </div>
       <span className="flex flex-col justify-center leading-tight min-w-0">
@@ -553,6 +553,25 @@ function Index() {
             itemType="https://schema.org/SiteNavigationElement"
           >
             <div className="flex flex-col gap-1 max-w-lg mx-auto">
+              <div className="flex items-center gap-3 pb-4 mb-2 border-b border-border/80">
+                <div className="size-11 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
+                  <img
+                    src="/galaxy-green-emblem.png"
+                    alt="Official Galaxy Green Seal"
+                    width={44}
+                    height={44}
+                    className="size-full object-contain"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <strong className="block font-display text-sm uppercase text-foreground font-bold truncate">
+                    Galaxy Green
+                  </strong>
+                  <span className="block text-[10px] uppercase font-mono text-primary font-medium truncate">
+                    Sai Suraksha Nagar · Lucknow
+                  </span>
+                </div>
+              </div>
               {[
                 ["About", "#about"],
                 ["Master Plan", "#masterplan"],
@@ -619,18 +638,42 @@ function Index() {
           <div className="hero-glow -top-10 -left-10 opacity-75" />
 
           <div className="max-w-4xl relative z-10 w-full min-w-0">
-            {/* Live Availability Tag */}
-            <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-3.5 sm:px-4 py-1.5 backdrop-blur-md shadow-sm max-w-full">
-              <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20 shrink-0" />
-              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-primary font-mono font-medium truncate">
-                Phase 1 Open · Amausi Airport Growth Corridor
-              </span>
+            {/* Live Availability Tag & Official Township Seal Badge */}
+            <div className="mb-4 sm:mb-6 flex flex-wrap items-center gap-2.5 sm:gap-3.5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-3.5 sm:px-4 py-1.5 backdrop-blur-md shadow-sm max-w-full">
+                <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20 shrink-0" />
+                <span className="text-[11px] sm:text-xs uppercase tracking-widest text-primary font-mono font-medium truncate">
+                  Phase 1 Open · Amausi Airport Growth Corridor
+                </span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 backdrop-blur-md">
+                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-emerald-300 font-mono font-medium">
+                  Official Registry Seal
+                </span>
+              </div>
             </div>
 
-            <h1 className="fluid-hero-title">
-              Galaxy Green
-              <span className="mt-1.5 sm:mt-2 block text-emerald-gradient">Sai Suraksha Nagar</span>
-            </h1>
+            {/* Hero Main Heading with Official Emblem Logo */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-3">
+              <div className="relative size-20 sm:size-24 md:size-28 rounded-full overflow-hidden shadow-luxury ring-2 ring-primary/60 bg-white/10 p-1.5 backdrop-blur-md shrink-0 hover:scale-105 transition-transform duration-300 group">
+                <img
+                  src="/galaxy-green-emblem.png"
+                  alt="Official Galaxy Green Sai Suraksha Nagar Seal Logo"
+                  width={112}
+                  height={112}
+                  className="size-full object-contain filter drop-shadow-md"
+                />
+                <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20 pointer-events-none" />
+              </div>
+
+              <div>
+                <h1 className="fluid-hero-title">
+                  Galaxy Green
+                  <span className="mt-1.5 sm:mt-2 block text-emerald-gradient">Sai Suraksha Nagar</span>
+                </h1>
+              </div>
+            </div>
 
             <p className="mt-5 sm:mt-7 max-w-2xl text-sm sm:text-base lg:text-lg leading-relaxed text-foreground/80 text-pretty">
               Secure your freehold residential plot at Amausi, Lucknow—where high-yield airport
@@ -1742,13 +1785,15 @@ function Index() {
             className="flex items-center gap-2 rounded-full border border-primary/50 bg-card/95 p-1 pl-1.5 pr-3 text-xs font-semibold uppercase tracking-wider text-foreground shadow-luxury backdrop-blur-xl transition-all hover:border-primary hover:bg-card hover:scale-105 active:scale-95"
             aria-label="Open Luxury Concierge Desk"
           >
-            <img
-              src="/galaxy-green-emblem.png"
-              alt="Concierge"
-              width={28}
-              height={28}
-              className="size-7 rounded-full object-cover shadow-glow ring-1 ring-primary/40"
-            />
+            <div className="size-7 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
+              <img
+                src="/galaxy-green-emblem.png"
+                alt="Concierge"
+                width={28}
+                height={28}
+                className="size-full object-contain"
+              />
+            </div>
             <span className="font-display tracking-normal text-xs text-primary font-semibold">
               Concierge
             </span>
@@ -1757,13 +1802,15 @@ function Index() {
         ) : (
           <div className="flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 pl-3 pr-2 shadow-luxury backdrop-blur-xl ring-1 ring-white/5 transition-all">
             <div className="hidden md:flex items-center gap-2 pr-2 border-r border-border/60">
-              <img
-                src="/galaxy-green-emblem.png"
-                alt="Galaxy Green"
-                width={20}
-                height={20}
-                className="size-5 rounded-full object-cover ring-1 ring-primary/40"
-              />
+              <div className="size-5 rounded-full overflow-hidden ring-1 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
+                <img
+                  src="/galaxy-green-emblem.png"
+                  alt="Galaxy Green"
+                  width={20}
+                  height={20}
+                  className="size-full object-contain"
+                />
+              </div>
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                 Direct Desk
               </span>

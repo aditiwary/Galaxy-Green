@@ -63,10 +63,10 @@ export function BrochureModal({ open, onOpenChange }: BrochureModalProps) {
       <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-2xl bg-card border-border text-foreground p-4 sm:p-8 max-h-[min(92dvh,92vh)] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <DialogHeader className="pr-6">
           <div className="flex items-center gap-3">
-            <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-white/5 flex items-center justify-center p-0.5">
+            <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 shrink-0 bg-white/10 flex items-center justify-center p-0.5">
               <img
                 src="/galaxy-green-emblem.png"
-                alt="Galaxy Green"
+                alt="Galaxy Green Official Seal"
                 width={48}
                 height={48}
                 className="size-full object-contain"
