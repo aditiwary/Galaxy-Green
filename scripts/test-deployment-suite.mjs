@@ -247,6 +247,14 @@ assert(
 );
 
 assert(
+  schemaSql.includes("`is_nagar_nigam` TINYINT(1)"),
+  "database/schema.sql defines is_nagar_nigam TINYINT(1)",
+);
+assert(
+  dumpSql.includes("`is_nagar_nigam` TINYINT(1)"),
+  "database/galaxy_green_mysql.sql defines is_nagar_nigam TINYINT(1)",
+);
+assert(
   schemaSql.includes("CREATE TABLE IF NOT EXISTS `gallery_photos`"),
   "gallery_photos table defined in database/schema.sql",
 );

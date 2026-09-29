@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `plots` (
   `rate_per_sq_ft` DECIMAL(10, 2) NOT NULL DEFAULT 1199.00,
   `status` ENUM('Available', 'Fast Selling', 'Reserved', 'Sold Out') NOT NULL DEFAULT 'Available',
   `feature` TEXT NOT NULL,
+  `is_nagar_nigam` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

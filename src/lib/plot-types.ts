@@ -9,6 +9,7 @@ export const plotSchema = z.object({
   ratePerSqFt: z.number().min(500, "Rate per sq ft required"),
   status: z.enum(["Available", "Fast Selling", "Reserved", "Sold Out"]),
   feature: z.string().default("Freehold residential plot with clear title"),
+  isNagarNigam: z.boolean().default(false),
 });
 
 export type PlotInput = z.infer<typeof plotSchema>;
@@ -28,6 +29,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1199,
     status: "Available",
     feature: "Ideal for 3BHK compact luxury independent duplex.",
+    isNagarNigam: true,
   },
   {
     id: "plot-a2",
@@ -39,6 +41,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1199,
     status: "Fast Selling",
     feature: "Vastu-compliant entrance with clear morning sunlight.",
+    isNagarNigam: false,
   },
   {
     id: "plot-b1",
@@ -50,6 +53,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1199,
     status: "Fast Selling",
     feature: "Direct unobstructed view of central green park & jogging trail.",
+    isNagarNigam: true,
   },
   {
     id: "plot-b2",
@@ -61,6 +65,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1199,
     status: "Available",
     feature: "Generous frontage for double-car porch and front garden.",
+    isNagarNigam: false,
   },
   {
     id: "plot-c1",
@@ -72,6 +77,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1199,
     status: "Available",
     feature: "Premium estate plot overlooking central landscaped green park & avenue.",
+    isNagarNigam: true,
   },
   {
     id: "plot-c2",
@@ -83,6 +89,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1299,
     status: "Fast Selling",
     feature: "Two-side open corner plot with grand boulevard visibility.",
+    isNagarNigam: true,
   },
   {
     id: "plot-d1",
@@ -94,6 +101,7 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1299,
     status: "Reserved",
     feature: "Ultra-luxury mansion plot with expansive private lawn and garden clearance.",
+    isNagarNigam: false,
   },
   {
     id: "plot-d2",
@@ -105,5 +113,6 @@ export const DEFAULT_PLOTS: Plot[] = [
     ratePerSqFt: 1199,
     status: "Available",
     feature: "Prime location near security entrance and visitor parking.",
+    isNagarNigam: false,
   },
 ];

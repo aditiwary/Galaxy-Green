@@ -142,6 +142,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [newPlotFeature, setNewPlotFeature] = useState(
     "Freehold residential plot with clear title",
   );
+  const [newPlotIsNagarNigam, setNewPlotIsNagarNigam] = useState(false);
 
   // Plot Editing State
   const [editingPlot, setEditingPlot] = useState<Plot | null>(null);
@@ -153,6 +154,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
   const [editPlotRate, setEditPlotRate] = useState("1199");
   const [editPlotStatus, setEditPlotStatus] = useState<Plot["status"]>("Available");
   const [editPlotFeature, setEditPlotFeature] = useState("");
+  const [editPlotIsNagarNigam, setEditPlotIsNagarNigam] = useState(false);
   const [savingPlotEdit, setSavingPlotEdit] = useState(false);
 
   // Gallery Photos State
@@ -444,6 +446,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       ratePerSqFt: rateNum,
       status: "Available",
       feature: newPlotFeature.trim(),
+      isNagarNigam: newPlotIsNagarNigam,
     };
 
     const created = await addLivePlot(input, getActiveToken());
@@ -452,6 +455,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       window.dispatchEvent(new CustomEvent("plots-updated"));
       setShowAddPlotForm(false);
       setNewPlotNumber("");
+      setNewPlotIsNagarNigam(false);
       toast.success(`Plot ${created.number} added to live website!`);
     } else {
       toast.error("Unable to add plot. Please verify plot information and try again.");
@@ -468,6 +472,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     setEditPlotRate(String(plot.ratePerSqFt));
     setEditPlotStatus(plot.status);
     setEditPlotFeature(plot.feature);
+    setEditPlotIsNagarNigam(Boolean(plot.isNagarNigam));
   };
 
   const handleSavePlotEdit = async (e?: React.FormEvent) => {
@@ -489,6 +494,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         ratePerSqFt: parseInt(editPlotRate, 10) || editingPlot.ratePerSqFt,
         status: editPlotStatus,
         feature: editPlotFeature.trim(),
+        isNagarNigam: editPlotIsNagarNigam,
       };
       const res = await updateLivePlot(editingPlot.id, updates, getActiveToken());
       if (res) {
@@ -1402,6 +1408,35 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           className="mt-1 h-10 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
+                      <div className="col-span-2 sm:col-span-4 bg-[#080f0c] p-3 rounded-lg border border-border/80 flex items-center justify-between">
+                        <label
+                          htmlFor="new-plot-nagar-nigam"
+                          className="flex items-center gap-2.5 cursor-pointer select-none"
+                        >
+                          <input
+                            id="new-plot-nagar-nigam"
+                            type="checkbox"
+                            checked={newPlotIsNagarNigam}
+                            onChange={(e) => setNewPlotIsNagarNigam(e.target.checked)}
+                            className="size-4 rounded border-border accent-emerald-500 cursor-pointer"
+                          />
+                          <div>
+                            <span className="text-xs font-semibold text-foreground block">
+                              Inside Nagar Nigam
+                            </span>
+                            <span className="text-[11px] text-muted-foreground block">
+                              {newPlotIsNagarNigam
+                                ? 'Selected: Front view will display "Inside Nagar Nigam · This plot is inside the Nagar Nigam"'
+                                : "Unticked: Will display nothing on frontend (outside Nagar Nigam)"}
+                            </span>
+                          </div>
+                        </label>
+                        {newPlotIsNagarNigam && (
+                          <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded">
+                            Inside Nagar Nigam
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <Button
                       type="submit"
@@ -1537,6 +1572,35 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           className="mt-1 h-9 text-xs bg-[#080f0c] border-border/80 rounded-lg"
                         />
                       </div>
+                      <div className="col-span-2 sm:col-span-4 bg-[#080f0c] p-3 rounded-lg border border-border/80 flex items-center justify-between">
+                        <label
+                          htmlFor="edit-plot-nagar-nigam"
+                          className="flex items-center gap-2.5 cursor-pointer select-none"
+                        >
+                          <input
+                            id="edit-plot-nagar-nigam"
+                            type="checkbox"
+                            checked={editPlotIsNagarNigam}
+                            onChange={(e) => setEditPlotIsNagarNigam(e.target.checked)}
+                            className="size-4 rounded border-border accent-emerald-500 cursor-pointer"
+                          />
+                          <div>
+                            <span className="text-xs font-semibold text-foreground block">
+                              Inside Nagar Nigam
+                            </span>
+                            <span className="text-[11px] text-muted-foreground block">
+                              {editPlotIsNagarNigam
+                                ? 'Selected: Front view will display "Inside Nagar Nigam · This plot is inside the Nagar Nigam"'
+                                : "Unticked: Will display nothing on frontend (outside Nagar Nigam)"}
+                            </span>
+                          </div>
+                        </label>
+                        {editPlotIsNagarNigam && (
+                          <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded">
+                            Inside Nagar Nigam
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Safe Database Commit Notice */}
@@ -1594,7 +1658,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       className="bg-[#0e1c16] border border-border/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm card-architectural"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <strong className="font-display font-semibold text-base text-foreground">
                             Plot {plot.number}
                           </strong>
@@ -1604,6 +1668,11 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                           <span className="text-muted-foreground font-mono">
                             ({plot.dimensions})
                           </span>
+                          {plot.isNagarNigam && (
+                            <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">
+                              Inside Nagar Nigam
+                            </span>
+                          )}
                         </div>
                         <p className="text-muted-foreground text-[11px]">
                           Facing: <strong>{plot.facing}</strong> · Road:{" "}

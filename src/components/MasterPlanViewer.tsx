@@ -48,6 +48,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
 
   const filteredPlots = plots.filter((p) => {
     if (selectedSizeFilter === "all") return true;
+    if (selectedSizeFilter === "nagar-nigam") return Boolean(p.isNagarNigam);
     if (selectedSizeFilter === "1000") return p.sizeSqFt === 1000;
     if (selectedSizeFilter === "1500") return p.sizeSqFt >= 1200 && p.sizeSqFt <= 1500;
     if (selectedSizeFilter === "2000+") return p.sizeSqFt >= 2000;
@@ -87,6 +88,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
         <div className="mt-10 flex flex-wrap gap-2 pb-2 border-b border-border/50">
           {[
             { id: "all", label: "All Available Plots" },
+            { id: "nagar-nigam", label: "Inside Nagar Nigam" },
             { id: "1000", label: "1,000 Sq Ft (₹11.99 Lakh)" },
             { id: "1500", label: "1,200 - 1,500 Sq Ft" },
             { id: "2000+", label: "2,000+ Sq Ft (Grand Villa)" },
@@ -156,6 +158,19 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                   </p>
                 </div>
 
+                {/* Nagar Nigam Highlight Badge (Only rendered if inside Nagar Nigam) */}
+                {plot.isNagarNigam && (
+                  <div className="mt-3 px-2.5 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5 text-emerald-400 text-[11px] font-semibold uppercase tracking-wider font-mono">
+                      <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Inside Nagar Nigam
+                    </div>
+                    <p className="text-[11px] text-emerald-200/90 font-medium leading-snug">
+                      This plot is inside the Nagar Nigam
+                    </p>
+                  </div>
+                )}
+
                 <div className="my-4 h-px bg-border/60" />
 
                 {/* Plot Specs */}
@@ -216,6 +231,21 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                   {activePlot.feature}
                 </DialogDescription>
               </DialogHeader>
+
+              {/* Inside Nagar Nigam Highlight (Only rendered if inside Nagar Nigam) */}
+              {activePlot.isNagarNigam && (
+                <div className="mt-4 px-3.5 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/40 flex items-start gap-2.5 text-xs text-emerald-300">
+                  <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-500/30 animate-pulse shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-emerald-400 uppercase font-mono tracking-wider text-xs block">
+                      Inside Nagar Nigam
+                    </strong>
+                    <span className="text-emerald-200/90 text-xs font-medium">
+                      This plot is inside the Nagar Nigam
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 my-5 p-4 rounded bg-surface/90 border border-border/60 text-xs">
                 <div>

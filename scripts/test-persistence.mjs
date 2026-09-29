@@ -88,6 +88,13 @@ async function run() {
     assert(tableNames.includes("admin_config"), "Table 'admin_config' exists in MySQL");
     assert(tableNames.includes("gallery_photos"), "Table 'gallery_photos' exists in MySQL");
 
+    // Ensure is_nagar_nigam column exists on plots table
+    try {
+      await conn.execute("ALTER TABLE `plots` ADD COLUMN `is_nagar_nigam` TINYINT(1) NOT NULL DEFAULT 0");
+    } catch {
+      // Already present
+    }
+
     // -------------------------------------------------------------
     // 2. VERIFY PASSWORD UPDATE & PERSISTENCE
     // -------------------------------------------------------------
@@ -129,10 +136,10 @@ async function run() {
     // Clean up if existed from previous run
     await conn.execute("DELETE FROM plots WHERE number = ?", [testPlotNumber]);
 
-    // Insert test plot
+    // Insert test plot with is_nagar_nigam = 1
     await conn.execute(
-      `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature, is_nagar_nigam)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         testPlotId,
         testPlotNumber,
@@ -143,6 +150,7 @@ async function run() {
         1199.0,
         "Available",
         "Test Plot for refresh persistence verification",
+        1,
       ],
     );
 
@@ -157,15 +165,24 @@ async function run() {
     assert(retrievedPlots[0].id === testPlotId, "Plot ID matches exactly");
     assert(Number(retrievedPlots[0].size_sq_ft) === 1500, "Plot size matches 1500 sq ft");
     assert(retrievedPlots[0].status === "Available", "Plot status is 'Available'");
+    assert(Boolean(retrievedPlots[0].is_nagar_nigam) === true, "Plot is_nagar_nigam flag persisted as true in MySQL");
 
-    // Update plot status
-    await conn.execute("UPDATE plots SET status = ? WHERE id = ?", ["Fast Selling", testPlotId]);
-    const [updatedPlots] = await conn.execute("SELECT status FROM plots WHERE id = ?", [
+    // Update plot status and toggle is_nagar_nigam
+    await conn.execute("UPDATE plots SET status = ?, is_nagar_nigam = ? WHERE id = ?", [
+      "Fast Selling",
+      0,
+      testPlotId,
+    ]);
+    const [updatedPlots] = await conn.execute("SELECT status, is_nagar_nigam FROM plots WHERE id = ?", [
       testPlotId,
     ]);
     assert(
       updatedPlots[0].status === "Fast Selling",
       "Plot status update to 'Fast Selling' persisted in MySQL",
+    );
+    assert(
+      Boolean(updatedPlots[0].is_nagar_nigam) === false,
+      "Plot is_nagar_nigam toggle to false persisted in MySQL",
     );
 
     // Clean up test plot

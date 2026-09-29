@@ -39,6 +39,7 @@ function mapRowToPlot(row: Record<string, unknown>): Plot {
     ratePerSqFt: Number(row["rate_per_sq_ft"]) || 1199,
     status: (row["status"] as Plot["status"]) || "Available",
     feature: String(row["feature"] || ""),
+    isNagarNigam: Boolean(row["is_nagar_nigam"]),
   };
 }
 
@@ -70,14 +71,15 @@ export const createPlotFn = createServerFn({ method: "POST" })
     const newPlot: Plot = {
       ...validated,
       id: `plot-${Date.now()}`,
+      isNagarNigam: Boolean(validated.isNagarNigam),
     };
 
     memoryPlots.push(newPlot);
     trySavePlotsDisk(memoryPlots);
 
     const res = await executeQuery(
-      `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO plots (id, number, size_sq_ft, dimensions, facing, road_width, rate_per_sq_ft, status, feature, is_nagar_nigam)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         newPlot.id,
         newPlot.number,
@@ -88,6 +90,7 @@ export const createPlotFn = createServerFn({ method: "POST" })
         newPlot.ratePerSqFt,
         newPlot.status,
         newPlot.feature,
+        newPlot.isNagarNigam ? 1 : 0,
       ],
     );
 
@@ -168,6 +171,8 @@ export const updatePlotFn = createServerFn({ method: "POST" })
       sizeSqFt: data.plot.sizeSqFt !== undefined ? Number(data.plot.sizeSqFt) : current.sizeSqFt,
       ratePerSqFt:
         data.plot.ratePerSqFt !== undefined ? Number(data.plot.ratePerSqFt) : current.ratePerSqFt,
+      isNagarNigam:
+        data.plot.isNagarNigam !== undefined ? Boolean(data.plot.isNagarNigam) : current.isNagarNigam,
     };
 
     memoryPlots = memoryPlots.map((p) => (p.id === data.id ? updated : p));
@@ -207,6 +212,10 @@ export const updatePlotFn = createServerFn({ method: "POST" })
     if (data.plot.feature !== undefined) {
       updates.push("feature = ?");
       params.push(data.plot.feature);
+    }
+    if (data.plot.isNagarNigam !== undefined) {
+      updates.push("is_nagar_nigam = ?");
+      params.push(updated.isNagarNigam ? 1 : 0);
     }
 
     if (updates.length > 0) {

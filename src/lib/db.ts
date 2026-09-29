@@ -67,6 +67,7 @@ async function ensureTablesExist(p: Pool): Promise<void> {
         \`rate_per_sq_ft\` DECIMAL(10, 2) NOT NULL DEFAULT 1199.00,
         \`status\` ENUM('Available', 'Fast Selling', 'Reserved', 'Sold Out') NOT NULL DEFAULT 'Available',
         \`feature\` TEXT NOT NULL,
+        \`is_nagar_nigam\` TINYINT(1) NOT NULL DEFAULT 0,
         \`created_at\` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (\`id\`),
@@ -76,6 +77,13 @@ async function ensureTablesExist(p: Pool): Promise<void> {
         KEY \`idx_plot_facing\` (\`facing\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // Ensure is_nagar_nigam column exists on existing installations
+    try {
+      await p.execute("ALTER TABLE `plots` ADD COLUMN `is_nagar_nigam` TINYINT(1) NOT NULL DEFAULT 0");
+    } catch {
+      // Column already exists, safe to ignore
+    }
 
     // 2. Inquiries Table
     await p.execute(`
