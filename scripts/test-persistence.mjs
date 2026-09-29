@@ -237,6 +237,68 @@ async function run() {
     assert(photosAfterDelete[0].count === 0, "Test photo cleanly removed from MySQL");
 
     // -------------------------------------------------------------
+    // 5. VERIFY USER BOOKING SERVER-SYNC: CREATION, EDIT & DELETION
+    // -------------------------------------------------------------
+    console.log("\n[5] Testing User Booking Server-Sync: Creation, Edit & Deletion");
+    const testInquiryId = `GG-TEST-${Date.now()}`;
+    const testPhone = "9999988888";
+
+    // Clean up if existed
+    await conn.execute("DELETE FROM inquiries WHERE id = ?", [testInquiryId]);
+
+    // 5a. Create user booking inquiry
+    await conn.execute(
+      `INSERT INTO inquiries (id, name, phone, email, plot_preference, visit_date, slot, cab_pickup, pickup_location, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        testInquiryId,
+        "Shri Rajesh Verma",
+        testPhone,
+        "rajesh.verma@example.com",
+        "1200 sq ft (Standard)",
+        "2026-10-15",
+        "Morning (10:00 AM)",
+        0,
+        "On Site",
+        "Initial booking request",
+        "New",
+      ],
+    );
+
+    const [inquiryCreated] = await conn.execute("SELECT * FROM inquiries WHERE id = ?", [
+      testInquiryId,
+    ]);
+    assert(inquiryCreated.length === 1, "User booking created and retrieved from MySQL");
+    assert(inquiryCreated[0].slot === "Morning (10:00 AM)", "Initial slot matches");
+
+    // 5b. User Edits the booking (change date, slot, plotPreference, and note)
+    const updatedSlot = "Evening Sunset (4:30 PM)";
+    const updatedDate = "2026-10-20";
+    const updatedPlot = "1500 sq ft (Premium Villa)";
+    const updatedMessage = "Updated: please arrange guide on site";
+
+    await conn.execute(
+      "UPDATE inquiries SET visit_date = ?, slot = ?, plot_preference = ?, message = ? WHERE id = ?",
+      [updatedDate, updatedSlot, updatedPlot, updatedMessage, testInquiryId],
+    );
+
+    const [inquiryUpdated] = await conn.execute("SELECT * FROM inquiries WHERE id = ?", [
+      testInquiryId,
+    ]);
+    assert(inquiryUpdated.length === 1, "Updated booking retrieved from MySQL");
+    assert(inquiryUpdated[0].slot === updatedSlot, "Updated slot reflected in MySQL database");
+    assert(inquiryUpdated[0].plot_preference === updatedPlot, "Updated plot preference reflected in MySQL");
+    assert(inquiryUpdated[0].message === updatedMessage, "Updated message reflected in MySQL");
+
+    // 5c. User Deletes the booking from device & server
+    await conn.execute("DELETE FROM inquiries WHERE id = ?", [testInquiryId]);
+    const [inquiryDeleted] = await conn.execute(
+      "SELECT COUNT(*) as count FROM inquiries WHERE id = ?",
+      [testInquiryId],
+    );
+    assert(inquiryDeleted[0].count === 0, "Booking successfully deleted from MySQL server");
+
+    // -------------------------------------------------------------
     // SUMMARY
     // -------------------------------------------------------------
     console.log("\n=================================================================");
@@ -245,6 +307,7 @@ async function run() {
   } finally {
     await conn.end();
   }
+
 }
 
 run().catch((err) => {

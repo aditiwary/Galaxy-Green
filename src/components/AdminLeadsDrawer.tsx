@@ -263,6 +263,29 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
     }
   }, [open, loadData]);
 
+  // Listen for real-time lead updates (submissions, user edits, user deletions)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleLeadsUpdated = async () => {
+      const token = getActiveToken();
+      if (token && isAuthenticated) {
+        try {
+          const freshLeads = await fetchAllLeads(token);
+          setLeads(freshLeads);
+        } catch (e) {
+          console.warn("Failed to auto-refresh leads:", e);
+        }
+      }
+    };
+
+    window.addEventListener("gg_leads_updated", handleLeadsUpdated);
+    return () => {
+      window.removeEventListener("gg_leads_updated", handleLeadsUpdated);
+    };
+  }, [getActiveToken, isAuthenticated]);
+
+
   // Handle Secure Server-Side Password/PIN verification
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

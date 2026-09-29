@@ -672,3 +672,142 @@ export const adminCreateInquiryFn = createServerFn({ method: "POST" })
 
     return { success: true, inquiry: newInquiry };
   });
+
+// Public / User-facing: Delete an inquiry/booking from server and sync with admin panel
+export const deleteUserBookingFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string; phone?: string | undefined }) => data)
+  .handler(async ({ data }) => {
+    const cleanId = String(data.id || "").trim();
+    if (!cleanId) {
+      return { success: false, error: "Booking ID is required." };
+    }
+
+    // 1. Remove from in-memory cache
+    const index = memoryInquiries.findIndex((i) => i.id === cleanId);
+    if (index !== -1) {
+      memoryInquiries.splice(index, 1);
+      trySaveInquiriesDisk(memoryInquiries);
+    }
+
+    // 2. Delete from MySQL
+    let sql = "DELETE FROM inquiries WHERE id = ?";
+    const params: (string | number)[] = [cleanId];
+    if (data.phone) {
+      const cleanPhone = String(data.phone).trim();
+      if (cleanPhone) {
+        sql += " AND phone = ?";
+        params.push(cleanPhone);
+      }
+    }
+
+    await executeQuery(sql, params);
+
+    return {
+      success: true,
+      message: `Booking #${cleanId} deleted from server and admin ledger.`,
+    };
+  });
+
+// Public / User-facing: Update an inquiry/booking from user device and sync with admin panel
+export const updateUserBookingFn = createServerFn({ method: "POST" })
+  .validator(
+    (data: {
+      id: string;
+      phone?: string | undefined;
+      visitDate?: string | undefined;
+      slot?: string | undefined;
+      plotPreference?: string | undefined;
+      message?: string | undefined;
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const cleanId = String(data.id || "").trim();
+    if (!cleanId) {
+      return { success: false, error: "Booking ID is required." };
+    }
+
+    // Validate visit date if provided
+    if (data.visitDate && data.visitDate.trim().length > 0) {
+      const cleanDate = data.visitDate.trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) {
+        return {
+          success: false,
+          error: "Invalid date format. Please choose a valid date in YYYY-MM-DD format.",
+        };
+      }
+      const todayStr = new Date().toLocaleDateString("en-CA");
+      if (cleanDate < todayStr) {
+        return {
+          success: false,
+          error: "Visit date cannot be in the past. Please select today or a future date.",
+        };
+      }
+    }
+
+    const sanitizedPlot =
+      data.plotPreference !== undefined ? sanitizeText(data.plotPreference) : undefined;
+    const sanitizedSlot = data.slot !== undefined ? sanitizeText(data.slot) : undefined;
+    const sanitizedMsg = data.message !== undefined ? sanitizeText(data.message) : undefined;
+    const sanitizedDate = data.visitDate !== undefined ? data.visitDate.trim() : undefined;
+
+    // Build dynamic SQL update
+    const updateFields: string[] = [];
+    const params: (string | number | null)[] = [];
+
+    if (sanitizedDate !== undefined) {
+      updateFields.push("visit_date = ?");
+      params.push(sanitizedDate || null);
+    }
+    if (sanitizedSlot !== undefined && sanitizedSlot !== null) {
+      updateFields.push("slot = ?");
+      params.push(sanitizedSlot);
+    }
+    if (sanitizedPlot !== undefined && sanitizedPlot !== null) {
+      updateFields.push("plot_preference = ?");
+      params.push(sanitizedPlot);
+    }
+    if (sanitizedMsg !== undefined) {
+      updateFields.push("message = ?");
+      params.push(sanitizedMsg || null);
+    }
+
+    if (updateFields.length === 0) {
+      return { success: true, message: "No changes requested." };
+    }
+
+    // Update in memory cache
+    const target = memoryInquiries.find((i) => i.id === cleanId);
+    if (target) {
+      if (sanitizedDate !== undefined) target.visitDate = sanitizedDate || undefined;
+      if (sanitizedSlot !== undefined && sanitizedSlot !== null) target.slot = sanitizedSlot;
+      if (sanitizedPlot !== undefined && sanitizedPlot !== null)
+        target.plotPreference = sanitizedPlot;
+      if (sanitizedMsg !== undefined) target.message = sanitizedMsg || undefined;
+      trySaveInquiriesDisk(memoryInquiries);
+    }
+
+    params.push(cleanId);
+    let sql = `UPDATE inquiries SET ${updateFields.join(", ")} WHERE id = ?`;
+    if (data.phone) {
+      const cleanPhone = String(data.phone).trim();
+      if (cleanPhone) {
+        sql += " AND phone = ?";
+        params.push(cleanPhone);
+      }
+    }
+
+    await executeQuery(sql, params);
+
+    return {
+      success: true,
+      inquiry: target || {
+        id: cleanId,
+        plotPreference: sanitizedPlot || undefined,
+        visitDate: sanitizedDate || undefined,
+        slot: sanitizedSlot || undefined,
+        message: sanitizedMsg || undefined,
+      },
+      message: `Booking #${cleanId} updated successfully and synced with admin panel.`,
+    };
+  });
+
