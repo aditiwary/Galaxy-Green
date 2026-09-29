@@ -17,3 +17,4 @@ Galaxy Green (Sai Suraksha Nagar, Madhurawada, Visakhapatnam) is a luxury plotte
    - Build validation and packaging: Run `node scripts/bundle-cpanel.mjs` to update `galaxygreen-cpanel.zip`.
    - Git synchronization: Commit all modified project files with descriptive message and push to GitHub `origin main`.
    - Localhost preview: Ensure local dev server is active and open `http://localhost:8080`.
+5. **Mandatory Git Push Protocol**: Whenever ANY code or asset change is made, the agent must immediately commit all changes with a descriptive commit message and push to GitHub `origin main`.
