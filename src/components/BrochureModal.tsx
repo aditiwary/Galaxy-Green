@@ -65,7 +65,7 @@ export function BrochureModal({ open, onOpenChange }: BrochureModalProps) {
           <div className="flex items-center gap-3">
             <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 shrink-0 bg-white/10 flex items-center justify-center p-0.5">
               <img
-                src="/galaxy-green-emblem.png"
+                src="/galaxy-green-emblem.png?v=2"
                 alt="Galaxy Green Official Seal"
                 width={48}
                 height={48}

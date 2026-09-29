@@ -728,7 +728,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
               <div className="relative mb-4">
                 <div className="size-20 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/10 flex items-center justify-center p-1.5">
                   <img
-                    src="/galaxy-green-emblem.png"
+                    src="/galaxy-green-emblem.png?v=2"
                     alt="Galaxy Green Logo"
                     width={80}
                     height={80}
@@ -792,7 +792,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                   <div className="size-9 sm:size-11 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 shrink-0 bg-white/10 flex items-center justify-center p-0.5">
                     <img
-                      src="/galaxy-green-emblem.png"
+                      src="/galaxy-green-emblem.png?v=2"
                       alt="Galaxy Green Logo"
                       width={44}
                       height={44}

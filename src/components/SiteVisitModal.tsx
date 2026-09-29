@@ -352,7 +352,7 @@ export function SiteVisitModal({
               <div className="flex items-center gap-3">
                 <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 shrink-0 bg-white/10 flex items-center justify-center p-0.5">
                   <img
-                    src="/galaxy-green-emblem.png"
+                    src="/galaxy-green-emblem.png?v=2"
                     alt="Galaxy Green Official Seal"
                     width={48}
                     height={48}
@@ -844,10 +844,10 @@ export function SiteVisitModal({
           /* Confirmation State */
           <div className="text-center py-4 space-y-4">
             <div className="relative size-16 mx-auto">
-              <div className="size-16 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/5 flex items-center justify-center p-1">
+              <div className="size-16 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/10 flex items-center justify-center p-1">
                 <img
-                  src="/galaxy-green-emblem.png"
-                  alt="Galaxy Green"
+                  src="/galaxy-green-emblem.png?v=2"
+                  alt="Galaxy Green Official Seal"
                   width={64}
                   height={64}
                   className="size-full object-contain"

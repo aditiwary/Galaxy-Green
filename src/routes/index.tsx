@@ -148,7 +148,7 @@ function Logo({ showMotto = false }: { showMotto?: boolean }) {
     >
       <div className="relative size-10 sm:size-11 md:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-white/10 flex items-center justify-center p-0.5 backdrop-blur-sm">
         <img
-          src="/galaxy-green-emblem.png"
+          src="/galaxy-green-emblem.png?v=2"
           alt="Galaxy Green Official Seal Logo"
           width={48}
           height={48}
@@ -454,9 +454,9 @@ function Index() {
         <div className="mx-auto flex h-16 sm:h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-3.5 sm:px-6 lg:px-8 min-w-0 gap-3">
           <Logo />
 
-          {/* Desktop Navigation for Large Monitors & Standard Displays (1280px+) */}
+          {/* Desktop Navigation for Ultra-Wide Displays (1380px+) */}
           <nav
-            className="hidden items-center gap-1 2xl:gap-2 xl:flex shrink min-w-0"
+            className="hidden items-center gap-1.5 2xl:gap-2.5 min-[1380px]:flex shrink-0 min-w-0"
             aria-label="Main navigation"
             itemScope
             itemType="https://schema.org/SiteNavigationElement"
@@ -483,8 +483,8 @@ function Index() {
             ))}
           </nav>
 
-          {/* Right Action Hub for Desktop */}
-          <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
+          {/* Right Action Hub for Desktop (1380px+) */}
+          <div className="hidden min-[1380px]:flex items-center gap-2 2xl:gap-3 shrink-0">
             <div className="h-5 w-px bg-border/80 mx-0.5 2xl:mx-1" />
 
             <Button
@@ -508,17 +508,17 @@ function Index() {
             </Button>
           </div>
 
-          {/* Responsive Hub for Tablets, Laptops & Mobile (< 1280px) */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 xl:hidden shrink-0">
+          {/* Responsive Hub for Tablets, Laptops & Mobile (< 1380px) */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-[1380px]:hidden shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setAdminOpen(true)}
-              className="h-8 sm:h-8.5 px-2 sm:px-2.5 text-[10px] sm:text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase font-mono shrink-0"
+              className="h-8.5 sm:h-9 px-2 sm:px-2.5 text-xs border-primary/40 text-primary hover:bg-primary/10 uppercase font-mono shrink-0"
               title="Open Admin Portal"
             >
-              <Lock className="size-3 mr-1" />
-              <span className="hidden xs:inline">Admin</span>
+              <Lock className="size-3.5 mr-1" />
+              <span className="hidden sm:inline">Admin</span>
             </Button>
 
             <Button
@@ -527,74 +527,85 @@ function Index() {
                 setSelectedPlotForVisit("1000 sq ft");
                 setSiteVisitOpen(true);
               }}
-              className="h-8 sm:h-8.5 px-2.5 sm:px-3.5 uppercase tracking-wider text-[10px] sm:text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 hidden sm:inline-flex btn-shimmer"
+              className="h-8.5 sm:h-9 px-2.5 sm:px-3.5 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 btn-shimmer"
             >
-              Book Visit <ArrowRight className="size-3 ml-1" />
+              Book Visit <ArrowRight className="size-3.5 ml-1 hidden xs:inline" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
-              className="size-8.5 sm:size-9 text-foreground hover:bg-surface rounded-lg"
+              className="size-8.5 sm:size-9 text-foreground hover:bg-surface rounded-lg border border-border/60"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               onClick={() => setMenuOpen((open) => !open)}
             >
-              {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+              {menuOpen ? <X className="size-5 text-primary" /> : <Menu className="size-5" />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile & Tablet Navigation Drawer */}
+        {/* Mobile & Tablet Navigation Drawer (< 1380px) */}
         {menuOpen && (
           <nav
-            className="border-t border-border bg-background/95 backdrop-blur-2xl px-5 py-6 xl:hidden animate-in fade-in slide-in-from-top-4 shadow-2xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto"
+            className="border-t border-border bg-background/95 backdrop-blur-2xl px-4 sm:px-6 py-5 sm:py-6 min-[1380px]:hidden animate-in fade-in slide-in-from-top-4 shadow-2xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto"
             aria-label="Mobile navigation"
             itemScope
             itemType="https://schema.org/SiteNavigationElement"
           >
-            <div className="flex flex-col gap-1 max-w-lg mx-auto">
-              <div className="flex items-center gap-3 pb-4 mb-2 border-b border-border/80">
-                <div className="size-11 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
-                  <img
-                    src="/galaxy-green-emblem.png"
-                    alt="Official Galaxy Green Seal"
-                    width={44}
-                    height={44}
-                    className="size-full object-contain"
-                  />
+            <div className="flex flex-col gap-1 max-w-lg sm:max-w-2xl mx-auto">
+              <div className="flex items-center justify-between pb-3 sm:pb-4 mb-2 border-b border-border/80">
+                <div className="flex items-center gap-3">
+                  <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/50 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
+                    <img
+                      src="/galaxy-green-emblem.png?v=2"
+                      alt="Official Galaxy Green Seal"
+                      width={48}
+                      height={48}
+                      className="size-full object-contain"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <strong className="block font-display text-sm sm:text-base uppercase text-foreground font-bold truncate">
+                      Galaxy Green
+                    </strong>
+                    <span className="block text-[10px] sm:text-[11px] uppercase font-mono text-primary font-medium truncate">
+                      Sai Suraksha Nagar · Lucknow
+                    </span>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <strong className="block font-display text-sm uppercase text-foreground font-bold truncate">
-                    Galaxy Green
-                  </strong>
-                  <span className="block text-[10px] uppercase font-mono text-primary font-medium truncate">
-                    Sai Suraksha Nagar · Lucknow
-                  </span>
+                <div className="hidden sm:flex items-center gap-1.5 bg-primary/10 border border-primary/30 px-2.5 py-1 rounded text-[10px] font-mono text-primary">
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                  Freehold Plots
                 </div>
               </div>
-              {[
-                ["About", "#about"],
-                ["Master Plan", "#masterplan"],
-                ["Live Photos", "#site-gallery"],
-                ["Amenities", "#amenities"],
-                ["Connectivity", "#location"],
-                ["ROI Calculator", "#calculator"],
-                ["Pricing", "#pricing"],
-                ["FAQ", "#faq"],
-                ["Contact", "#contact"],
-              ].map(([label, href], idx) => (
-                <a
-                  key={label}
-                  href={href}
-                  itemProp="url"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium transition-colors"
-                >
-                  <span itemProp="name">{label}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground/60">0{idx + 1}</span>
-                </a>
-              ))}
-              <div className="pt-4 mt-2 border-t border-border/80 flex flex-col gap-2.5">
+
+              {/* 2-Column Responsive Grid on Tablets */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+                {[
+                  ["About", "#about"],
+                  ["Master Plan", "#masterplan"],
+                  ["Live Photos", "#site-gallery"],
+                  ["Amenities", "#amenities"],
+                  ["Connectivity", "#location"],
+                  ["ROI Calculator", "#calculator"],
+                  ["Pricing", "#pricing"],
+                  ["FAQ", "#faq"],
+                  ["Contact", "#contact"],
+                ].map(([label, href], idx) => (
+                  <a
+                    key={label}
+                    href={href}
+                    itemProp="url"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface text-sm uppercase tracking-wider text-muted-foreground hover:text-primary font-medium transition-colors border border-transparent hover:border-border/60"
+                  >
+                    <span itemProp="name">{label}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground/60">0{idx + 1}</span>
+                  </a>
+                ))}
+              </div>
+
+              <div className="pt-4 mt-2 border-t border-border/80 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Button
                   onClick={() => {
                     setMenuOpen(false);
@@ -658,7 +669,7 @@ function Index() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-3">
               <div className="relative size-20 sm:size-24 md:size-28 rounded-full overflow-hidden shadow-luxury ring-2 ring-primary/60 bg-white/10 p-1.5 backdrop-blur-md shrink-0 hover:scale-105 transition-transform duration-300 group">
                 <img
-                  src="/galaxy-green-emblem.png"
+                  src="/galaxy-green-emblem.png?v=2"
                   alt="Official Galaxy Green Sai Suraksha Nagar Seal Logo"
                   width={112}
                   height={112}
@@ -1787,7 +1798,7 @@ function Index() {
           >
             <div className="size-7 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
               <img
-                src="/galaxy-green-emblem.png"
+                src="/galaxy-green-emblem.png?v=2"
                 alt="Concierge"
                 width={28}
                 height={28}
@@ -1804,7 +1815,7 @@ function Index() {
             <div className="hidden md:flex items-center gap-2 pr-2 border-r border-border/60">
               <div className="size-5 rounded-full overflow-hidden ring-1 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
                 <img
-                  src="/galaxy-green-emblem.png"
+                  src="/galaxy-green-emblem.png?v=2"
                   alt="Galaxy Green"
                   width={20}
                   height={20}

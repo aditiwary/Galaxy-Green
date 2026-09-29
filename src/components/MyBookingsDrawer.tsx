@@ -104,7 +104,7 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
             )}
           </div>
 
-          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground hidden sm:inline">
             My Bookings
           </span>
 
@@ -113,7 +113,7 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
               {bookings.length}
             </span>
           ) : (
-            <span className="text-[10px] font-mono text-muted-foreground hidden xs:inline">
+            <span className="text-[10px] font-mono text-muted-foreground hidden sm:inline">
               (0)
             </span>
           )}
@@ -128,7 +128,7 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
               <div className="flex items-center gap-2.5">
                 <div className="size-10 rounded-full overflow-hidden shadow-glow ring-1.5 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
                   <img
-                    src="/galaxy-green-emblem.png"
+                    src="/galaxy-green-emblem.png?v=2"
                     alt="Official Galaxy Green Seal"
                     width={40}
                     height={40}
