@@ -317,7 +317,7 @@ export function SiteVisitModal({
   const openWhatsAppConfirmation = () => {
     if (!confirmedBooking) return;
     const text = [
-      `Hello Vishal Singh, I have scheduled a Site Visit for Galaxy Green Sai Suraksha Nagar.`,
+      `Hello Vishal Chauhan, I have scheduled a Site Visit for Galaxy Green Sai Suraksha Nagar.`,
       `Booking Ref: ${confirmedBooking.id}`,
       `Name: ${confirmedBooking.name}`,
       `Mobile: ${confirmedBooking.phone}`,
@@ -418,7 +418,8 @@ export function SiteVisitModal({
                   <div>
                     <Label className="text-[11px] uppercase font-mono text-muted-foreground flex items-center justify-between">
                       <span className="flex items-center gap-1">
-                        <Calendar className="size-3 text-primary" /> Calendar (Year / Month / Date) *
+                        <Calendar className="size-3 text-primary" /> Calendar (Year / Month / Date)
+                        *
                       </span>
                       {isToday && (
                         <span className="text-[10px] text-primary font-semibold">Today</span>
@@ -535,7 +536,8 @@ export function SiteVisitModal({
                     <div className="flex items-center gap-1.5">
                       <AlertTriangle className="size-4 shrink-0 text-amber-400" />
                       <span>
-                        Standard morning/afternoon slots have passed today. Use the Clock Selector below or choose tomorrow.
+                        Standard morning/afternoon slots have passed today. Use the Clock Selector
+                        below or choose tomorrow.
                       </span>
                     </div>
                     <button
@@ -554,7 +556,8 @@ export function SiteVisitModal({
                     <div className="flex items-center gap-1.5">
                       <AlertCircle className="size-4 shrink-0" />
                       <span>
-                        Visiting hours for today have ended (7:00 AM – 7:00 PM). Please select tomorrow or an upcoming date.
+                        Visiting hours for today have ended (7:00 AM – 7:00 PM). Please select
+                        tomorrow or an upcoming date.
                       </span>
                     </div>
                     <button
@@ -833,7 +836,7 @@ export function SiteVisitModal({
 
               <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground font-mono">
                 <CheckCircle2 className="size-3 text-emerald-400" />
-                <span>Instant Confirmation with Managing Director Vishal Singh</span>
+                <span>Instant Confirmation with Managing Director Vishal Chauhan</span>
               </div>
             </form>
           </>
@@ -841,13 +844,13 @@ export function SiteVisitModal({
           /* Confirmation State */
           <div className="text-center py-4 space-y-4">
             <div className="relative size-16 mx-auto">
-              <div className="size-16 rounded-2xl overflow-hidden shadow-glow ring-2 ring-primary/40 bg-[#071510]">
+              <div className="size-16 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/5 flex items-center justify-center p-1">
                 <img
                   src="/galaxy-green-emblem.png"
                   alt="Galaxy Green"
                   width={64}
                   height={64}
-                  className="size-full object-cover"
+                  className="size-full object-contain"
                 />
               </div>
               <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-emerald-500 text-black grid place-items-center shadow-lg">

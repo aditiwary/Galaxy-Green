@@ -384,10 +384,9 @@ export const updateAdminConfigFn = createServerFn({ method: "POST" })
 
       if (data.updatePlots) {
         try {
-          await executeQuery(
-            "UPDATE plots SET rate_per_sq_ft = ? WHERE status != 'Sold Out'",
-            [parsedRate],
-          );
+          await executeQuery("UPDATE plots SET rate_per_sq_ft = ? WHERE status != 'Sold Out'", [
+            parsedRate,
+          ]);
         } catch (plotErr) {
           console.warn("Could not batch update plot rates:", plotErr);
         }
@@ -673,4 +672,3 @@ export const adminCreateInquiryFn = createServerFn({ method: "POST" })
 
     return { success: true, inquiry: newInquiry };
   });
-

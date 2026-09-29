@@ -63,13 +63,13 @@ export function BrochureModal({ open, onOpenChange }: BrochureModalProps) {
       <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-2xl bg-card border-border text-foreground p-4 sm:p-8 max-h-[min(92dvh,92vh)] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <DialogHeader className="pr-6">
           <div className="flex items-center gap-3">
-            <div className="size-11 sm:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+            <div className="size-11 sm:size-12 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-white/5 flex items-center justify-center p-0.5">
               <img
                 src="/galaxy-green-emblem.png"
                 alt="Galaxy Green"
                 width={48}
                 height={48}
-                className="size-full object-cover"
+                className="size-full object-contain"
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -103,7 +103,7 @@ export function BrochureModal({ open, onOpenChange }: BrochureModalProps) {
             </div>
             <h4 className="font-display text-sm uppercase text-foreground">Road Infrastructure</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              40-ft wide grand boulevard and 30-ft internal paver lanes with drainage.
+              30 ft, 25 ft, and 22 ft paved sector roads with integrated drainage.
             </p>
           </div>
           <div className="card-architectural p-3.5 rounded-lg border border-border/80">
@@ -130,7 +130,8 @@ export function BrochureModal({ open, onOpenChange }: BrochureModalProps) {
             </div>
             <h4 className="font-display text-sm uppercase text-foreground">Prime Proximity</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              5 mins from Chaudhary Charan Singh International Airport (Amausi).
+              1.5 km Railway · 2 km TS Mishra · 3 km CCS Airport · 2.5 km Expressway · 4 km Metro ·
+              500 m Market.
             </p>
           </div>
         </div>

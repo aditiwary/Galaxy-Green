@@ -379,11 +379,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
     setSavingMarketRate(true);
     try {
-      const res = await updateMarketBaseRate(
-        parsed,
-        updatePlotsWithMarketRate,
-        getActiveToken(),
-      );
+      const res = await updateMarketBaseRate(parsed, updatePlotsWithMarketRate, getActiveToken());
       if (res.success && res.rate) {
         setBaseMarketRate(res.rate);
         setNewMarketRateInput(String(res.rate));
@@ -392,9 +388,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
           setPlots(freshPlots);
           window.dispatchEvent(new CustomEvent("plots-updated"));
         }
-        toast.success(
-          `Market Base Rate updated to ₹${res.rate.toLocaleString("en-IN")} / Sq Ft!`,
-        );
+        toast.success(`Market Base Rate updated to ₹${res.rate.toLocaleString("en-IN")} / Sq Ft!`);
       } else {
         toast.error(res.message || "Failed to update market rate.");
       }
@@ -404,7 +398,6 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
       setSavingMarketRate(false);
     }
   };
-
 
   const handlePlotStatusChange = async (id: string, newStatus: Plot["status"]) => {
     setPlots((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
@@ -502,10 +495,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
         setPlots((prev) => prev.map((p) => (p.id === editingPlot.id ? { ...p, ...res } : p)));
         window.dispatchEvent(new CustomEvent("plots-updated"));
         setEditingPlot(null);
-        toast.success(
-          `✓ Plot ${res.number} auto-saved to database!`,
-          { duration: 4000 },
-        );
+        toast.success(`✓ Plot ${res.number} auto-saved to database!`, { duration: 4000 });
       } else {
         toast.error("Unable to update plot. Please try again.");
       }
@@ -736,13 +726,13 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
 
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#0a1410]">
               <div className="relative mb-4">
-                <div className="size-20 rounded-2xl overflow-hidden shadow-glow ring-2 ring-primary/40 bg-[#071510]">
+                <div className="size-20 rounded-full overflow-hidden shadow-glow ring-2 ring-primary/40 bg-white/5 flex items-center justify-center p-1">
                   <img
                     src="/galaxy-green-emblem.png"
                     alt="Galaxy Green Logo"
                     width={80}
                     height={80}
-                    className="size-full object-cover"
+                    className="size-full object-contain"
                   />
                 </div>
                 <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-surface border border-accent/60 grid place-items-center shadow-lg">
@@ -800,13 +790,13 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
             <SheetHeader className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-[#0c1612] shrink-0">
               <div className="flex items-center justify-between gap-2 min-w-0">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                  <div className="size-9 sm:size-11 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-[#071510]">
+                  <div className="size-9 sm:size-11 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 shrink-0 bg-white/5 flex items-center justify-center p-0.5">
                     <img
                       src="/galaxy-green-emblem.png"
                       alt="Galaxy Green Logo"
                       width={44}
                       height={44}
-                      className="size-full object-cover"
+                      className="size-full object-contain"
                     />
                   </div>
                   <div className="min-w-0">
@@ -979,7 +969,9 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                       <h5 className="text-xs uppercase font-mono tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
                         <PlusCircle className="size-3.5" /> Add New Inquiry / Booking Request
                       </h5>
-                      <span className="text-[10px] font-mono text-muted-foreground">Admin Direct Entry</span>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        Admin Direct Entry
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1186,7 +1178,7 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                             >
                               <a
                                 href={`https://wa.me/91${lead.phone}?text=${encodeURIComponent(
-                                  `Hello ${lead.name}, this is Vishal Singh following up on your Galaxy Green Sai Suraksha Nagar inquiry (${lead.id}).`,
+                                  `Hello ${lead.name}, this is Vishal Chauhan following up on your Galaxy Green Sai Suraksha Nagar inquiry (${lead.id}).`,
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
@@ -1259,18 +1251,27 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-mono tracking-wider uppercase text-emerald-400 font-semibold flex items-center gap-1.5">
-                        <span className="size-2 rounded-full bg-emerald-400 animate-pulse" /> Current Base Market Rate
+                        <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />{" "}
+                        Current Base Market Rate
                       </span>
-                      <Badge variant="outline" className="text-xs font-mono font-bold border-emerald-500/40 text-emerald-300 bg-emerald-950/40 px-2 py-0.5">
+                      <Badge
+                        variant="outline"
+                        className="text-xs font-mono font-bold border-emerald-500/40 text-emerald-300 bg-emerald-950/40 px-2 py-0.5"
+                      >
                         ₹{baseMarketRate.toLocaleString("en-IN")} / Sq Ft
                       </Badge>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                      Controls the website minimum base price (currently ₹{baseMarketRate.toLocaleString("en-IN")}), plots starting price, and ROI/EMI calculations.
+                      Controls the website minimum base price (currently ₹
+                      {baseMarketRate.toLocaleString("en-IN")}), plots starting price, and ROI/EMI
+                      calculations.
                     </p>
                   </div>
 
-                  <form onSubmit={handleUpdateMarketRate} className="flex flex-wrap items-center gap-3">
+                  <form
+                    onSubmit={handleUpdateMarketRate}
+                    className="flex flex-wrap items-center gap-3"
+                  >
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-mono text-muted-foreground">₹</span>
                       <Input
@@ -1962,7 +1963,8 @@ export function AdminLeadsDrawer({ open, onOpenChange }: AdminLeadsDrawerProps) 
                             </summary>
                             <div className="mt-2 p-2.5 rounded bg-black/40 border border-border/60 font-mono text-[10px] space-y-1 text-muted-foreground">
                               <div>
-                                To configure MySQL database credentials, update your server .env or cPanel Node.js application environment:
+                                To configure MySQL database credentials, update your server .env or
+                                cPanel Node.js application environment:
                               </div>
                               <div className="text-white bg-black/80 p-1.5 rounded border border-white/10 select-all">
                                 DATABASE_URL=mysql://user:password@localhost:3306/galaxy_green

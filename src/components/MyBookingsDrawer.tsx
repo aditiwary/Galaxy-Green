@@ -65,7 +65,11 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
     try {
       const parts = isoOrDate.split("T")[0].split("-");
       if (parts.length === 3) {
-        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const d = new Date(
+          parseInt(parts[0], 10),
+          parseInt(parts[1], 10) - 1,
+          parseInt(parts[2], 10),
+        );
         return d.toLocaleDateString("en-IN", {
           weekday: "short",
           day: "numeric",
@@ -130,11 +134,15 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
                     My Scheduled Bookings
                   </DialogTitle>
                   <p className="text-[11px] font-mono text-muted-foreground">
-                    Private cache on this device ({bookings.length} {bookings.length === 1 ? "entry" : "entries"})
+                    Private cache on this device ({bookings.length}{" "}
+                    {bookings.length === 1 ? "entry" : "entries"})
                   </p>
                 </div>
               </div>
-              <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 text-[10px] font-mono">
+              <Badge
+                variant="outline"
+                className="border-emerald-500/40 text-emerald-400 text-[10px] font-mono"
+              >
                 <ShieldCheck className="size-3 mr-1" /> On-Device
               </Badge>
             </div>
@@ -151,7 +159,9 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
                   No Bookings Found On This Device
                 </h4>
                 <p className="text-xs text-muted-foreground font-mono leading-relaxed max-w-sm mx-auto">
-                  When you schedule a site tour or submit a booking inquiry, your visit date, chosen time slot, and plot preferences will be securely saved right here in your browser cache.
+                  When you schedule a site tour or submit a booking inquiry, your visit date, chosen
+                  time slot, and plot preferences will be securely saved right here in your browser
+                  cache.
                 </p>
                 {onOpenVisitModal && (
                   <Button
@@ -175,15 +185,14 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
                   <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2.5">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-primary">
-                          #{b.id}
-                        </span>
+                        <span className="text-xs font-mono font-bold text-primary">#{b.id}</span>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold uppercase">
                           Confirmed
                         </span>
                       </div>
                       <p className="text-[10px] font-mono text-muted-foreground mt-0.5">
-                        Booked: {new Date(b.bookedAt).toLocaleString("en-IN", {
+                        Booked:{" "}
+                        {new Date(b.bookedAt).toLocaleString("en-IN", {
                           day: "numeric",
                           month: "short",
                           hour: "2-digit",
@@ -211,7 +220,9 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
 
                     <div className="flex items-center gap-2 text-foreground">
                       <Clock className="size-3.5 text-amber-400 shrink-0" />
-                      <span className="truncate font-semibold">{b.slot || "Morning (10:00 AM)"}</span>
+                      <span className="truncate font-semibold">
+                        {b.slot || "Morning (10:00 AM)"}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
@@ -237,7 +248,7 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
                     >
                       <a
                         href={`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(
-                          `Hello Vishal Singh, I am inquiring about my Galaxy Green booking #${b.id} for ${b.plotPreference} scheduled on ${formatDateLabel(b.visitDate)} at ${b.slot || "10:00 AM"}.`,
+                          `Hello Vishal Chauhan, I am inquiring about my Galaxy Green booking #${b.id} for ${b.plotPreference} scheduled on ${formatDateLabel(b.visitDate)} at ${b.slot || "10:00 AM"}.`,
                         )}`}
                         target="_blank"
                         rel="noreferrer"

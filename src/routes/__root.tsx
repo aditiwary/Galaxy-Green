@@ -200,7 +200,7 @@ const faqSchema = {
       name: "Where is Galaxy Green Sai Suraksha Nagar located in Lucknow?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Galaxy Green Sai Suraksha Nagar is located in Amausi, Lucknow — just 2.7 km from Amausi Railway Station, 3 km from T.S. Mishra Medical College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market, and 5 km from CCS International Airport & Amausi Metro Station.",
+        text: "Galaxy Green Sai Suraksha Nagar is located in Amausi, Lucknow — just 1.5 km from Railway Station, 2 km from TS Mishra Medical College & Hospital, 2.5 km from Kanpur-Lucknow Expressway, 3 km from CCS Airport, 4 km from Metro Station, and 500 m from Main Market. Head Office: Barabirwa Ajanta Tower, Shop No. 35, Lucknow.",
       },
     },
     {
@@ -266,6 +266,14 @@ const siteNavigationSchema = {
     {
       "@type": "SiteNavigationElement",
       position: 4,
+      name: "Amenities",
+      description:
+        "Modern infrastructure including 30ft/25ft/22ft roads, security, gated society, electricity, parks, water supply, and Nagar Nigam",
+      url: "https://galaxygreen.in/#amenities",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: 5,
       name: "Location & Connectivity",
       description: "Direct proximity to Lucknow Airport, Amausi Station, and Kanpur Expressway",
       url: "https://galaxygreen.in/#location",

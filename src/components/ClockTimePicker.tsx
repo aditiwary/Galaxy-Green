@@ -84,10 +84,18 @@ export function ClockTimePicker({
           <div className="relative size-12 sm:size-14 rounded-full bg-background border-2 border-primary/50 shadow-[0_0_12px_rgba(16,185,129,0.25)] flex items-center justify-center shrink-0">
             {/* Clock Dial Markings */}
             <div className="absolute inset-1 rounded-full border border-dashed border-border/60"></div>
-            <div className="absolute top-1 text-[8px] font-mono text-muted-foreground font-bold">12</div>
-            <div className="absolute right-1 text-[8px] font-mono text-muted-foreground font-bold">3</div>
-            <div className="absolute bottom-1 text-[8px] font-mono text-muted-foreground font-bold">6</div>
-            <div className="absolute left-1 text-[8px] font-mono text-muted-foreground font-bold">9</div>
+            <div className="absolute top-1 text-[8px] font-mono text-muted-foreground font-bold">
+              12
+            </div>
+            <div className="absolute right-1 text-[8px] font-mono text-muted-foreground font-bold">
+              3
+            </div>
+            <div className="absolute bottom-1 text-[8px] font-mono text-muted-foreground font-bold">
+              6
+            </div>
+            <div className="absolute left-1 text-[8px] font-mono text-muted-foreground font-bold">
+              9
+            </div>
 
             {/* Hour Hand */}
             <div
@@ -205,10 +213,7 @@ export function ClockTimePicker({
         <div className="grid grid-cols-6 sm:grid-cols-6 gap-1.5">
           {HOURS_LIST.map((h, idx) => {
             // Check if this hour is inside 7 AM – 7 PM operational hours
-            const isInOps =
-              period === "AM"
-                ? h >= 7 && h <= 11
-                : (h === 12 || (h >= 1 && h <= 7));
+            const isInOps = period === "AM" ? h >= 7 && h <= 11 : h === 12 || (h >= 1 && h <= 7);
 
             // Check if passed today
             const isPassed = isHourEntirelyPassed(h, period, selectedDate);
@@ -240,9 +245,7 @@ export function ClockTimePicker({
                 }
               >
                 <span>{h}</span>
-                <span className="text-[8px] block opacity-75 font-normal">
-                  {period}
-                </span>
+                <span className="text-[8px] block opacity-75 font-normal">{period}</span>
               </button>
             );
           })}
@@ -295,7 +298,9 @@ export function ClockTimePicker({
       {!compact && (
         <div className="mt-3 pt-2.5 border-t border-border/60">
           <div className="flex items-center justify-between mb-1.5 text-[10px] font-mono text-muted-foreground">
-            <span className="uppercase font-semibold tracking-wider">Quick Daylight Tour Slots:</span>
+            <span className="uppercase font-semibold tracking-wider">
+              Quick Daylight Tour Slots:
+            </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {[
@@ -306,8 +311,7 @@ export function ClockTimePicker({
               { label: "05:30 PM", h: 5, m: 30, p: "PM" as const, desc: "Golden Hour" },
             ].map((slot) => {
               const isPassed = isSpecificTimePassed(slot.h, slot.m, slot.p, selectedDate);
-              const isSelected =
-                hour12 === slot.h && minute === slot.m && period === slot.p;
+              const isSelected = hour12 === slot.h && minute === slot.m && period === slot.p;
 
               return (
                 <button

@@ -74,7 +74,11 @@ export function composeHMPToTime(hour12: number, minute: number, period: "AM" | 
 /**
  * Converts 12-hour time parts to 24-hour total minutes from midnight
  */
-export function timePartsToTotalMinutes(hour12: number, minute: number, period: "AM" | "PM"): number {
+export function timePartsToTotalMinutes(
+  hour12: number,
+  minute: number,
+  period: "AM" | "PM",
+): number {
   let h24 = hour12 % 12;
   if (period === "PM") h24 += 12;
   return h24 * 60 + minute;
@@ -83,7 +87,11 @@ export function timePartsToTotalMinutes(hour12: number, minute: number, period: 
 /**
  * Validates if time parts fall within daylight operational hours (7:00 AM – 7:00 PM)
  */
-export function isWithinOperatingHours(hour12: number, minute: number, period: "AM" | "PM"): boolean {
+export function isWithinOperatingHours(
+  hour12: number,
+  minute: number,
+  period: "AM" | "PM",
+): boolean {
   const totalMins = timePartsToTotalMinutes(hour12, minute, period);
   const openMins = 7 * 60; // 07:00 AM
   const closeMins = 19 * 60; // 07:00 PM (19:00)

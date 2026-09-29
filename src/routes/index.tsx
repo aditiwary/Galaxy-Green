@@ -68,6 +68,7 @@ import { SiteVisitModal } from "@/components/SiteVisitModal";
 import { BrochureModal } from "@/components/BrochureModal";
 import { AdminLeadsDrawer } from "@/components/AdminLeadsDrawer";
 import { LegalTrustBadge } from "@/components/LegalTrustBadge";
+import { AmenitiesSection } from "@/components/AmenitiesSection";
 import { ClockTimePicker } from "@/components/ClockTimePicker";
 import { MyBookingsDrawer } from "@/components/MyBookingsDrawer";
 
@@ -145,13 +146,13 @@ function Logo({ showMotto = false }: { showMotto?: boolean }) {
       className="flex items-center gap-2 sm:gap-2.5 md:gap-3 group shrink-0 min-w-0"
       aria-label="Galaxy Green home"
     >
-      <div className="relative size-9 sm:size-11 md:size-12 rounded-xl overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-[#071510]">
+      <div className="relative size-10 sm:size-11 md:size-12 rounded-full overflow-hidden shadow-glow ring-1 ring-primary/40 group-hover:ring-primary group-hover:scale-105 transition-all duration-300 shrink-0 bg-white/5 flex items-center justify-center p-0.5">
         <img
           src="/galaxy-green-emblem.png"
           alt="Galaxy Green Emblem Logo"
           width={48}
           height={48}
-          className="size-full object-cover"
+          className="size-full object-contain"
         />
       </div>
       <span className="flex flex-col justify-center leading-tight min-w-0">
@@ -180,10 +181,7 @@ function Index() {
   // Auto-restore and auto-load Admin Portal on page refresh if active or url has #admin
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (
-        window.location.hash === "#admin" ||
-        sessionStorage.getItem("gg_admin_open") === "true"
-      ) {
+      if (window.location.hash === "#admin" || sessionStorage.getItem("gg_admin_open") === "true") {
         setAdminOpen(true);
       }
     }
@@ -364,12 +362,16 @@ function Index() {
     if (contactVisitDate) {
       const todayStr = getLocalDateString();
       if (contactVisitDate < todayStr) {
-        setFormError("Preferred visit date cannot be in the past. Only present and upcoming dates are allowed.");
+        setFormError(
+          "Preferred visit date cannot be in the past. Only present and upcoming dates are allowed.",
+        );
         return;
       }
       if (contactVisitDate === todayStr && contactCustomTime.trim()) {
         if (isTimePassedForDate(contactCustomTime.trim(), contactVisitDate)) {
-          setFormError(`The selected visit timing "${contactCustomTime.trim()}" has already passed for today. Please select an upcoming time.`);
+          setFormError(
+            `The selected visit timing "${contactCustomTime.trim()}" has already passed for today. Please select an upcoming time.`,
+          );
           return;
         }
       }
@@ -413,7 +415,7 @@ function Index() {
 
       // Open WhatsApp with formatted inquiry
       const text = [
-        `Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar (Ref: ${createdLead.id}).`,
+        `Hello Vishal Chauhan, I am interested in Galaxy Green Sai Suraksha Nagar (Ref: ${createdLead.id}).`,
         `Name: ${contactName.trim()}`,
         `Mobile: ${cleanPhone}`,
         `Plot Preference: ${finalPlot}`,
@@ -463,6 +465,7 @@ function Index() {
               ["About", "#about"],
               ["Master Plan", "#masterplan"],
               ["Live Photos", "#site-gallery"],
+              ["Amenities", "#amenities"],
               ["Connectivity", "#location"],
               ["ROI Calculator", "#calculator"],
               ["Pricing", "#pricing"],
@@ -554,6 +557,7 @@ function Index() {
                 ["About", "#about"],
                 ["Master Plan", "#masterplan"],
                 ["Live Photos", "#site-gallery"],
+                ["Amenities", "#amenities"],
                 ["Connectivity", "#location"],
                 ["ROI Calculator", "#calculator"],
                 ["Pricing", "#pricing"],
@@ -673,9 +677,12 @@ function Index() {
               [`₹${baseRate.toLocaleString("en-IN")}`, "Per Sq Ft Rate", "Phase 1 fixed pricing"],
               ["600+", "Sq Ft Min Size", "Up to custom requirement"],
               ["100%", "Freehold & Mutation", "Dakhil Kharij ready"],
-              ["2.7 km", "Amausi Railway", "5 km to Airport & Metro"],
+              ["1.5 km", "Railway Station", "3 km to CCS Airport & 4 km Metro"],
             ].map(([value, label, sub]) => (
-              <div key={label} className="p-3.5 sm:p-5 transition-colors hover:bg-white/[0.02] min-w-0">
+              <div
+                key={label}
+                className="p-3.5 sm:p-5 transition-colors hover:bg-white/[0.02] min-w-0"
+              >
                 <strong className="font-display text-xl sm:text-2xl lg:text-3xl text-primary block tracking-tight truncate">
                   {value}
                 </strong>
@@ -781,12 +788,18 @@ function Index() {
       {/* Interactive Master Plan & Plot Availability Grid */}
       <MasterPlanViewer onSelectPlotForBooking={handlePlotSelectForBooking} />
 
-
-
       {/* Real On-Ground Site Gallery & Live Progress */}
       <ActualSiteGallery
         onScheduleVisit={(plotText) => {
           setSelectedPlotForVisit(plotText || "600 sq ft");
+          setSiteVisitOpen(true);
+        }}
+      />
+
+      {/* Township Amenities Section */}
+      <AmenitiesSection
+        onScheduleVisit={() => {
+          setSelectedPlotForVisit("1000 sq ft");
           setSiteVisitOpen(true);
         }}
       />
@@ -800,9 +813,9 @@ function Index() {
               <h2 className="section-title">Direct Airport & Metro Connectivity</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
                 Located at Sai Suraksha Nagar, Amausi, Lucknow (PIN 226008). Benefit from premier
-                connectivity: 2.7 km from Amausi Railway Station, 3 km from T.S. Mishra Medical
-                College & Hospital, 3 km from Kanpur-Lucknow Expressway, 2.5 km from Main Market,
-                and 5 km from CCS International Airport & Amausi Metro Station.
+                connectivity: 1.5 km from Railway Station, 2 km from TS Mishra Medical College &
+                Hospital, 2.5 km from Kanpur-Lucknow Expressway, 3 km from CCS Airport, 4 km from
+                Metro Station, and 500 m from Main Market.
               </p>
 
               {/* Transit & Key Nearby Facilities */}
@@ -810,39 +823,39 @@ function Index() {
                 {[
                   {
                     icon: Train,
-                    dist: "2.7 km",
-                    label: "Amausi Railway Station",
-                    sub: "~5 Mins · Express & Local Hub",
+                    dist: "1.5 km",
+                    label: "Railway Station",
+                    sub: "~3 Mins · Fast Transit Hub",
                   },
                   {
                     icon: HeartPulse,
-                    dist: "3.0 km",
-                    label: "T.S. Mishra Medical College",
-                    sub: "~6 Mins · Hospital & Trauma",
+                    dist: "2.0 km",
+                    label: "TS Mishra",
+                    sub: "Medical College & Hospital",
                   },
                   {
                     icon: Plane,
-                    dist: "5.0 km",
-                    label: "CCS International Airport",
-                    sub: "~8-10 Mins · Terminal 3",
-                  },
-                  {
-                    icon: RouteIcon,
-                    dist: "5.0 km",
-                    label: "Amausi Metro Station",
-                    sub: "~8-10 Mins · Red Line Link",
+                    dist: "3.0 km",
+                    label: "CCS Airport",
+                    sub: "Chaudhary Charan Singh Intl",
                   },
                   {
                     icon: Car,
-                    dist: "3.0 km",
+                    dist: "2.5 km",
                     label: "Kanpur-Lucknow Expressway",
-                    sub: "~5 Mins · High-Speed Link",
+                    sub: "High-Speed Access Link",
+                  },
+                  {
+                    icon: RouteIcon,
+                    dist: "4.0 km",
+                    label: "Metro Station",
+                    sub: "Amausi Metro · Red Line",
                   },
                   {
                     icon: ShoppingBag,
-                    dist: "2.5 km",
+                    dist: "500 m",
                     label: "Main Market",
-                    sub: "~4 Mins · Daily Essentials",
+                    sub: "Daily Needs & Commercial Hub",
                   },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -968,8 +981,6 @@ function Index() {
                 We believe in complete transparency. Every infrastructure component is being
                 developed as per timeline.
               </p>
-
-
             </div>
 
             {/* Testimonials */}
@@ -999,7 +1010,7 @@ function Index() {
                   <div className="flex text-amber-400 gap-1 text-xs">{"★".repeat(5)}</div>
                   <p className="text-xs text-muted-foreground leading-relaxed italic">
                     "From an investment standpoint, the proximity to the new airport terminal and
-                    Shaheed Path made this an easy choice. Vishal Singh and his team arranged
+                    Shaheed Path made this an easy choice. Vishal Chauhan and his team arranged
                     immediate registry documentation without any hassle."
                   </p>
                   <div className="pt-2 border-t border-border/60">
@@ -1026,7 +1037,9 @@ function Index() {
               <h2 className="section-title">Transparent Allotment Rates</h2>
             </div>
             <div className="border-l-2 border-primary pl-5">
-              <p className="font-display text-3xl font-semibold text-primary">₹{baseRate.toLocaleString("en-IN")} / Sq Ft</p>
+              <p className="font-display text-3xl font-semibold text-primary">
+                ₹{baseRate.toLocaleString("en-IN")} / Sq Ft
+              </p>
               <p className="text-xs text-muted-foreground font-mono mt-1">
                 Fixed Phase 1 Base Rate · Min 600 Sq Ft to Custom Requirements
               </p>
@@ -1172,10 +1185,10 @@ function Index() {
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
                   Galaxy Green Sai Suraksha Nagar is strategically located in Amausi, Lucknow (Plus
-                  Code: QR4X+39W, Pin 226008). Key nearby connectivity points include: Amausi
-                  Railway Station (2.7 km), T.S. Mishra Medical College & Hospital (3 km),
-                  Kanpur-Lucknow Expressway (3 km), Main Market (2.5 km), and CCS International
-                  Airport & Amausi Metro Station (5 km).
+                  Code: QR4X+39W, Pin 226008). Key nearby connectivity points include: Railway
+                  Station (1.5 km), TS Mishra Medical College & Hospital (2 km), CCS Airport (3 km),
+                  Kanpur-Lucknow Expressway (2.5 km), Metro Station (4 km), and Main Market (500 m).
+                  Head Office: Barabirwa Ajanta Tower, Shop No. 35, Lucknow.
                 </AccordionContent>
               </AccordionItem>
 
@@ -1184,16 +1197,34 @@ function Index() {
                   What are the plot sizes and rates per sq ft at Galaxy Green?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pt-2">
-                  Standard residential plots start at a transparent Phase 1 rate of ₹{baseRate.toLocaleString("en-IN")} per sq
-                  ft. Minimum plot area starts from 600 sq ft, and maximum can be fully tailored to
-                  your wish and architectural requirements:
+                  Standard residential plots start at a transparent Phase 1 rate of ₹
+                  {baseRate.toLocaleString("en-IN")} per sq ft. Minimum plot area starts from 600 sq
+                  ft, and maximum can be fully tailored to your wish and architectural requirements:
                   <ul className="list-disc pl-5 mt-2 space-y-1 text-xs sm:text-sm font-mono text-foreground/90">
-                    <li>600 Sq Ft (20 × 30 ft) — starting at ₹{((600 * baseRate) / 100000).toFixed(2)} Lakh (Ideal budget duplex)</li>
-                    <li>800 Sq Ft (20 × 40 ft) — starting at ₹{((800 * baseRate) / 100000).toFixed(2)} Lakh</li>
-                    <li>1,000 Sq Ft (25 × 40 ft) — starting at ₹{((1000 * baseRate) / 100000).toFixed(2)} Lakh (Most popular 3BHK)</li>
-                    <li>1,200 Sq Ft (30 × 40 ft) — starting at ₹{((1200 * baseRate) / 100000).toFixed(2)} Lakh</li>
-                    <li>1,500 Sq Ft (30 × 50 ft) — starting at ₹{((1500 * baseRate) / 100000).toFixed(2)} Lakh (Executive villa)</li>
-                    <li>2,000 Sq Ft (40 × 50 ft) — starting at ₹{((2000 * baseRate) / 100000).toFixed(2)} Lakh (Luxury estate)</li>
+                    <li>
+                      600 Sq Ft (20 × 30 ft) — starting at ₹{((600 * baseRate) / 100000).toFixed(2)}{" "}
+                      Lakh (Ideal budget duplex)
+                    </li>
+                    <li>
+                      800 Sq Ft (20 × 40 ft) — starting at ₹{((800 * baseRate) / 100000).toFixed(2)}{" "}
+                      Lakh
+                    </li>
+                    <li>
+                      1,000 Sq Ft (25 × 40 ft) — starting at ₹
+                      {((1000 * baseRate) / 100000).toFixed(2)} Lakh (Most popular 3BHK)
+                    </li>
+                    <li>
+                      1,200 Sq Ft (30 × 40 ft) — starting at ₹
+                      {((1200 * baseRate) / 100000).toFixed(2)} Lakh
+                    </li>
+                    <li>
+                      1,500 Sq Ft (30 × 50 ft) — starting at ₹
+                      {((1500 * baseRate) / 100000).toFixed(2)} Lakh (Executive villa)
+                    </li>
+                    <li>
+                      2,000 Sq Ft (40 × 50 ft) — starting at ₹
+                      {((2000 * baseRate) / 100000).toFixed(2)} Lakh (Luxury estate)
+                    </li>
                     <li>
                       Custom plot sizes up to 5,000+ sq ft customized as per buyer requirement
                     </li>
@@ -1269,7 +1300,10 @@ function Index() {
       </section>
 
       {/* Main Contact & Connected Lead Capture Section */}
-      <section id="contact" className="section-shell bg-surface border-t border-border pb-28 sm:pb-20">
+      <section
+        id="contact"
+        className="section-shell bg-surface border-t border-border pb-28 sm:pb-20"
+      >
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-10 lg:gap-12 lg:grid-cols-12 items-start">
             <div className="lg:col-span-5 space-y-6">
@@ -1291,7 +1325,7 @@ function Index() {
                       Managing Director
                     </span>
                     <h4 className="font-display text-base sm:text-lg uppercase text-foreground font-semibold truncate">
-                      Vishal Singh
+                      Vishal Chauhan
                     </h4>
                   </div>
                 </div>
@@ -1307,11 +1341,19 @@ function Index() {
                     </a>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="text-muted-foreground shrink-0">Location:</span>
-                    <span className="text-foreground">Amausi, Lucknow</span>
+                    <span className="text-muted-foreground shrink-0">Head Office:</span>
+                    <span className="text-foreground text-right">
+                      Barabirwa Ajanta Tower, Shop No. 35
+                    </span>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="text-muted-foreground shrink-0">Site Office Hours:</span>
+                    <span className="text-muted-foreground shrink-0">Site Address:</span>
+                    <span className="text-foreground text-right">
+                      Sai Suraksha Nagar, Amausi, Lucknow
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-muted-foreground shrink-0">Office Hours:</span>
                     <span className="text-foreground">9:00 AM – 6:30 PM (Daily)</span>
                   </div>
                 </div>
@@ -1322,7 +1364,7 @@ function Index() {
                 >
                   <a
                     href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
-                      "Hello Vishal Singh, I would like to schedule a discussion regarding Galaxy Green Sai Suraksha Nagar.",
+                      "Hello Vishal Chauhan, I would like to schedule a discussion regarding Galaxy Green Sai Suraksha Nagar.",
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -1397,12 +1439,24 @@ function Index() {
                     onChange={(e) => setContactPlot(e.target.value)}
                     className="form-control block w-full px-4 text-xs font-mono"
                   >
-                    <option value="600 sq ft">600 Sq Ft (₹{((600 * baseRate) / 100000).toFixed(2)} Lakh · Starting Size)</option>
-                    <option value="800 sq ft">800 Sq Ft (₹{((800 * baseRate) / 100000).toFixed(2)} Lakh)</option>
-                    <option value="1000 sq ft">1,000 Sq Ft (₹{((1000 * baseRate) / 100000).toFixed(2)} Lakh · Most Popular)</option>
-                    <option value="1200 sq ft">1,200 Sq Ft (₹{((1200 * baseRate) / 100000).toFixed(2)} Lakh)</option>
-                    <option value="1500 sq ft">1,500 Sq Ft (₹{((1500 * baseRate) / 100000).toFixed(2)} Lakh)</option>
-                    <option value="2000 sq ft">2,000 Sq Ft (₹{((2000 * baseRate) / 100000).toFixed(2)} Lakh)</option>
+                    <option value="600 sq ft">
+                      600 Sq Ft (₹{((600 * baseRate) / 100000).toFixed(2)} Lakh · Starting Size)
+                    </option>
+                    <option value="800 sq ft">
+                      800 Sq Ft (₹{((800 * baseRate) / 100000).toFixed(2)} Lakh)
+                    </option>
+                    <option value="1000 sq ft">
+                      1,000 Sq Ft (₹{((1000 * baseRate) / 100000).toFixed(2)} Lakh · Most Popular)
+                    </option>
+                    <option value="1200 sq ft">
+                      1,200 Sq Ft (₹{((1200 * baseRate) / 100000).toFixed(2)} Lakh)
+                    </option>
+                    <option value="1500 sq ft">
+                      1,500 Sq Ft (₹{((1500 * baseRate) / 100000).toFixed(2)} Lakh)
+                    </option>
+                    <option value="2000 sq ft">
+                      2,000 Sq Ft (₹{((2000 * baseRate) / 100000).toFixed(2)} Lakh)
+                    </option>
                     <option value="Custom Size">
                       ⚡ Custom Size Requirement (Any Size On Buyer Wish)
                     </option>
@@ -1458,10 +1512,13 @@ function Index() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="form-label mb-0 flex items-center gap-1.5">
-                          <Calendar className="size-3 text-primary" /> Calendar (Year / Month / Date)
+                          <Calendar className="size-3 text-primary" /> Calendar (Year / Month /
+                          Date)
                         </label>
                         {contactVisitDate === getLocalDateString() && (
-                          <span className="text-[10px] text-primary font-semibold font-mono">Today</span>
+                          <span className="text-[10px] text-primary font-semibold font-mono">
+                            Today
+                          </span>
                         )}
                       </div>
                       <Input
@@ -1472,7 +1529,9 @@ function Index() {
                           const val = e.target.value;
                           const minDate = getLocalDateString();
                           if (val && val < minDate) {
-                            setFormError("Preferred visit date cannot be in the past. Only present and upcoming dates are allowed.");
+                            setFormError(
+                              "Preferred visit date cannot be in the past. Only present and upcoming dates are allowed.",
+                            );
                             return;
                           }
                           setFormError("");
@@ -1537,7 +1596,10 @@ function Index() {
                       />
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "05:30 PM"].map((t) => {
-                          const isPassed = isTimePassedForDate(t, contactVisitDate || getLocalDateString());
+                          const isPassed = isTimePassedForDate(
+                            t,
+                            contactVisitDate || getLocalDateString(),
+                          );
                           return (
                             <button
                               key={t}
@@ -1615,13 +1677,11 @@ function Index() {
 
                 <p className="text-center text-[11px] text-muted-foreground font-mono">
                   Your inquiry is recorded in real time and opens directly with project MD Vishal
-                  Singh.
+                  Chauhan.
                 </p>
               </form>
             </div>
           </div>
-
-
         </div>
       </section>
 
@@ -1630,10 +1690,19 @@ function Index() {
         <div className="mx-auto max-w-7xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
             <Logo showMotto={true} />
-            <p className="mt-4 max-w-md text-xs leading-relaxed text-muted-foreground">
-              Galaxy Green Sai Suraksha Nagar, QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008.
-              Freehold residential plotted development.
-            </p>
+            <div className="mt-4 space-y-1 text-xs leading-relaxed text-muted-foreground max-w-md">
+              <p>
+                <strong className="text-foreground font-semibold">Head Office:</strong> Barabirwa
+                Ajanta Tower, Shop No. 35, Lucknow, Uttar Pradesh.
+              </p>
+              <p>
+                <strong className="text-foreground font-semibold">Site Address:</strong> Galaxy
+                Green Sai Suraksha Nagar, QR4X+39W, Amausi, Lucknow, Uttar Pradesh 226008.
+              </p>
+              <p className="text-[11px] text-muted-foreground/80 font-mono">
+                Freehold residential plotted development with immediate registry and mutation.
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground">
             <button
@@ -1719,7 +1788,7 @@ function Index() {
             >
               <a
                 href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
-                  "Hello Vishal Singh, I am interested in Galaxy Green Sai Suraksha Nagar plots.",
+                  "Hello Vishal Chauhan, I am interested in Galaxy Green Sai Suraksha Nagar plots.",
                 )}`}
                 target="_blank"
                 rel="noreferrer"

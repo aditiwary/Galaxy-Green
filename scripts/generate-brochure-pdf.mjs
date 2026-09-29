@@ -14,15 +14,15 @@ async function generateBrochure() {
   const fontOblique = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
   // Brand Palette
-  const darkGreen = rgb(7 / 255, 21 / 255, 16 / 255);       // #071510
-  const emerald = rgb(16 / 255, 185 / 255, 129 / 255);      // #10b981
-  const emeraldLight = rgb(236 / 255, 253 / 255, 245 / 255);// #ecfdf5
-  const gold = rgb(217 / 255, 149 / 255, 33 / 255);         // #d99521
-  const goldLight = rgb(254 / 255, 243 / 255, 199 / 255);   // #fef3c7
-  const charcoal = rgb(30 / 255, 41 / 255, 59 / 255);       // #1e293b
-  const muted = rgb(100 / 255, 116 / 255, 139 / 255);       // #64748b
+  const darkGreen = rgb(7 / 255, 21 / 255, 16 / 255); // #071510
+  const emerald = rgb(16 / 255, 185 / 255, 129 / 255); // #10b981
+  const emeraldLight = rgb(236 / 255, 253 / 255, 245 / 255); // #ecfdf5
+  const gold = rgb(217 / 255, 149 / 255, 33 / 255); // #d99521
+  const goldLight = rgb(254 / 255, 243 / 255, 199 / 255); // #fef3c7
+  const charcoal = rgb(30 / 255, 41 / 255, 59 / 255); // #1e293b
+  const muted = rgb(100 / 255, 116 / 255, 139 / 255); // #64748b
   const white = rgb(1, 1, 1);
-  const lightBg = rgb(248 / 255, 250 / 255, 252 / 255);     // #f8fafc
+  const lightBg = rgb(248 / 255, 250 / 255, 252 / 255); // #f8fafc
   const borderLight = rgb(226 / 255, 232 / 255, 240 / 255); // #e2e8f0
 
   // Load logo images if available
@@ -37,7 +37,10 @@ async function generateBrochure() {
     }
   }
 
-  const sitePhotoPath = path.resolve(process.cwd(), "public/site-photos/galaxy-green-actual-site-1.jpg");
+  const sitePhotoPath = path.resolve(
+    process.cwd(),
+    "public/site-photos/galaxy-green-actual-site-1.jpg",
+  );
   let sitePhotoImage = null;
   if (fs.existsSync(sitePhotoPath)) {
     try {
@@ -155,8 +158,14 @@ async function generateBrochure() {
   const locItems = [
     { title: "Airport Proximity", desc: "5 Mins from Chaudhary Charan Singh Int'l Airport" },
     { title: "Metro Transit", desc: "4 Mins from Amausi Metro Station (North-South Corridor)" },
-    { title: "Highway Corridor", desc: "Direct 40-ft wide boulevard link to Shaheed Path / Kanpur Rd" },
-    { title: "Commercial Hub", desc: "Surrounded by premium educational institutes & hospital facilities" },
+    {
+      title: "Highway Corridor",
+      desc: "Direct 40-ft wide boulevard link to Shaheed Path / Kanpur Rd",
+    },
+    {
+      title: "Commercial Hub",
+      desc: "Surrounded by premium educational institutes & hospital facilities",
+    },
   ];
 
   locItems.forEach((item, idx) => {
@@ -225,20 +234,74 @@ async function generateBrochure() {
     color: darkGreen,
   });
 
-  page1.drawText("PLOT AREA", { x: tableX + 10, y: curY - 13, size: 8.5, font: fontBold, color: white });
-  page1.drawText("DIMENSIONS", { x: tableX + 130, y: curY - 13, size: 8.5, font: fontBold, color: white });
-  page1.drawText("TYPOLOGY / SUITABILITY", { x: tableX + 235, y: curY - 13, size: 8.5, font: fontBold, color: white });
-  page1.drawText("TOTAL VALUE (@ Rs. 1,199)", { x: tableX + 385, y: curY - 13, size: 8.5, font: fontBold, color: emerald });
+  page1.drawText("PLOT AREA", {
+    x: tableX + 10,
+    y: curY - 13,
+    size: 8.5,
+    font: fontBold,
+    color: white,
+  });
+  page1.drawText("DIMENSIONS", {
+    x: tableX + 130,
+    y: curY - 13,
+    size: 8.5,
+    font: fontBold,
+    color: white,
+  });
+  page1.drawText("TYPOLOGY / SUITABILITY", {
+    x: tableX + 235,
+    y: curY - 13,
+    size: 8.5,
+    font: fontBold,
+    color: white,
+  });
+  page1.drawText("TOTAL VALUE (@ Rs. 1,199)", {
+    x: tableX + 385,
+    y: curY - 13,
+    size: 8.5,
+    font: fontBold,
+    color: emerald,
+  });
 
   curY -= 20;
 
   const plotRows = [
-    { area: "600 Sq. Ft.", dim: "20 ft x 30 ft", type: "Starter Compact Duplex", val: "Rs. 7,19,400" },
-    { area: "800 Sq. Ft.", dim: "20 ft x 40 ft", type: "Standard Residential Plot", val: "Rs. 9,59,200" },
-    { area: "1,000 Sq. Ft.", dim: "25 ft x 40 ft", type: "Most In-Demand Villa Plot", val: "Rs. 11,99,000" },
-    { area: "1,200 Sq. Ft.", dim: "30 ft x 40 ft", type: "Spacious Independent Villa", val: "Rs. 14,38,800" },
-    { area: "1,500 Sq. Ft.", dim: "30 ft x 50 ft", type: "Executive Luxury Estate", val: "Rs. 17,98,500" },
-    { area: "2,000 Sq. Ft.", dim: "40 ft x 50 ft", type: "Grand Corner / Boulevard Estate", val: "Rs. 23,98,000" },
+    {
+      area: "600 Sq. Ft.",
+      dim: "20 ft x 30 ft",
+      type: "Starter Compact Duplex",
+      val: "Rs. 7,19,400",
+    },
+    {
+      area: "800 Sq. Ft.",
+      dim: "20 ft x 40 ft",
+      type: "Standard Residential Plot",
+      val: "Rs. 9,59,200",
+    },
+    {
+      area: "1,000 Sq. Ft.",
+      dim: "25 ft x 40 ft",
+      type: "Most In-Demand Villa Plot",
+      val: "Rs. 11,99,000",
+    },
+    {
+      area: "1,200 Sq. Ft.",
+      dim: "30 ft x 40 ft",
+      type: "Spacious Independent Villa",
+      val: "Rs. 14,38,800",
+    },
+    {
+      area: "1,500 Sq. Ft.",
+      dim: "30 ft x 50 ft",
+      type: "Executive Luxury Estate",
+      val: "Rs. 17,98,500",
+    },
+    {
+      area: "2,000 Sq. Ft.",
+      dim: "40 ft x 50 ft",
+      type: "Grand Corner / Boulevard Estate",
+      val: "Rs. 23,98,000",
+    },
   ];
 
   plotRows.forEach((row, idx) => {
@@ -253,10 +316,34 @@ async function generateBrochure() {
       borderWidth: 0.5,
     });
 
-    page1.drawText(row.area, { x: tableX + 10, y: curY - 14, size: 8.5, font: fontBold, color: darkGreen });
-    page1.drawText(row.dim, { x: tableX + 130, y: curY - 14, size: 8.5, font: fontRegular, color: charcoal });
-    page1.drawText(row.type, { x: tableX + 235, y: curY - 14, size: 8, font: fontRegular, color: muted });
-    page1.drawText(row.val, { x: tableX + 385, y: curY - 14, size: 9, font: fontBold, color: darkGreen });
+    page1.drawText(row.area, {
+      x: tableX + 10,
+      y: curY - 14,
+      size: 8.5,
+      font: fontBold,
+      color: darkGreen,
+    });
+    page1.drawText(row.dim, {
+      x: tableX + 130,
+      y: curY - 14,
+      size: 8.5,
+      font: fontRegular,
+      color: charcoal,
+    });
+    page1.drawText(row.type, {
+      x: tableX + 235,
+      y: curY - 14,
+      size: 8,
+      font: fontRegular,
+      color: muted,
+    });
+    page1.drawText(row.val, {
+      x: tableX + 385,
+      y: curY - 14,
+      size: 9,
+      font: fontBold,
+      color: darkGreen,
+    });
 
     curY -= 22;
   });
@@ -294,13 +381,16 @@ async function generateBrochure() {
 
     curY -= imgHeight + 15;
 
-    page1.drawText("* Ground reality photo: Wide demarcated asphalt boulevards, solar streetlights, and green boundary walls.", {
-      x: 35,
-      y: curY,
-      size: 7.5,
-      font: fontOblique,
-      color: muted,
-    });
+    page1.drawText(
+      "* Ground reality photo: Wide demarcated asphalt boulevards, solar streetlights, and green boundary walls.",
+      {
+        x: 35,
+        y: curY,
+        size: 7.5,
+        font: fontOblique,
+        color: muted,
+      },
+    );
   }
 
   // Page 1 Footer
@@ -383,14 +473,38 @@ async function generateBrochure() {
   curY -= 20;
 
   const amenities = [
-    { title: "40-ft Grand Boulevard", desc: "Main arterial boulevard paved with heavy-duty asphalt and stormwater drainage." },
-    { title: "30-ft Internal Paver Lanes", desc: "Interlocking concrete paver internal avenues with underground utility corridors." },
-    { title: "24/7 RFID Security Checkpoint", desc: "Grand entrance gateway with gated access control and manned security guards." },
-    { title: "Perimeter Boundary & CCTV", desc: "Secured high perimeter boundary walls with continuous day/night CCTV monitoring." },
-    { title: "Landscaped Central Park", desc: "Flower beds, shaded sit-outs, walking track, and manicured green spaces." },
-    { title: "Dedicated Children Play Area", desc: "Safe recreational grounds with swings, slides, and non-slip safety grass." },
-    { title: "Underground Utilities", desc: "Dedicated underground power conduits and pre-laid potable water supply pipelines." },
-    { title: "Solar LED Streetlights", desc: "Autonomous dusk-to-dawn solar street illumination on every avenue and corner." },
+    {
+      title: "30 ft, 25 ft & 22 ft Roads",
+      desc: "Wide arterial and sector roads with concrete paver lanes and drainage.",
+    },
+    {
+      title: "24/7 Security",
+      desc: "Round-the-clock trained guards, checkpoint security, and vigilance.",
+    },
+    {
+      title: "Gated Society",
+      desc: "Secured high boundary walls with grand architectural entrance gates.",
+    },
+    {
+      title: "Electricity",
+      desc: "Dedicated high-capacity transformers and bright street illumination.",
+    },
+    {
+      title: "Parks & Green Zones",
+      desc: "Landscaped community parks, tree-lined walking avenues, and open spaces.",
+    },
+    {
+      title: "24/7 Water Supply",
+      desc: "Direct fresh potable water pipeline network connected to each plot.",
+    },
+    {
+      title: "Nagar Nigam Jurisdiction",
+      desc: "Municipal Corporation civic administration, waste disposal, and maintenance.",
+    },
+    {
+      title: "Prime Connectivity",
+      desc: "1.5 km to Railway, 2 km to TS Mishra, 3 km to Airport, 2.5 km to Expressway.",
+    },
   ];
 
   amenities.forEach((amenity, idx) => {
@@ -447,10 +561,22 @@ async function generateBrochure() {
   curY -= 22;
 
   const legalAssurances = [
-    { title: "100% Freehold Ownership", text: "Zero leasehold encumbrances. Complete land title is vested permanently with the buyer." },
-    { title: "Immediate Registry & Dakhil Kharij", text: "Registry documentation ready on demand with official mutation (Dakhil Kharij) recorded." },
-    { title: "Pre-Approved Bank Loans (Up to 80%)", text: "Verified and eligible for home and land loans with leading PSU and private banks (SBI, HDFC, PNB, ICICI)." },
-    { title: "Physically Demarcated Boundaries", text: "Every plot is pre-demarcated with solid concrete boundary corner pillars on site." },
+    {
+      title: "100% Freehold Ownership",
+      text: "Zero leasehold encumbrances. Complete land title is vested permanently with the buyer.",
+    },
+    {
+      title: "Immediate Registry & Dakhil Kharij",
+      text: "Registry documentation ready on demand with official mutation (Dakhil Kharij) recorded.",
+    },
+    {
+      title: "Pre-Approved Bank Loans (Up to 80%)",
+      text: "Verified and eligible for home and land loans with leading PSU and private banks (SBI, HDFC, PNB, ICICI).",
+    },
+    {
+      title: "Physically Demarcated Boundaries",
+      text: "Every plot is pre-demarcated with solid concrete boundary corner pillars on site.",
+    },
   ];
 
   legalAssurances.forEach((item) => {
@@ -487,48 +613,56 @@ async function generateBrochure() {
   // Section 6: Contact & Site Office Booking
   page2.drawRectangle({
     x: 35,
-    y: curY - 130,
+    y: curY - 145,
     width: width - 70,
-    height: 135,
+    height: 150,
     color: darkGreen,
   });
 
   page2.drawRectangle({
     x: 40,
-    y: curY - 125,
+    y: curY - 140,
     width: width - 80,
-    height: 125,
+    height: 140,
     borderColor: emerald,
     borderWidth: 1,
   });
 
   page2.drawText("BOOK YOUR SITE VISIT & PRIORITY PLOT ALLOTMENT", {
     x: 60,
-    y: curY - 24,
-    size: 12,
+    y: curY - 22,
+    size: 11.5,
     font: fontBold,
     color: gold,
   });
 
-  page2.drawText("Developer & Managing Director: Vishal Singh", {
+  page2.drawText("Developer & Managing Director: Vishal Chauhan", {
     x: 60,
-    y: curY - 45,
-    size: 10,
+    y: curY - 40,
+    size: 9.5,
     font: fontBold,
     color: white,
   });
 
   page2.drawText("Direct Hotline & WhatsApp: +91 90444 12642", {
     x: 60,
-    y: curY - 62,
-    size: 10,
+    y: curY - 55,
+    size: 9.5,
     font: fontBold,
     color: emerald,
   });
 
+  page2.drawText("Head Office: Barabirwa Ajanta Tower, Shop No. 35, Lucknow, UP", {
+    x: 60,
+    y: curY - 70,
+    size: 8.5,
+    font: fontRegular,
+    color: rgb(203 / 255, 213 / 255, 225 / 255),
+  });
+
   page2.drawText("Site Office Address: QR4X+39W, Sai Suraksha Nagar, Amausi, Lucknow, UP 226008", {
     x: 60,
-    y: curY - 78,
+    y: curY - 84,
     size: 8.5,
     font: fontRegular,
     color: rgb(203 / 255, 213 / 255, 225 / 255),
@@ -536,19 +670,22 @@ async function generateBrochure() {
 
   page2.drawText("Official Web Portal: https://galaxygreen.in", {
     x: 60,
-    y: curY - 94,
+    y: curY - 98,
     size: 8.5,
     font: fontRegular,
     color: rgb(203 / 255, 213 / 255, 225 / 255),
   });
 
-  page2.drawText("Visiting Hours: Monday to Sunday, 09:00 AM – 06:30 PM (Free Pickup & Drop Available)", {
-    x: 60,
-    y: curY - 110,
-    size: 8,
-    font: fontOblique,
-    color: rgb(148 / 255, 163 / 255, 184 / 255),
-  });
+  page2.drawText(
+    "Visiting Hours: Monday to Sunday, 09:00 AM – 06:30 PM (Free Pickup & Drop Available)",
+    {
+      x: 60,
+      y: curY - 114,
+      size: 8,
+      font: fontOblique,
+      color: rgb(148 / 255, 163 / 255, 184 / 255),
+    },
+  );
 
   // Page 2 Footer
   page2.drawLine({
@@ -574,7 +711,10 @@ async function generateBrochure() {
 
   // Save the PDF bytes
   const pdfBytes = await pdfDoc.save();
-  const outputPath = path.resolve(process.cwd(), "public/Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf");
+  const outputPath = path.resolve(
+    process.cwd(),
+    "public/Galaxy_Green_Sai_Suraksha_Nagar_Brochure.pdf",
+  );
   fs.writeFileSync(outputPath, pdfBytes);
   console.log(`[SUCCESS] PDF generated at: ${outputPath} (${pdfBytes.length} bytes)`);
 }

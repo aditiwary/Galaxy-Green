@@ -30,7 +30,6 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
   const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>("all");
   const [activePlot, setActivePlot] = useState<Plot | null>(null);
 
-
   const loadPlots = async () => {
     try {
       const data = await fetchLivePlots();
@@ -298,8 +297,6 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
             </DialogContent>
           )}
         </Dialog>
-
-
       </div>
     </section>
   );

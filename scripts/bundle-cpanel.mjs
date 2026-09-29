@@ -39,8 +39,8 @@ const packageJson = {
   type: "module",
   main: "server.js",
   scripts: {
-    start: "node server.js"
-  }
+    start: "node server.js",
+  },
 };
 fs.writeFileSync(path.join(distDir, "package.json"), JSON.stringify(packageJson, null, 2), "utf-8");
 
@@ -48,7 +48,7 @@ fs.writeFileSync(path.join(distDir, "package.json"), JSON.stringify(packageJson,
 fs.mkdirSync(path.join(distDir, "database"), { recursive: true });
 fs.copyFileSync(
   path.resolve(process.cwd(), "database/galaxy_green_mysql.sql"),
-  path.join(distDir, "database/galaxy_green_mysql.sql")
+  path.join(distDir, "database/galaxy_green_mysql.sql"),
 );
 
 // 7. Zip the bundle

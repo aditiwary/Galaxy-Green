@@ -64,7 +64,7 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     highlights: [
       "Overhead water reservoir ensuring reliable high-pressure water supply",
       "Clean, green environment away from city congestion",
-      "Close proximity to Amausi Railway Station (2.7 km) & Market (2.5 km)",
+      "Close proximity to Railway Station (1.5 km) & Main Market (500 m)",
       "Vastu-compliant residential zoning with open morning sunlight",
     ],
   },
@@ -98,8 +98,8 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     highlights: [
       "Real residential buildings under active brick and pillar construction",
       "Immediate possession allows buyers to begin construction right away",
-      "Only 3 km from T.S. Mishra Medical College & Hospital",
-      "5 km from CCS International Airport & Amausi Metro Station",
+      "Only 2 km from TS Mishra Medical College & Hospital",
+      "3 km from CCS Airport & 4 km from Metro Station",
     ],
   },
   {
@@ -109,7 +109,7 @@ export const DEFAULT_GALLERY_PHOTOS: GalleryPhoto[] = [
     category: "panorama",
     categoryLabel: "Airport & Metro Connectivity",
     tag: "Prime Airport Vicinity",
-    dimensionsLabel: "5 Km from CCS International Airport",
+    dimensionsLabel: "3 Km from CCS Airport",
     description:
       "Strategic aerial master photograph showing Chaudhary Charan Singh International Airport (Terminal 1 & 2, Runway 09/27), Kanpur Road (NH27), Amausi Metro Station, and the immediate proximity of Amausi available plots at Galaxy Green Sai Suraksha Nagar.",
     highlights: [
