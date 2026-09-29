@@ -23,6 +23,7 @@ const AMENITIES = [
     title: "30 ft, 25 ft & 22 ft Roads",
     tag: "Wide Paved Network",
     badge: "Wide Access",
+    image: "/amenities/amenity-roads.jpg",
     description:
       "Wide interlocking concrete paver roads and arterial corridors ensuring smooth two-way vehicle movement, seamless turnaround radiuses, and designated walkway borders across all sectors.",
     highlights: [
@@ -36,6 +37,7 @@ const AMENITIES = [
     title: "24/7 Security",
     tag: "Round-the-Clock Safety",
     badge: "Guarded 24/7",
+    image: "/amenities/amenity-security.jpg",
     description:
       "Trained on-ground security personnel on round-the-clock duty, centralized checkpoint protocols, and proactive perimeter monitoring to guarantee absolute peace of mind for every family.",
     highlights: [
@@ -49,6 +51,7 @@ const AMENITIES = [
     title: "Gated Society",
     tag: "Secure Residential Enclave",
     badge: "Private Enclave",
+    image: "/amenities/amenity-gated-society.jpg",
     description:
       "A fully enclosed, boundary-walled residential enclave featuring a grand signature entrance arch, regulated entry, and a safe, private neighborhood environment.",
     highlights: [
@@ -62,6 +65,7 @@ const AMENITIES = [
     title: "Electricity",
     tag: "Energized Infrastructure",
     badge: "Power Ready",
+    image: "/amenities/amenity-electricity.jpg",
     description:
       "Dedicated electrical infrastructure with high-capacity step-down transformers, organized utility cabling lines, and bright LED streetlights illuminating every lane and junction.",
     highlights: [
@@ -75,6 +79,7 @@ const AMENITIES = [
     title: "Parks & Green Zones",
     tag: "Eco-Friendly Living",
     badge: "Lush & Open",
+    image: "/amenities/amenity-parks.jpg",
     description:
       "Lush manicured community green parks, shaded walking promenades, morning yoga spaces, and open recreation zones planned for children and senior citizens alike.",
     highlights: ["Landscaped Green Parks", "Tree-Lined Avenues", "Children's Play Areas"],
@@ -84,6 +89,7 @@ const AMENITIES = [
     title: "Water Supply",
     tag: "24/7 Fresh Water",
     badge: "Sweet Water",
+    image: "/amenities/amenity-water-supply.jpg",
     description:
       "Reliable 24-hour sweet potable water pipeline network connected directly to every plot demarcated in the layout, powered by dedicated high-pressure storage systems.",
     highlights: [
@@ -97,6 +103,7 @@ const AMENITIES = [
     title: "Nagar Nigam",
     tag: "Municipal Corporation",
     badge: "Municipal Ward",
+    image: "/amenities/amenity-nagar-nigam.jpg",
     description:
       "Situated within the Lucknow Municipal Corporation (Nagar Nigam) jurisdiction, ensuring structured waste disposal, regular road maintenance, and official civic services.",
     highlights: [
@@ -145,54 +152,78 @@ export function AmenitiesSection({ onScheduleVisit }: AmenitiesSectionProps) {
           </Button>
         </div>
 
-        {/* Amenities Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        {/* Amenities Cards Grid with AI-Generated Architectural Images */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {AMENITIES.map((item, idx) => {
             const Icon = item.icon;
-            const isFeatured = idx === 0; // Road infrastructure card spans 2 columns on xl for emphasis
+            const isFeatured = idx === 0; // Road infrastructure card spans 2 columns for grand layout
             return (
               <div
                 key={item.title}
-                className={`card-architectural group p-5 sm:p-6 rounded-xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-luxury ${
+                className={`card-architectural group rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/60 hover:shadow-luxury bg-[#091510] border border-border/80 ${
                   isFeatured
-                    ? "sm:col-span-2 lg:col-span-2 xl:col-span-2 bg-gradient-to-br from-card via-card to-primary/5 border-primary/40"
+                    ? "sm:col-span-2 lg:col-span-3 xl:col-span-2 bg-gradient-to-br from-[#0c1c15] via-[#091510] to-[#07100c]"
                     : ""
                 }`}
               >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <div className="icon-monogram size-12 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="size-5 text-primary" />
+                {/* Visual Image Header */}
+                <div
+                  className={`relative w-full overflow-hidden bg-black/40 ${
+                    isFeatured ? "h-52 sm:h-60" : "h-44 sm:h-48"
+                  }`}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                  {/* Atmospheric Gradient Scrim */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#091510] via-[#091510]/50 to-black/35" />
+
+                  {/* Top Badges Floating Over Image */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 z-10">
+                    <div className="icon-monogram size-10 rounded-lg bg-black/70 backdrop-blur-md border border-white/15 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="size-4 text-primary" />
                     </div>
                     <Badge
                       variant="outline"
-                      className="border-primary/30 text-primary bg-primary/5 text-[10px] uppercase font-mono tracking-wider"
+                      className="border-emerald-500/40 text-emerald-300 bg-black/75 backdrop-blur-md text-[10px] uppercase font-mono tracking-wider px-2.5 py-0.5 shadow-md"
                     >
                       {item.badge}
                     </Badge>
                   </div>
 
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary/80 font-medium block">
-                    {item.tag}
-                  </span>
-                  <h3 className="font-display text-lg sm:text-xl uppercase text-foreground font-semibold tracking-tight mt-1">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
+                  {/* Bottom Tag Pill Over Image */}
+                  <div className="absolute bottom-2.5 left-3.5 z-10">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-semibold bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded border border-primary/30 shadow-sm">
+                      {item.tag}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-border/60 space-y-1.5">
-                  {item.highlights.map((h) => (
-                    <div
-                      key={h}
-                      className="flex items-center gap-2 text-xs font-mono text-muted-foreground/90"
-                    >
-                      <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
-                      <span className="truncate">{h}</span>
-                    </div>
-                  ))}
+                {/* Card Text Content */}
+                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-display text-lg sm:text-xl uppercase text-foreground font-semibold tracking-tight">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 mt-5 border-t border-border/60 space-y-2">
+                    {item.highlights.map((h) => (
+                      <div
+                        key={h}
+                        className="flex items-center gap-2 text-xs font-mono text-muted-foreground/90"
+                      >
+                        <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />
+                        <span className="truncate">{h}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             );
