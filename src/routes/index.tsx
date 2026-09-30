@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Building2,
   Calendar,
+  CalendarCheck,
   Car,
   Check,
   Clock,
@@ -74,7 +75,7 @@ import { MyBookingsDrawer } from "@/components/MyBookingsDrawer";
 
 // Backend Client Service
 import { recordNewInquiry, fetchMarketBaseRate } from "@/lib/leads-client";
-import { saveLocalBooking } from "@/lib/my-bookings";
+import { saveLocalBooking, getLocalBookings, subscribeToBookings } from "@/lib/my-bookings";
 import { getLocalDateString, isTimePassedForDate } from "@/lib/visit-helpers";
 import { toast } from "sonner";
 
@@ -214,9 +215,23 @@ function Index() {
     initialPanY: number;
   } | null>(null);
 
-  // Floating dock visibility & minimization state
+  // Floating dock visibility, contact intersection & keyboard focus states
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [dockMinimized, setDockMinimized] = useState(false);
+  const [isContactVisible, setIsContactVisible] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  // My Bookings State & Count (Synced with local device cache and server)
+  const [myBookingsOpen, setMyBookingsOpen] = useState(false);
+  const [myBookingsCount, setMyBookingsCount] = useState(0);
+
+  useEffect(() => {
+    setMyBookingsCount(getLocalBookings().length);
+    const unsubscribe = subscribeToBookings((updated) => {
+      setMyBookingsCount(updated.length);
+    });
+    return unsubscribe;
+  }, []);
 
   // Dynamic Base Rate per Sq Ft (default ₹1,199, synchronized across MySQL admin_config and clients)
   const [baseRate, setBaseRate] = useState<number>(1199);
@@ -254,14 +269,82 @@ function Index() {
   const [formError, setFormError] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
 
+  // Cross-device & cross-browser scroll detection (supporting all Android versions, WebViews & iOS)
   useEffect(() => {
-    const handleScroll = () => {
-      // Concierge dock smoothly appears only after scrolling 400px past hero
-      setScrolledPastHero(window.scrollY > 400);
+    const getScrollTop = () => {
+      if (typeof window === "undefined") return 0;
+      return (
+        window.pageYOffset ||
+        document.documentElement?.scrollTop ||
+        document.body?.scrollTop ||
+        window.scrollY ||
+        0
+      );
     };
+
+    const handleScroll = () => {
+      // Concierge dock smoothly appears when scrolled 260px past hero on all screen sizes
+      setScrolledPastHero(getScrollTop() > 260);
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    window.addEventListener("orientationchange", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("orientationchange", handleScroll);
+    };
+  }, []);
+
+  // Auto-hide floating dock when Contact section is in viewport so it NEVER obstructs form fields
+  useEffect(() => {
+    const contactSection = document.getElementById("contact");
+    if (!contactSection) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setIsContactVisible(entry.isIntersecting);
+        }
+      },
+      {
+        threshold: 0.05,
+        rootMargin: "0px 0px -40px 0px",
+      }
+    );
+
+    observer.observe(contactSection);
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-hide floating dock when keyboard opens or any form input is focused on mobile
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+        setIsInputFocused(true);
+      }
+    };
+
+    const handleFocusOut = () => {
+      setTimeout(() => {
+        const active = document.activeElement as HTMLElement;
+        if (!active || !["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)) {
+          setIsInputFocused(false);
+        }
+      }, 100);
+    };
+
+    window.addEventListener("focusin", handleFocusIn);
+    window.addEventListener("focusout", handleFocusOut);
+    return () => {
+      window.removeEventListener("focusin", handleFocusIn);
+      window.removeEventListener("focusout", handleFocusOut);
+    };
   }, []);
 
   // Lock background body scroll on mobile and desktop when modals or mobile menu are active
@@ -442,7 +525,16 @@ function Index() {
     }
   }
 
-  const isFloatingDockVisible = scrolledPastHero && !siteVisitOpen && !brochureOpen && !adminOpen;
+  const isFloatingDockVisible =
+    scrolledPastHero &&
+    !isContactVisible &&
+    !isInputFocused &&
+    !siteVisitOpen &&
+    !brochureOpen &&
+    !adminOpen &&
+    !myBookingsOpen &&
+    !menuOpen &&
+    !airportModalOpen;
 
   return (
     <main
@@ -486,6 +578,22 @@ function Index() {
           {/* Right Action Hub for Desktop (1380px+) */}
           <div className="hidden min-[1380px]:flex items-center gap-2 2xl:gap-3 shrink-0">
             <div className="h-5 w-px bg-border/80 mx-0.5 2xl:mx-1" />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMyBookingsOpen(true)}
+              className="h-8.5 sm:h-9 px-2.5 2xl:px-3 text-xs border-primary/40 text-foreground hover:text-primary hover:bg-primary/10 uppercase tracking-wider font-mono shrink-0 flex items-center gap-1.5"
+              title="View My Scheduled Visits"
+            >
+              <CalendarCheck className="size-3.5 text-primary" />
+              <span>My Bookings</span>
+              {myBookingsCount > 0 && (
+                <span className="size-4.5 rounded-full bg-primary text-primary-foreground font-mono text-[10px] font-bold grid place-items-center ml-0.5">
+                  {myBookingsCount}
+                </span>
+              )}
+            </Button>
 
             <Button
               variant="outline"
@@ -577,6 +685,42 @@ function Index() {
                   <span className="size-1.5 rounded-full bg-emerald-400" />
                   Freehold Plots
                 </div>
+              </div>
+
+              {/* Quick Access Bar for Bookings & Admin */}
+              <div className="flex items-center gap-2 pt-1 pb-3 mb-2 border-b border-border/80">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setMyBookingsOpen(true);
+                  }}
+                  className="flex-1 flex items-center justify-between py-2 px-3 rounded-lg bg-surface border border-border/80 hover:border-primary text-xs uppercase font-mono text-foreground font-semibold transition-all hover:bg-card"
+                >
+                  <span className="flex items-center gap-2">
+                    <CalendarCheck className="size-3.5 text-primary" />
+                    My Bookings
+                  </span>
+                  {myBookingsCount > 0 ? (
+                    <span className="size-5 rounded-full bg-primary text-primary-foreground font-mono text-[10px] font-bold grid place-items-center">
+                      {myBookingsCount}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground font-mono">(0)</span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setAdminOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 py-2 px-3 rounded-lg border border-primary/40 text-primary hover:bg-primary/10 text-xs uppercase font-mono font-semibold transition-all"
+                >
+                  <Lock className="size-3" />
+                  <span>Admin</span>
+                </button>
               </div>
 
               {/* 2-Column Responsive Grid on Tablets */}
@@ -1772,6 +1916,18 @@ function Index() {
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground">
             <button
+              onClick={() => setMyBookingsOpen(true)}
+              className="text-foreground hover:text-primary hover:underline flex items-center gap-1 uppercase"
+            >
+              <CalendarCheck className="size-3 text-primary" /> My Bookings
+              {myBookingsCount > 0 && (
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                  {myBookingsCount}
+                </span>
+              )}
+            </button>
+            <span>·</span>
+            <button
               onClick={() => setAdminOpen(true)}
               className="text-primary hover:underline flex items-center gap-1 uppercase"
             >
@@ -1850,6 +2006,22 @@ function Index() {
               <Calendar className="size-3 sm:size-3.5 mr-1 sm:mr-1.5" /> Book Visit
             </Button>
 
+            {myBookingsCount > 0 && (
+              <Button
+                onClick={() => setMyBookingsOpen(true)}
+                size="sm"
+                variant="outline"
+                className="h-8.5 sm:h-9 px-2 sm:px-2.5 rounded-full uppercase tracking-wider text-[10px] sm:text-[11px] font-semibold border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary shrink-0 flex items-center gap-1"
+                title="View My Scheduled Visits"
+              >
+                <CalendarCheck className="size-3 sm:size-3.5" />
+                <span>Visits</span>
+                <span className="size-4 rounded-full bg-primary text-primary-foreground font-mono text-[9px] font-bold grid place-items-center">
+                  {myBookingsCount}
+                </span>
+              </Button>
+            )}
+
             <Button
               asChild
               size="icon"
@@ -1881,7 +2053,12 @@ function Index() {
       </div>
 
       {/* Interactive Modals */}
-      <MyBookingsDrawer onOpenVisitModal={() => setSiteVisitOpen(true)} />
+      <MyBookingsDrawer
+        open={myBookingsOpen}
+        onOpenChange={setMyBookingsOpen}
+        onOpenVisitModal={() => setSiteVisitOpen(true)}
+        hideFloatingTrigger={true}
+      />
       <SiteVisitModal
         open={siteVisitOpen}
         onOpenChange={setSiteVisitOpen}

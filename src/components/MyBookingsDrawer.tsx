@@ -40,7 +40,10 @@ import { getLocalDateString } from "@/lib/visit-helpers";
 import { toast } from "sonner";
 
 interface MyBookingsDrawerProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onOpenVisitModal?: () => void;
+  hideFloatingTrigger?: boolean;
 }
 
 const PHONE_NUMBER = "919044412642";
@@ -60,8 +63,23 @@ const PRESET_PLOTS = [
   "Commercial Frontage (30 ft Road)",
 ];
 
-export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
-  const [open, setOpen] = useState(false);
+export function MyBookingsDrawer({
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  onOpenVisitModal,
+  hideFloatingTrigger = false,
+}: MyBookingsDrawerProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (val: boolean) => {
+    if (isControlled) {
+      controlledOnOpenChange?.(val);
+    } else {
+      setInternalOpen(val);
+    }
+  };
+
   const [bookings, setBookings] = useState<LocalBooking[]>([]);
 
   // State for Deleting a Booking
@@ -87,8 +105,14 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
       setBookings(updated);
     });
 
-    return unsubscribe;
-  }, []);
+    const handleOpenEvent = () => setOpen(true);
+    window.addEventListener("open-my-bookings", handleOpenEvent);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("open-my-bookings", handleOpenEvent);
+    };
+  }, [isControlled, controlledOnOpenChange]);
 
   // Open Edit Modal with pre-filled fields
   const handleStartEdit = (booking: LocalBooking, e: React.MouseEvent) => {
@@ -178,40 +202,34 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
 
   return (
     <>
-      {/* Floating Pill on the Bottom-Left */}
-      <div className="fixed bottom-16 left-3 sm:bottom-6 sm:left-6 mb-[env(safe-area-inset-bottom,0px)] ml-[env(safe-area-inset-left,0px)] z-40 transition-all duration-300">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="group relative flex items-center gap-1.5 sm:gap-2 rounded-full border border-primary/50 bg-card/95 py-1.5 px-3 sm:py-2 sm:px-4 shadow-luxury backdrop-blur-xl ring-1 ring-white/10 hover:border-primary hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:scale-105 active:scale-95 transition-all text-foreground"
-          aria-label="View My Bookings"
-          title="My Bookings (Cached on device & synced with server)"
-        >
-          <div className="relative flex items-center justify-center">
-            <CalendarCheck className="size-4 sm:size-4.5 text-primary group-hover:text-emerald-300 transition-colors" />
-            {bookings.length > 0 && (
+      {/* Floating Pill on the Bottom-Left (Only shown if enabled and user has active bookings) */}
+      {!hideFloatingTrigger && bookings.length > 0 && (
+        <div className="fixed bottom-4 left-3 sm:bottom-6 sm:left-6 mb-[env(safe-area-inset-bottom,0px)] ml-[env(safe-area-inset-left,0px)] z-40 transition-all duration-300">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="group relative flex items-center gap-1.5 sm:gap-2 rounded-full border border-primary/50 bg-card/95 py-1.5 px-3 sm:py-2 sm:px-4 shadow-luxury backdrop-blur-xl ring-1 ring-white/10 hover:border-primary hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:scale-105 active:scale-95 transition-all text-foreground"
+            aria-label="View My Bookings"
+            title="My Bookings (Cached on device & synced with server)"
+          >
+            <div className="relative flex items-center justify-center">
+              <CalendarCheck className="size-4 sm:size-4.5 text-primary group-hover:text-emerald-300 transition-colors" />
               <span className="absolute -top-1 -right-1 flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-            )}
-          </div>
+            </div>
 
-          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground hidden sm:inline">
-            My Bookings
-          </span>
+            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+              My Bookings
+            </span>
 
-          {bookings.length > 0 ? (
             <span className="size-5 rounded-full bg-primary text-primary-foreground font-mono text-[10px] font-bold grid place-items-center shadow-sm">
               {bookings.length}
             </span>
-          ) : (
-            <span className="text-[10px] font-mono text-muted-foreground hidden sm:inline">
-              (0)
-            </span>
-          )}
-        </button>
-      </div>
+          </button>
+        </div>
+      )}
 
       {/* Main Bookings List Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
