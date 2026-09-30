@@ -179,11 +179,11 @@ export function MyBookingsDrawer({ onOpenVisitModal }: MyBookingsDrawerProps) {
   return (
     <>
       {/* Floating Pill on the Bottom-Left */}
-      <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 mb-[env(safe-area-inset-bottom,0px)] ml-[env(safe-area-inset-left,0px)] z-40 transition-all duration-300">
+      <div className="fixed bottom-16 left-3 sm:bottom-6 sm:left-6 mb-[env(safe-area-inset-bottom,0px)] ml-[env(safe-area-inset-left,0px)] z-40 transition-all duration-300">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="group relative flex items-center gap-2 rounded-full border border-primary/50 bg-card/95 py-2 px-3.5 sm:px-4 shadow-luxury backdrop-blur-xl ring-1 ring-white/10 hover:border-primary hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:scale-105 active:scale-95 transition-all text-foreground"
+          className="group relative flex items-center gap-1.5 sm:gap-2 rounded-full border border-primary/50 bg-card/95 py-1.5 px-3 sm:py-2 sm:px-4 shadow-luxury backdrop-blur-xl ring-1 ring-white/10 hover:border-primary hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:scale-105 active:scale-95 transition-all text-foreground"
           aria-label="View My Bookings"
           title="My Bookings (Cached on device & synced with server)"
         >

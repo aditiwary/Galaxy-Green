@@ -19,6 +19,7 @@
  */
 
 @theme inline {
+  --breakpoint-xs: 30rem;
   --font-sans:
     "Plus Jakarta Sans", "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -230,7 +231,10 @@
 }
 
 @utility section-shell {
-  padding: 5rem 1.25rem;
+  padding: 4rem 1rem;
+  @media (min-width: 30rem) {
+    padding: 4.5rem 1.25rem;
+  }
   @media (min-width: 48rem) {
     padding: 6.5rem 1.75rem;
   }

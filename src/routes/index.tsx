@@ -447,11 +447,11 @@ function Index() {
   return (
     <main
       id="home"
-      className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground"
+      className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground min-w-0 w-full max-w-full overflow-x-hidden"
     >
       {/* Top Header */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl transition-all pt-[env(safe-area-inset-top,0px)]">
-        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-3.5 sm:px-6 lg:px-8 min-w-0 gap-3">
+        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl xl:max-w-[1440px] items-center justify-between px-3 sm:px-6 lg:px-8 min-w-0 gap-2 sm:gap-3">
           <Logo />
 
           {/* Desktop Navigation for Ultra-Wide Displays (1380px+) */}
@@ -527,7 +527,7 @@ function Index() {
                 setSelectedPlotForVisit("1000 sq ft");
                 setSiteVisitOpen(true);
               }}
-              className="h-8.5 sm:h-9 px-2.5 sm:px-3.5 uppercase tracking-wider text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 btn-shimmer"
+              className="h-8.5 sm:h-9 px-2 sm:px-3.5 uppercase tracking-wider text-[11px] sm:text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow shrink-0 btn-shimmer"
             >
               Book Visit <ArrowRight className="size-3.5 ml-1 hidden xs:inline" />
             </Button>
@@ -535,7 +535,7 @@ function Index() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-8.5 sm:size-9 text-foreground hover:bg-surface rounded-lg border border-border/60"
+              className="size-8.5 sm:size-9 text-foreground hover:bg-surface rounded-lg border border-border/60 shrink-0"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               onClick={() => setMenuOpen((open) => !open)}
             >
@@ -1356,26 +1356,26 @@ function Index() {
       {/* Main Contact & Connected Lead Capture Section */}
       <section
         id="contact"
-        className="section-shell bg-surface border-t border-border pb-28 sm:pb-20"
+        className="section-shell bg-surface border-t border-border pb-28 sm:pb-20 min-w-0 w-full overflow-hidden"
       >
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:gap-12 lg:grid-cols-12 items-start">
-            <div className="lg:col-span-5 space-y-6">
+        <div className="mx-auto max-w-7xl min-w-0 w-full">
+          <div className="grid gap-8 lg:gap-12 lg:grid-cols-12 items-start min-w-0 w-full">
+            <div className="lg:col-span-5 space-y-6 min-w-0 w-full">
               <p className="eyebrow">09 · Direct Management Contact</p>
               <h2 className="section-title">Arrange Your Personal Site Tour</h2>
-              <p className="text-base text-muted-foreground leading-relaxed">
+              <p className="text-base text-muted-foreground leading-relaxed break-words">
                 Connect directly with the management team. Submit your requirement below to receive
                 verified layout sheets, schedule a personalized site visit, or discuss custom plot
                 boundaries.
               </p>
 
-              <div className="p-4 sm:p-6 rounded-xl bg-card border border-primary/40 shadow-glow space-y-4">
-                <div className="flex items-center gap-3">
+              <div className="p-4 sm:p-6 rounded-xl bg-card border border-primary/40 shadow-glow space-y-4 min-w-0 w-full">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="size-11 sm:size-12 rounded-full bg-primary/10 border border-primary/30 text-primary grid place-items-center shrink-0">
                     <User className="size-5 sm:size-6" />
                   </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block truncate">
                       Managing Director
                     </span>
                     <h4 className="font-display text-base sm:text-lg uppercase text-foreground font-semibold truncate">
@@ -1384,37 +1384,47 @@ function Index() {
                   </div>
                 </div>
 
-                <div className="space-y-2.5 text-xs font-mono pt-3 border-t border-border/60">
-                  <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="text-muted-foreground shrink-0">Direct Hotline:</span>
+                <div className="space-y-2.5 text-xs font-mono pt-3 border-t border-border/60 min-w-0">
+                  <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 py-1.5 border-b border-border/40 min-w-0">
+                    <span className="text-muted-foreground text-[11px] uppercase tracking-wider shrink-0">
+                      Direct Hotline:
+                    </span>
                     <a
                       href="tel:+919044412642"
-                      className="text-primary font-semibold hover:underline break-words"
+                      className="text-primary font-semibold hover:underline break-all xs:break-words xs:text-right font-mono"
                     >
                       +91 90444 12642
                     </a>
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="text-muted-foreground shrink-0">Head Office:</span>
-                    <span className="text-foreground text-right">
+                  <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-1 py-1.5 border-b border-border/40 min-w-0">
+                    <span className="text-muted-foreground text-[11px] uppercase tracking-wider shrink-0">
+                      Head Office:
+                    </span>
+                    <span className="text-foreground break-words xs:text-right min-w-0">
                       Barabirwa Ajanta Tower, Shop No. 35
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="text-muted-foreground shrink-0">Site Address:</span>
-                    <span className="text-foreground text-right">
+                  <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-1 py-1.5 border-b border-border/40 min-w-0">
+                    <span className="text-muted-foreground text-[11px] uppercase tracking-wider shrink-0">
+                      Site Address:
+                    </span>
+                    <span className="text-foreground break-words xs:text-right min-w-0">
                       Sai Suraksha Nagar, Amausi, Lucknow
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-1">
-                    <span className="text-muted-foreground shrink-0">Office Hours:</span>
-                    <span className="text-foreground">9:00 AM – 6:30 PM (Daily)</span>
+                  <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 py-1.5 min-w-0">
+                    <span className="text-muted-foreground text-[11px] uppercase tracking-wider shrink-0">
+                      Office Hours:
+                    </span>
+                    <span className="text-foreground break-words xs:text-right min-w-0">
+                      9:00 AM – 6:30 PM (Daily)
+                    </span>
                   </div>
                 </div>
 
                 <Button
                   asChild
-                  className="w-full h-11 uppercase text-xs tracking-wider font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="w-full h-11 uppercase text-xs tracking-wider font-semibold bg-emerald-600 hover:bg-emerald-500 text-white min-w-0"
                 >
                   <a
                     href={`https://wa.me/${PHONE}?text=${encodeURIComponent(
@@ -1422,15 +1432,17 @@ function Index() {
                     )}`}
                     target="_blank"
                     rel="noreferrer"
+                    className="flex items-center justify-center truncate"
                   >
-                    <MessageCircle className="size-4 mr-2" /> Chat Directly On WhatsApp
+                    <MessageCircle className="size-4 mr-2 shrink-0" />
+                    <span className="truncate">Chat Directly On WhatsApp</span>
                   </a>
                 </Button>
               </div>
             </div>
 
             {/* Connected Lead Capture Form */}
-            <div className="lg:col-span-7 bg-card border border-border rounded-xl p-4 sm:p-8">
+            <div className="lg:col-span-7 bg-card border border-border rounded-xl p-4 sm:p-8 min-w-0 w-full">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-6 pb-3 border-b border-border/80">
                 <h3 className="font-display text-lg sm:text-xl uppercase tracking-tight text-foreground">
                   Send Booking Inquiry
@@ -1784,7 +1796,7 @@ function Index() {
 
       {/* Luxury Floating Concierge Capsule */}
       <div
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 mb-[env(safe-area-inset-bottom,0px)] mr-[env(safe-area-inset-right,0px)] z-40 transition-all duration-300 ease-out ${
+        className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 mb-[env(safe-area-inset-bottom,0px)] mr-[env(safe-area-inset-right,0px)] z-40 transition-all duration-300 ease-out max-w-[calc(100vw-1.5rem)] ${
           isFloatingDockVisible
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 translate-y-6 pointer-events-none"
@@ -1811,7 +1823,7 @@ function Index() {
             <MessageCircle className="size-3.5 text-emerald-400 ml-0.5" />
           </button>
         ) : (
-          <div className="flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 pl-3 pr-2 shadow-luxury backdrop-blur-xl ring-1 ring-white/5 transition-all">
+          <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/80 bg-card/95 p-1 sm:p-1.5 pl-2.5 sm:pl-3 pr-1.5 sm:pr-2 shadow-luxury backdrop-blur-xl ring-1 ring-white/5 transition-all">
             <div className="hidden md:flex items-center gap-2 pr-2 border-r border-border/60">
               <div className="size-5 rounded-full overflow-hidden ring-1 ring-primary/40 bg-white/10 flex items-center justify-center p-0.5 shrink-0">
                 <img
@@ -1833,15 +1845,15 @@ function Index() {
                 setSiteVisitOpen(true);
               }}
               size="sm"
-              className="h-9 px-3.5 rounded-full uppercase tracking-wider text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border border-primary/50 btn-shimmer"
+              className="h-8.5 sm:h-9 px-2.5 sm:px-3.5 rounded-full uppercase tracking-wider text-[10px] sm:text-[11px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border border-primary/50 btn-shimmer shrink-0"
             >
-              <Calendar className="size-3.5 mr-1.5" /> Book Visit
+              <Calendar className="size-3 sm:size-3.5 mr-1 sm:mr-1.5" /> Book Visit
             </Button>
 
             <Button
               asChild
               size="icon"
-              className="size-9 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-transform hover:scale-105"
+              className="size-8.5 sm:size-9 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-transform hover:scale-105 shrink-0"
               aria-label="Chat directly on WhatsApp"
             >
               <a
@@ -1851,14 +1863,14 @@ function Index() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <MessageCircle className="size-4" />
+                <MessageCircle className="size-3.5 sm:size-4" />
               </a>
             </Button>
 
             <button
               type="button"
               onClick={() => setDockMinimized(true)}
-              className="size-6 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface flex items-center justify-center text-xs transition-colors ml-0.5"
+              className="size-6 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface flex items-center justify-center text-xs transition-colors ml-0.5 shrink-0"
               title="Minimize Concierge"
               aria-label="Minimize Concierge"
             >

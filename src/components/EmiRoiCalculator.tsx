@@ -184,10 +184,10 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 onValueChange={(val) => setDownPaymentPercent(val[0] ?? 20)}
                 className="py-2"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1">
-                <span>10% (Booking Token)</span>
-                <span>20% (Standard)</span>
-                <span>50% (Lower EMI)</span>
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1 gap-1">
+                <span>10% <span className="hidden xs:inline">(Booking Token)</span></span>
+                <span>20% <span className="hidden xs:inline">(Standard)</span></span>
+                <span>50% <span className="hidden xs:inline">(Lower EMI)</span></span>
               </div>
             </div>
 
@@ -197,7 +197,7 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 <span className="text-xs uppercase font-mono tracking-wider text-muted-foreground">
                   Bank Loan Tenure
                 </span>
-                <span className="text-lg font-display font-semibold text-foreground">
+                <span className="text-base sm:text-lg font-display font-semibold text-foreground">
                   {tenureYears} Years ({totalMonths} Months)
                 </span>
               </div>
@@ -209,9 +209,9 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 onValueChange={(val) => setTenureYears(val[0] ?? 10)}
                 className="py-2"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1">
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1 gap-1">
                 <span>3 Years</span>
-                <span>10 Years (Recommended)</span>
+                <span>10 Years <span className="hidden xs:inline">(Recommended)</span></span>
                 <span>15 Years</span>
               </div>
             </div>
@@ -222,7 +222,7 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 <span className="text-xs uppercase font-mono tracking-wider text-muted-foreground">
                   Bank Loan Interest Rate
                 </span>
-                <span className="text-lg font-display font-semibold text-primary font-mono">
+                <span className="text-base sm:text-lg font-display font-semibold text-primary font-mono">
                   {annualInterestRate.toFixed(2)}% p.a.
                 </span>
               </div>
@@ -237,10 +237,10 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 }}
                 className="py-2"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1">
-                <span>7.0% (Subsidized)</span>
-                <span>8.5% (SBI / HDFC Standard)</span>
-                <span>14.0% (NBFC)</span>
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono mt-1 gap-1">
+                <span>7.0% <span className="hidden xs:inline">(Subsidized)</span></span>
+                <span>8.5% <span className="hidden xs:inline">(Standard)</span></span>
+                <span>14.0% <span className="hidden xs:inline">(NBFC)</span></span>
               </div>
 
               {/* Quick Interest Presets */}

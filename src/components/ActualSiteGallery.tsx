@@ -341,24 +341,24 @@ export function ActualSiteGallery({ onScheduleVisit }: ActualSiteGalleryProps) {
           </div>
 
           {/* Quick Stats Pill */}
-          <div className="flex flex-wrap items-center gap-3 bg-surface/80 border border-border p-3.5 rounded-lg">
-            <div className="pr-4 border-r border-border">
+          <div className="grid grid-cols-1 xs:grid-cols-3 divide-y xs:divide-y-0 xs:divide-x divide-border/60 bg-surface/80 border border-border p-3 rounded-lg gap-2 xs:gap-0 min-w-0 w-full lg:w-auto">
+            <div className="pb-2 xs:pb-0 xs:pr-3">
               <span className="text-[10px] uppercase font-mono text-muted-foreground block">
                 Rate Per Sq Ft
               </span>
-              <strong className="text-xl font-display text-primary">₹1,199</strong>
+              <strong className="text-lg xs:text-xl font-display text-primary">₹1,199</strong>
             </div>
-            <div className="pr-4 border-r border-border">
+            <div className="py-2 xs:py-0 xs:px-3">
               <span className="text-[10px] uppercase font-mono text-muted-foreground block">
                 Plot Sizing
               </span>
-              <strong className="text-sm font-display text-foreground">600 Sq Ft to Custom</strong>
+              <strong className="text-sm font-display text-foreground block truncate">600 Sq Ft to Custom</strong>
             </div>
-            <div>
+            <div className="pt-2 xs:pt-0 xs:pl-3">
               <span className="text-[10px] uppercase font-mono text-muted-foreground block">
                 Registry & Possession
               </span>
-              <strong className="text-xs font-mono text-emerald-400 font-semibold">
+              <strong className="text-xs font-mono text-emerald-400 font-semibold block truncate">
                 Immediate (Dakhil Kharij)
               </strong>
             </div>
