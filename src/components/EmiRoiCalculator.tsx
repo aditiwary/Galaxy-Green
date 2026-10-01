@@ -114,6 +114,8 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 </span>
                 <div className="flex items-center gap-2">
                   <Input
+                    id="calculator-plot-area"
+                    aria-label="Custom plot area in square feet"
                     type="number"
                     min={600}
                     max={15000}
@@ -128,6 +130,8 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
               </div>
 
               <Slider
+                aria-label="Plot area slider from 600 to 4000 square feet"
+                thumbAriaLabel="Plot area in square feet"
                 value={[plotArea > 4000 ? 4000 : Math.max(600, plotArea)]}
                 min={600}
                 max={4000}
@@ -177,6 +181,8 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 </span>
               </div>
               <Slider
+                aria-label="Down payment percentage slider from 10 to 70 percent"
+                thumbAriaLabel="Down payment percentage"
                 value={[downPaymentPercent]}
                 min={10}
                 max={70}
@@ -202,6 +208,8 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 </span>
               </div>
               <Slider
+                aria-label="Bank loan tenure slider from 3 to 15 years"
+                thumbAriaLabel="Bank loan tenure in years"
                 value={[tenureYears]}
                 min={3}
                 max={15}
@@ -227,6 +235,8 @@ export function EmiRoiCalculator({ onLockPriceClick, baseRate = 1199 }: EmiRoiCa
                 </span>
               </div>
               <Slider
+                aria-label="Annual interest rate slider from 7 to 14 percent"
+                thumbAriaLabel="Annual interest rate percentage"
                 value={[annualInterestRate]}
                 min={7.0}
                 max={14.0}

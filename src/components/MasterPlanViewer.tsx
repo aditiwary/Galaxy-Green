@@ -162,7 +162,7 @@ export function MasterPlanViewer({ onSelectPlotForBooking }: MasterPlanViewerPro
                 {plot.isNagarNigam && (
                   <div className="mt-3 px-2.5 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5 text-emerald-400 text-[11px] font-semibold uppercase tracking-wider font-mono">
-                      <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="size-1.5 inline-block rounded-full bg-emerald-400 animate-pulse will-change-transform" />
                       Inside Nagar Nigam
                     </div>
                     <p className="text-[11px] text-emerald-200/90 font-medium leading-snug">

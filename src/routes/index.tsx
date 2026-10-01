@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef, type FormEvent } from "react";
+import { useState, useEffect, useRef, Suspense, lazy, type FormEvent } from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -65,13 +65,23 @@ import {
 import { MasterPlanViewer } from "@/components/MasterPlanViewer";
 import { ActualSiteGallery } from "@/components/ActualSiteGallery";
 import { EmiRoiCalculator } from "@/components/EmiRoiCalculator";
-import { SiteVisitModal } from "@/components/SiteVisitModal";
-import { BrochureModal } from "@/components/BrochureModal";
-import { AdminLeadsDrawer } from "@/components/AdminLeadsDrawer";
 import { LegalTrustBadge } from "@/components/LegalTrustBadge";
 import { AmenitiesSection } from "@/components/AmenitiesSection";
 import { ClockTimePicker } from "@/components/ClockTimePicker";
-import { MyBookingsDrawer } from "@/components/MyBookingsDrawer";
+
+// Lazy-loaded Overlay Modals (deferred until triggered to reduce critical JavaScript bundle size)
+const SiteVisitModal = lazy(() =>
+  import("@/components/SiteVisitModal").then((m) => ({ default: m.SiteVisitModal })),
+);
+const BrochureModal = lazy(() =>
+  import("@/components/BrochureModal").then((m) => ({ default: m.BrochureModal })),
+);
+const AdminLeadsDrawer = lazy(() =>
+  import("@/components/AdminLeadsDrawer").then((m) => ({ default: m.AdminLeadsDrawer })),
+);
+const MyBookingsDrawer = lazy(() =>
+  import("@/components/MyBookingsDrawer").then((m) => ({ default: m.MyBookingsDrawer })),
+);
 
 // Backend Client Service
 import { recordNewInquiry, fetchMarketBaseRate } from "@/lib/leads-client";
@@ -956,6 +966,10 @@ function Index() {
                 <img
                   src={villaImage}
                   alt="Modern luxury eco villa concept at Galaxy Green Sai Suraksha Nagar"
+                  width={1280}
+                  height={714}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
@@ -1123,6 +1137,10 @@ function Index() {
                 <img
                   src={connectivityImage}
                   alt="Galaxy Green strategic location map and connectivity to Chaudhary Charan Singh International Airport Lucknow"
+                  width={1000}
+                  height={625}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-transparent to-transparent pointer-events-none" />
@@ -1522,9 +1540,9 @@ function Index() {
                     <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block truncate">
                       Managing Director
                     </span>
-                    <h4 className="font-display text-base sm:text-lg uppercase text-foreground font-semibold truncate">
+                    <h3 className="font-display text-base sm:text-lg uppercase text-foreground font-semibold truncate">
                       Vishal Chauhan
-                    </h4>
+                    </h3>
                   </div>
                 </div>
 
@@ -1639,12 +1657,14 @@ function Index() {
 
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
-                    <label className="form-label mb-0">Plot Preference</label>
+                    <label htmlFor="contact-plot-preference" className="form-label mb-0 cursor-pointer">Plot Preference</label>
                     <span className="text-[10px] sm:text-xs font-mono text-emerald-400 font-medium">
                       ₹{baseRate.toLocaleString("en-IN")} / Sq Ft Base
                     </span>
                   </div>
                   <select
+                    id="contact-plot-preference"
+                    aria-label="Select plot size preference"
                     value={contactPlot}
                     onChange={(e) => setContactPlot(e.target.value)}
                     className="form-control block w-full px-4 text-xs font-mono"
@@ -1721,7 +1741,7 @@ function Index() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="form-label mb-0 flex items-center gap-1.5">
+                        <label htmlFor="contact-visit-date" className="form-label mb-0 flex items-center gap-1.5 cursor-pointer">
                           <Calendar className="size-3 text-primary" /> Calendar (Year / Month /
                           Date)
                         </label>
@@ -1732,6 +1752,8 @@ function Index() {
                         )}
                       </div>
                       <Input
+                        id="contact-visit-date"
+                        aria-label="Select preferred visit date"
                         type="date"
                         min={getLocalDateString()}
                         value={contactVisitDate}
@@ -1941,7 +1963,11 @@ function Index() {
               Download Brochure
             </button>
             <span>·</span>
-            <a href={`tel:+91${PHONE}`} className="hover:text-foreground uppercase">
+            <a
+              href={`tel:+${PHONE}`}
+              aria-label="Call sales office at +91 90444 12642"
+              className="hover:text-foreground uppercase"
+            >
               +91 90444 12642
             </a>
             <span>·</span>
@@ -2053,20 +2079,26 @@ function Index() {
       </div>
 
       {/* Interactive Modals */}
-      <MyBookingsDrawer
-        open={myBookingsOpen}
-        onOpenChange={setMyBookingsOpen}
-        onOpenVisitModal={() => setSiteVisitOpen(true)}
-        hideFloatingTrigger={true}
-      />
-      <SiteVisitModal
-        open={siteVisitOpen}
-        onOpenChange={setSiteVisitOpen}
-        defaultPlotPreference={selectedPlotForVisit}
-        baseRate={baseRate}
-      />
-      <BrochureModal open={brochureOpen} onOpenChange={setBrochureOpen} />
-      <AdminLeadsDrawer open={adminOpen} onOpenChange={setAdminOpen} />
+      <Suspense fallback={null}>
+        {myBookingsOpen && (
+          <MyBookingsDrawer
+            open={myBookingsOpen}
+            onOpenChange={setMyBookingsOpen}
+            onOpenVisitModal={() => setSiteVisitOpen(true)}
+            hideFloatingTrigger={true}
+          />
+        )}
+        {siteVisitOpen && (
+          <SiteVisitModal
+            open={siteVisitOpen}
+            onOpenChange={setSiteVisitOpen}
+            defaultPlotPreference={selectedPlotForVisit}
+            baseRate={baseRate}
+          />
+        )}
+        {brochureOpen && <BrochureModal open={brochureOpen} onOpenChange={setBrochureOpen} />}
+        {adminOpen && <AdminLeadsDrawer open={adminOpen} onOpenChange={setAdminOpen} />}
+      </Suspense>
 
       {/* Full Screen High-Definition Airport & Connectivity Modal */}
       {airportModalOpen && (

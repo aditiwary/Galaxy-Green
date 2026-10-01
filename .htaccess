@@ -1,0 +1,69 @@
+# ==============================================================================
+# Galaxy Green — Production LiteSpeed / Apache Configuration
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Ensure Authorization header is passed to Node.js / TanStack Start
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # Allow internal TanStack Start server functions without 403 Forbidden
+  RewriteCond %{REQUEST_URI} ^/_serverFn
+  RewriteRule ^ - [L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# Security Headers (Best Practices 100/100)
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+
+  # Immutable caching for hashed assets and media
+  <FilesMatch "\.(ico|jpe?g|png|gif|svg|webp|avif|woff2|css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# Browser Cache Expiry (Performance 100/100)
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+
+  # Images & Emblems (1 year)
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/avif "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+
+  # Web Fonts (1 year)
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+
+  # Compiled CSS & JS (1 year)
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+
+  # Web Manifests (1 week)
+  ExpiresByType application/manifest+json "access plus 1 week"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# MIME Type Registration
+# ------------------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/svg+xml .svg
+  AddType application/manifest+json .webmanifest
+  AddType application/manifest+json .json
+</IfModule>

@@ -25,6 +25,10 @@ fs.mkdirSync(distDir, { recursive: true });
 console.log("2. Copying compiled .output and public assets to staging...");
 execSync(`cp -R .output "${distDir}/"`);
 execSync(`cp -R .output/public "${distDir}/public"`);
+if (fs.existsSync(".htaccess")) {
+  fs.copyFileSync(".htaccess", path.join(distDir, ".htaccess"));
+  fs.copyFileSync(".htaccess", path.join(distDir, "public/.htaccess"));
+}
 
 // 4. Create server.js (cPanel Passenger entry point)
 const serverJs = `// cPanel / Phusion Passenger Node.js Startup File
