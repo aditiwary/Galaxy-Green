@@ -22,3 +22,7 @@ Galaxy Green (Sai Suraksha Nagar, Madhurawada, Visakhapatnam) is a luxury plotte
    - Git synchronization: Commit all modified project files with descriptive message and push to GitHub `origin main`.
    - Localhost preview: Ensure local dev server is active and open `http://localhost:8080`.
 6. **Mandatory Git Push Protocol**: Whenever ANY code or asset change is made, the agent must immediately commit all changes with a descriptive commit message and push to GitHub `origin main`.
+7. **Strict Multi-Window & Multi-Project Isolation**:
+   - The agent must always verify and operate exclusively within the designated project directory (`/Users/rajadityaaa23/Downloads/Galaxy_Green_V101`).
+   - Even when multiple windows or editor tabs of different projects (e.g., `DEVYRO`) are open concurrently, never touch, modify, inspect, or execute commands in any other project folder.
+   - Maintain dedicated port separation (Port 8080 for Galaxy Green) to guarantee that local server instances and background processes never cross-talk or conflict.
