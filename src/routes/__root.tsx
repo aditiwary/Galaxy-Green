@@ -413,11 +413,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:image",
         content: "https://galaxygreen.in/galaxy-green-logo.jpg",
       },
+      { name: "theme-color", content: "#020907" },
+      { name: "msapplication-TileImage", content: "/android-chrome-192x192.png" },
     ],
     links: [
       {
         rel: "canonical",
         href: "https://galaxygreen.in/",
+      },
+      {
+        rel: "manifest",
+        href: "/site.webmanifest",
       },
       {
         rel: "stylesheet",
@@ -429,7 +435,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
       { rel: "icon", href: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
       { rel: "icon", href: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
